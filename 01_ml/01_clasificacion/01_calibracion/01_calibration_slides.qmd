@@ -6,6 +6,7 @@ format:
         theme: [default, custom.scss]
         logo: logo-uba.jpeg
         footer: Facultad de Ciencias Económicas - UBA
+        self-contained: true
 #format: beamer
 jupyter: 
   kernelspec:
