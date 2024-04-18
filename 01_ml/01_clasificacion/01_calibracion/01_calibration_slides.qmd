@@ -1,0 +1,528 @@
+---
+title: "Calibración de probabilidades"
+subttile: "Estimación de mora mediante modelos de machine learning"
+format: 
+    revealjs:
+        theme: [default, custom.scss]
+        logo: logo-uba.jpeg
+        footer: Facultad de Ciencias Económicas - UBA
+#format: beamer
+jupyter: 
+  kernelspec:
+    name: "quarto-env"
+    language: "python"
+    display_name: "quarto-env"
+execute:
+  echo: false
+  warning: false
+  code-fold: false
+  layout-align: center
+---
+
+```{python}
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from collections import Counter
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.compose import make_column_selector
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
+from sklearn.calibration import calibration_curve, CalibratedClassifierCV
+from sklearn.metrics import (
+    classification_report,
+    roc_auc_score,
+    roc_curve,
+    RocCurveDisplay,
+    log_loss,
+    recall_score,
+    brier_score_loss,
+    confusion_matrix,
+    ConfusionMatrixDisplay,
+)
+from IPython.display import display
+from custom_functions import (
+    plot_distribution, plot_calibration_models, gain_table
+)
+
+import sklearn
+sklearn.set_config(transform_output="pandas")
+```
+
+```{python}
+#| echo: false
+#| code-fold: false
+
+color_verde = "#255255"
+color_verde_claro = "#BDCBCC"
+
+th_props = [
+  ('font-size', '12px'),
+  ('text-align', 'left'),
+  ('font-weight', 'bold'),
+  ('color', color_verde),
+  ('background-color', color_verde_claro),
+  ('border',f'1px solid {color_verde_claro}'),
+  #('padding','12px 35px')
+]
+
+td_props = [
+  ('font-size', '14px'),
+  ('text-align', 'center'),
+]
+
+cell_hover_props = [  # for row hover use <tr> instead of <td>
+    ('background-color', color_verde_claro)
+]
+
+headers_props = [
+    ('text-align','center'),
+    ('font-size','1.1em')
+]
+#dict(selector='th:not(.index_name)',props=headers_props)
+
+styles = [
+    dict(selector="th", props=th_props),
+    dict(selector="td", props=td_props),
+    dict(selector="td:hover",props=cell_hover_props),
+    # dict(selector='th.col_heading',props=headers_props),
+    dict(selector='th.col_heading.level0',props=headers_props),
+    dict(selector='th.col_heading.level1',props=td_props)
+]
+```
+
+# Introducción a machine learning
+
+::: {style="font-size: 50%;"}
+## ¿Qué es un modelo de clasificación?
+
+Se busca predecir la [probabilidad de ocurrencia]{style="color: blue"} de un evento a partir de ciertas características observables:
+
+> $P(y=1) = f(X)$
+>
+> *Siendo y una variable que puede tomar 2 valores: 0 o 1*
+
+<br> **Ejemplos de clasificación:**
+
+-   [Titanic]{style="color: blue"}: Probabilidad de supervivencia
+-   [Iris]{style="color: blue"}: Clasificación de especies de plantas
+-   [German Credit]{style="color: blue"}: Probabilidad de default
+:::
+
+## Ejemplo: caso Titanic
+
+::: {style="font-size: 50%;"}
+
+Se consideran datos de [OpenML: Titanic](https://www.openml.org/search?type=data&status=active&id=43906) para ajustar un modelo que clasifique a individuos en sobrevivientes o no sobrevivientes del Titanic.
+
+::: columns
+::: {.column width="50%"}
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Código"
+#| tbl-cap: "Datos de Titanic (muestra de 8 observaciones)"
+#| label: tbl-titanic
+data = datasets.fetch_openml(name="titanic", version=1)
+y = data.target.astype("int")
+X = (data.data[["age", "sex"]]
+    # Construcción de dummy de sex=mujer
+    .assign(d_mujer=lambda df: [1 if i == "female" else 0 for i in df["sex"]])
+    .drop("sex", axis=1)
+)
+
+(pd.concat([y, X], axis=1)
+    .head(10)
+    .style.format(precision=2).hide(axis=0)
+    .set_table_styles(styles)
+)
+```
+:::
+
+::: {.column width="50%"}
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Código"
+#| layout-align: center
+#| fig-cap: "Modelo de árbol de decisión"
+#| label: fig-decision-tree
+clf = DecisionTreeClassifier(max_depth=1).fit(X, y)
+plt.figure(figsize=(4.5, 4.5))
+plot_tree(
+    clf,
+    filled=True,
+    impurity=False,
+    feature_names=X.columns.tolist(),
+    class_names=["Sobrevivió", "No sobrevivió"],
+);
+```
+:::
+:::
+
+A partir de los datos de la @tbl-titanic, el modelo de la @fig-decision-tree (profundidad=1) utiliza la variable de género para clasificar a los tripulantes del Titanic según supervivencia. Según el modelo, las mujeres sobreviven y los hombres no.
+:::
+
+
+## Ejemplo (Cont.)
+
+::: {style="font-size: 50%;"}
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Ver código"
+#| layout-align: center
+#| layout-ncol: 2
+y_pred = clf.predict(X)
+ConfusionMatrixDisplay(
+    confusion_matrix=confusion_matrix(y_true=y, y_pred=y_pred),
+    display_labels=clf.classes_
+).plot();
+
+# Curva ROC
+y_pred_proba = clf.predict_proba(X)[:, 1]
+fpr, tpr, _ = roc_curve(y, y_pred_proba)
+roc_display = RocCurveDisplay(fpr=fpr, tpr=tpr).plot()
+```
+
+:::
+
+# Caso: German Credit
+
+## Datos
+
+::: {style="font-size: 50%;"}
+
+```{python}
+PATH_DATA = 'https://raw.githubusercontent.com/ayseceyda/german-credit-gini-analysis/master/gc.csv'
+CLASE = "Risk"
+```
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Código"
+#| tbl-cap: "Datos de German Credit (muestra de 6 observaciones)"
+#| label: tbl-credit-data
+df = (pd.read_csv(PATH_DATA)
+  .drop('Unnamed: 0', axis=1)
+  .assign(Risk = lambda x: np.where(x['Risk']=='good',0,1))
+)
+print(f"Se cuenta con un dataset de {df.shape[0]} observaciones y {df.shape[1]} variables \n")
+
+df.sample(6, random_state=42).style.format(precision=2).hide(axis=0).set_table_styles(styles)
+```
+
+:::
+
+## Particiones
+::: {style="font-size: 50%;"}
+
+Partición en dataset de entrenamiento, validación y evaluación.
+
+- Dataset de entrenamiento --> Ajuste del modelo
+- Dataset de validación --> Calibración del modelo
+- Dataset de evaluación --> Métricas del modelo calibrado
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Código"
+#| label: particiones
+y = df[CLASE]
+X = df.drop([CLASE], axis=1)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.5, shuffle=True, stratify=y, random_state=42
+)
+
+# Lo ideal es utilizar la partición de validación para calibración
+X_valid, X_test, y_valid, y_test = train_test_split(
+    X_test, y_test, test_size=0.5, shuffle=True, stratify=y_test, random_state=42
+)
+
+print(f"N observaciones en entrenamiento: {X_train.shape[0]}")
+print(f"N observaciones en validación: {X_valid.shape[0]}")
+print(f"N observaciones en evaluación: {X_test.shape[0]}")
+```
+
+::: 
+
+## Preprocesamiento
+
+::: {style="font-size: 50%;"}
+
+Se construye un pipeline de preprocesamiento de variables, diferenciando el procesamiento de variables categóricas y numéricas
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Ver código"
+numeric_transformer = Pipeline([
+    ('impute', SimpleImputer(strategy='median')),
+    ('scaler', MinMaxScaler())
+])
+
+categorical_transformer = Pipeline([
+    ('ohe',OneHotEncoder(
+        min_frequency=0.05,
+        handle_unknown='infrequent_if_exist',
+        sparse_output=False)
+    )
+])
+
+preproc = ColumnTransformer([
+    ('num', numeric_transformer,
+      make_column_selector(dtype_include=['float','int'])),
+    ('cat', categorical_transformer,
+      make_column_selector(dtype_include=['object','category']))
+], verbose_feature_names_out=False)
+```
+
+```{python}
+#| echo: false
+#| code-fold: false
+#| classes: custom_class_html_display
+preproc
+```
+
+::: 
+
+## Modelado
+
+```{python}
+model = RandomForestClassifier(random_state=42)
+model = LogisticRegression(random_state=42)
+model = HistGradientBoostingClassifier(
+    random_state=42,
+    max_depth=4,
+    learning_rate=0.1,
+    class_weight={1:1,0:1}, # Sin pesos para las clases
+    max_iter=1000
+)
+
+pipe = Pipeline([
+    ('preproc', preproc),
+    ('model', model)
+])
+pipe.fit(X_train, y_train)
+```
+
+## Evaluación
+
+
+```{python}
+print(classification_report(y_test, pipe.predict(X_test)))
+```
+
+# Calibración de probabilidades
+
+::: {style="font-size: 50%;"}
+
+## Calibración de probabilidades
+
+Se realiza la calibración del modelo (preajustado) mediante 2 métodos: sigmoide e isotónico. Notar que la probabilidad promedio predicha mediante los modelos claibrados se corresponde con el % de clase positiva observado en el dataset de entrenamiento.
+
+**Métodos**
+
+- Calibración sigmoide
+- Calibración isotónica
+
+**Referencias:**
+
+- [Calibración de probabilidades en {scikit-learn} 📦 ](https://scikit-learn.org/stable/modules/calibration.html)
+
+:::
+
+::: {style="font-size: 50%;"}
+
+
+## Calibración sigmoide
+
+Este método se basa en el modelo de regresión logística(Platt's):
+
+> $P(y_{i}=1) = \frac{1}{1+(e^{α+β(pred_{i})})}$
+>
+> Siendo: $y_{i}$ la probabilidad calibrada para el individuo $i$ $pred_{i}$ el output del modelo no calibrado
+
+En general este método es efectivo para muestras pequeñas o cuando el modelo no calibrado tiene errores de similares en predicciones de valores bajos y altos.
+
+**Referencias:**
+
+- Platt, John. (2000). Probabilistic Outputs for Support Vector Machines and Comparisons to Regularized Likelihood Methods. Adv. Large Margin Classif, Volume 10.
+
+:::
+
+## Calibración sigmoide (Cont.)
+::: {style="font-size: 50%;"}
+
+```{python}
+pipe_sigmoid = CalibratedClassifierCV(pipe, cv='prefit', method="sigmoid")
+pipe_sigmoid.fit(X_valid, y_valid)
+
+prob_pos_sigmoid = pipe_sigmoid.predict_proba(X_test)[:, 1]
+preds = pd.DataFrame({
+    'y_obs': y_test,
+    'pred_class': pipe.predict(X_test),
+    'pred_prob': pipe.predict_proba(X_test)[:,1],
+    'pred_sigmoid': prob_pos_sigmoid,
+    'pred_class_sigmoid': [1 if i>0.5 else 0 for i in prob_pos_sigmoid],
+})
+
+plt.figure(figsize=(10,5))
+sns.regplot(
+    x="pred_prob", y="y_obs", data=preds.sample(250, random_state=42),
+    logistic=True, color='darkblue', scatter_kws={'alpha':0.3}
+)
+
+plt.axvline(x=preds.pred_prob.mean(), c='blue', label='Prob promedio modelo original')
+plt.axvline(x=y_test.sum()/len(y_test), c='red', label='% clase 1 ~ prob promedio calibrada')
+plt.axvline(x=prob_pos_sigmoid.mean(), c='green', label='Prob promedio calibrada')
+plt.title('Probabilidad modelo original vs probabilidad con calibración')
+plt.xlabel('Probabilidad predicha (sin calibración)')
+plt.ylabel('Valor observado / Probabilidad calibrada')
+plt.legend();
+```
+
+:::
+
+::: {style="font-size: 50%;"}
+
+
+## Calibración isotónica
+
+```{python}
+pipe_isotonic = CalibratedClassifierCV(pipe, cv='prefit', method="isotonic")
+pipe_isotonic.fit(X_valid, y_valid)
+```
+
+
+```{python}
+prob_pos_sigmoid = pipe_sigmoid.predict_proba(X_test)[:, 1]
+prob_pos_isotonic = pipe_isotonic.predict_proba(X_test)[:, 1]
+
+preds = pd.DataFrame({
+    'y_obs': y_test,
+    'pred_class': pipe.predict(X_test),
+    'pred_prob': pipe.predict_proba(X_test)[:,1],
+    'pred_sigmoid': prob_pos_sigmoid,
+    'pred_class_sigmoid': [1 if i>0.5 else 0 for i in prob_pos_sigmoid],
+    'pred_isotonic': prob_pos_isotonic,
+    'pred_class_isotonic': [1 if i>0.5 else 0 for i in prob_pos_isotonic],
+})
+
+print(f'% observado: {y_test.sum()/len(y_test):.3}')
+print(f'Prob promedio: {preds.pred_prob.mean():.3}')
+print(f'Prob promedio (calibración sigmoide): {prob_pos_sigmoid.mean():.3}')
+print(f'Prob promedio (calibración isotónica): {prob_pos_isotonic.mean():.3}')
+```
+
+
+
+:::
+
+## Comparación de modelos
+::: {style="font-size: 50%;"}
+
+
+```{python}
+# Métricas de ordenamiento
+print(f"ROC AUC modelo={roc_auc_score(y_test, preds.pred_prob):.3f}")
+print(f"ROC AUC modelo calibrado={roc_auc_score(y_test, preds.pred_sigmoid):.3f}")
+
+# Métricas de probabilidad
+print(f"Log loss modelo={log_loss(y_test, preds.pred_prob):.3f}")
+print(f"Log loss modelo calibrado={log_loss(y_test, preds.pred_sigmoid):.3f}")
+print(f"Brier modelo={brier_score_loss(y_test, preds.pred_prob):.3f}")
+print(f"Brier modelo calibrado={brier_score_loss(y_test, preds.pred_sigmoid):.3f}")
+
+# Métricas de clasificación (tomando como punto de corte prob=0.5)
+print(f"Recall modelo={recall_score(y_test, preds.pred_class):.3f}")
+print(f"Recall modelo calibrado={recall_score(y_test, preds.pred_class_sigmoid):.3f}")
+```
+
+Se visualizan las distribuciones de probabilidad predicha según el modelo calibrado y no calibrado.
+
+```{python}
+plot_distribution(
+    data=preds, pred_column='pred_prob', subtitle='Modelo sin calibración'
+)
+plot_distribution(
+    data=preds, pred_column='pred_sigmoid', subtitle='Modelo calibrado (sigmoide)'
+)
+```
+
+:::
+
+## Visualización
+::: {style="font-size: 50%;"}
+
+
+```{python}
+#| layout-ncol: 2
+BINS = int(np.sqrt(preds.shape[0])/2)
+plot_calibration_models(
+        y_obs=preds['y_obs'],
+        y_pred_prob=preds['pred_prob'],
+        y_pred_prob_cal=preds['pred_sigmoid'],
+        bins=BINS,
+        strategy='uniform'
+    )
+
+plot_calibration_models(
+        y_obs=preds['y_obs'],
+        y_pred_prob=preds['pred_prob'],
+        y_pred_prob_cal=preds['pred_isotonic'],
+        bins=BINS,
+        strategy='uniform'
+    )
+```
+
+:::
+
+## Tablas de ganancias
+::: {style="font-size: 50%;"}
+
+Se busca un modelo en donde la probabilidad promedio de cada bin se corresponda con el % de clase positiva observado en ese bin según las predicciones del modelo.
+
+Esto es útil para la toma de decisiones, ya que permite establecer punto de cortes diferenciales en función de la aversión en riesgo de la entidad.
+
+Por ejemplo:
+
+- En un modelo de scoring crediticio, otorgarle créditos a N individuos con probabilidad en cierto intervalo tiene un riesgo asociado (mora esperada)
+- En un modelo de churn (abandono) de clientes, otorgarle una promoción a individuos de cierto intervalo de probabilidad de abandono tiene un costo asociado (descuento para individuos que no abandonarían)
+- Entre otros.
+
+:::
+
+## Tabla de ganancias (Cont.)
+::: {style="font-size: 50%;"}
+
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Código"
+#| tbl-cap: "Tabla de ganancias (modelo no calibrado)"
+#| label: tbl-gain
+gain_table(preds=preds, bins=5)
+```
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Código"
+#| tbl-cap: "Tabla de ganancias (calibración sigmoide)"
+#| label: tbl-gain-sigmoid
+gain_table(preds=preds, pred_column='pred_sigmoid', bins=5)
+```
+
+:::

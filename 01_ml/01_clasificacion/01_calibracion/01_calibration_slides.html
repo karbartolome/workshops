@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="01_calibration_slides_files/libs/clipboard/clipboard.min.js"></script>
+<script src="01_calibration_slides_files/libs/quarto-html/tabby.min.js"></script>
+<script src="01_calibration_slides_files/libs/quarto-html/popper.min.js"></script>
+<script src="01_calibration_slides_files/libs/quarto-html/tippy.umd.min.js"></script>
+<link href="01_calibration_slides_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="01_calibration_slides_files/libs/quarto-html/light-border.css" rel="stylesheet">
+<link href="01_calibration_slides_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
+<link href="01_calibration_slides_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.4.553">
+
+  <title>Calibración de probabilidades</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="01_calibration_slides_files/libs/revealjs/dist/reset.css">
+  <link rel="stylesheet" href="01_calibration_slides_files/libs/revealjs/dist/reveal.css">
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      { color: #003b4f; background-color: #f1f3f5; }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #003b4f; } /* Normal */
+    code span.al { color: #ad0000; } /* Alert */
+    code span.an { color: #5e5e5e; } /* Annotation */
+    code span.at { color: #657422; } /* Attribute */
+    code span.bn { color: #ad0000; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #003b4f; } /* ControlFlow */
+    code span.ch { color: #20794d; } /* Char */
+    code span.cn { color: #8f5902; } /* Constant */
+    code span.co { color: #5e5e5e; } /* Comment */
+    code span.cv { color: #5e5e5e; font-style: italic; } /* CommentVar */
+    code span.do { color: #5e5e5e; font-style: italic; } /* Documentation */
+    code span.dt { color: #ad0000; } /* DataType */
+    code span.dv { color: #ad0000; } /* DecVal */
+    code span.er { color: #ad0000; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #ad0000; } /* Float */
+    code span.fu { color: #4758ab; } /* Function */
+    code span.im { color: #00769e; } /* Import */
+    code span.in { color: #5e5e5e; } /* Information */
+    code span.kw { color: #003b4f; } /* Keyword */
+    code span.op { color: #5e5e5e; } /* Operator */
+    code span.ot { color: #003b4f; } /* Other */
+    code span.pp { color: #ad0000; } /* Preprocessor */
+    code span.sc { color: #5e5e5e; } /* SpecialChar */
+    code span.ss { color: #20794d; } /* SpecialString */
+    code span.st { color: #20794d; } /* String */
+    code span.va { color: #111111; } /* Variable */
+    code span.vs { color: #20794d; } /* VerbatimString */
+    code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="01_calibration_slides_files/libs/revealjs/dist/theme/quarto.css">
+  <link href="01_calibration_slides_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
+  <link href="01_calibration_slides_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
+  <link href="01_calibration_slides_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="01_calibration_slides_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
+  <style type="text/css">
+
+  .callout {
+    margin-top: 1em;
+    margin-bottom: 1em;  
+    border-radius: .25rem;
+  }
+
+  .callout.callout-style-simple { 
+    padding: 0em 0.5em;
+    border-left: solid #acacac .3rem;
+    border-right: solid 1px silver;
+    border-top: solid 1px silver;
+    border-bottom: solid 1px silver;
+    display: flex;
+  }
+
+  .callout.callout-style-default {
+    border-left: solid #acacac .3rem;
+    border-right: solid 1px silver;
+    border-top: solid 1px silver;
+    border-bottom: solid 1px silver;
+  }
+
+  .callout .callout-body-container {
+    flex-grow: 1;
+  }
+
+  .callout.callout-style-simple .callout-body {
+    font-size: 1rem;
+    font-weight: 400;
+  }
+
+  .callout.callout-style-default .callout-body {
+    font-size: 0.9rem;
+    font-weight: 400;
+  }
+
+  .callout.callout-titled.callout-style-simple .callout-body {
+    margin-top: 0.2em;
+  }
+
+  .callout:not(.callout-titled) .callout-body {
+      display: flex;
+  }
+
+  .callout:not(.no-icon).callout-titled.callout-style-simple .callout-content {
+    padding-left: 1.6em;
+  }
+
+  .callout.callout-titled .callout-header {
+    padding-top: 0.2em;
+    margin-bottom: -0.2em;
+  }
+
+  .callout.callout-titled .callout-title  p {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+    
+  .callout.callout-titled.callout-style-simple .callout-content  p {
+    margin-top: 0;
+  }
+
+  .callout.callout-titled.callout-style-default .callout-content  p {
+    margin-top: 0.7em;
+  }
+
+  .callout.callout-style-simple div.callout-title {
+    border-bottom: none;
+    font-size: .9rem;
+    font-weight: 600;
+    opacity: 75%;
+  }
+
+  .callout.callout-style-default  div.callout-title {
+    border-bottom: none;
+    font-weight: 600;
+    opacity: 85%;
+    font-size: 0.9rem;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+  }
+
+  .callout.callout-style-default div.callout-content {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+  }
+
+  .callout.callout-style-simple .callout-icon::before {
+    height: 1rem;
+    width: 1rem;
+    display: inline-block;
+    content: "";
+    background-repeat: no-repeat;
+    background-size: 1rem 1rem;
+  }
+
+  .callout.callout-style-default .callout-icon::before {
+    height: 0.9rem;
+    width: 0.9rem;
+    display: inline-block;
+    content: "";
+    background-repeat: no-repeat;
+    background-size: 0.9rem 0.9rem;
+  }
+
+  .callout-title {
+    display: flex
+  }
+    
+  .callout-icon::before {
+    margin-top: 1rem;
+    padding-right: .5rem;
+  }
+
+  .callout.no-icon::before {
+    display: none !important;
+  }
+
+  .callout.callout-titled .callout-body > .callout-content > :last-child {
+    padding-bottom: 0.5rem;
+    margin-bottom: 0;
+  }
+
+  .callout.callout-titled .callout-icon::before {
+    margin-top: .5rem;
+    padding-right: .5rem;
+  }
+
+  .callout:not(.callout-titled) .callout-icon::before {
+    margin-top: 1rem;
+    padding-right: .5rem;
+  }
+
+  /* Callout Types */
+
+  div.callout-note {
+    border-left-color: #4582ec !important;
+  }
+
+  div.callout-note .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAEU0lEQVRYCcVXTWhcVRQ+586kSUMMxkyaElstCto2SIhitS5Ek8xUKV2poatCcVHtUlFQk8mbaaziwpWgglJwVaquitBOfhQXFlqlzSJpFSpIYyXNjBNiTCck7x2/8/LeNDOZxDuEkgOXe++553zfefee+/OYLOXFk3+1LLrRdiO81yNqZ6K9cG0P3MeFaMIQjXssE8Z1JzLO9ls20MBZX7oG8w9GxB0goaPrW5aNMp1yOZIa7Wv6o2ykpLtmAPs/vrG14Z+6d4jpbSKuhdcSyq9wGMPXjonwmESXrriLzFGOdDBLB8Y6MNYBu0dRokSygMA/mrun8MGFN3behm6VVAwg4WR3i6FvYK1T7MHo9BK7ydH+1uurECoouk5MPRyVSBrBHMYwVobG2aOXM07sWrn5qgB60rc6mcwIDJtQrnrEr44kmy+UO9r0u9O5/YbkS9juQckLed3DyW2XV/qWBBB3ptvI8EUY3I9p/67OW+g967TNr3Sotn3IuVlfMLVnsBwH4fsnebJvyGm5GeIUA3jljERmrv49SizPYuq+z7c2H/jlGC+Ghhupn/hcapqmcudB9jwJ/3jvnvu6vu5lVzF1fXyZuZZ7U8nRmVzytvT+H3kilYvH09mLWrQdwFSsFEsxFVs5fK7A0g8gMZjbif4ACpKbjv7gNGaD8bUrlk8x+KRflttr22JEMRUbTUwwDQScyzPgedQHZT0xnx7ujw2jfVfExwYHwOsDTjLdJ2ebmeQIlJ7neo41s/DrsL3kl+W2lWvAga0tR3zueGr6GL78M3ifH0rGXrBC2aAR8uYcIA5gwV8zIE8onoh8u0Fca/ciF7j1uOzEnqcIm59sEXoGc0+z6+H45V1CvAvHcD7THztu669cnp+L0okAeIc6zjbM/24LgGM1gZk7jnRu1aQWoU9sfUOuhrmtaPIO3YY1KLLWZaEO5TKUbMY5zx8W9UJ6elpLwKXbsaZ4EFl7B4bMtDv0iRipKoDQT2sNQI9b1utXFdYisi+wzZ/ri/1m7QfDgEuvgUUEIJPq3DhX/5DWNqIXDOweC2wvIR90Oq3lDpdMIgD2r0dXvGdsEW5H6x6HLRJYU7C69VefO1x8Gde1ZFSJLfWS1jbCnhtOPxmpfv2LXOA2Xk2tvnwKKPFuZ/oRmwBwqRQDcKNeVQkYcOjtWVBuM/JuYw5b6isojIkYxyYAFn5K7ZBF10fea52y8QltAg6jnMqNHFBmGkQ1j+U43HMi2xMar1Nv0zGsf1s8nUsmUtPOOrbFIR8bHFDMB5zL13Gmr/kGlCkUzedTzzmzsaJXhYawnA3UmARpiYj5ooJZiUoxFRtK3X6pgNPv+IZVPcnwbOl6f+aBaO1CNvPW9n9LmCp01nuSaTRF2YxHqZ8DYQT6WsXT+RD6eUztwYLZ8rM+rcPxamv1VQzFUkzFXvkiVrySGQgJNvXHJAxiU3/NwiC03rSf05VBaPtu/Z7/B8Yn/w7eguloAAAAAElFTkSuQmCC');
+  }
+
+  div.callout-note.callout-style-default .callout-title {
+    background-color: #dae6fb
+  }
+
+  div.callout-important {
+    border-left-color: #d9534f !important;
+  }
+
+  div.callout-important .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAEKklEQVRYCcVXTWhcVRS+575MJym48A+hSRFr00ySRQhURRfd2HYjk2SSTokuBCkU2o0LoSKKraKIBTcuFCoidGFD08nkBzdREbpQ1EDNIv8qSGMFUboImMSZd4/f9zJv8ibJMC8xJQfO3HPPPef7zrvvvnvviIkpC9nsw0UttFunbUhpFzFtarSd6WJkStVMw5xyVqYTvkwfzuf/5FgtkVoB0729j1rjXwThS7Vio+Mo6DNnvLfahoZ+i/o32lULuJ3NNiz7q6+pyAUkJaFF6JwaM2lUJlV0MlnQn5aTRbEu0SEqHUa0A4AdiGuB1kFXRfVyg5d87+Dg4DL6m2TLAub60ilj7A1Ec4odSAc8X95sHh7+ZRPCFo6Fnp7HfU/fBng/hi10CjCnWnJjsxvDNxWw0NfV6Rv5GgP3I3jGWXumdTD/3cbEOP2ZbOZp69yniG3FQ9z1jD7bnBu9Fc2tKGC2q+uAJOQHBDRiZX1x36o7fWBs7J9ownbtO+n0/qWkvW7UPIfc37WgT6ZGR++EOJyeQDSb9UB+DZ1G6DdLDzyS+b/kBCYGsYgJbSQHuThGKRcw5xdeQf8YdNHsc6ePXrlSYMBuSIAFTGAtQo+VuALo4BX83N190NWZWbynBjhOHsmNfFWLeL6v+ynsA58zDvvAC8j5PkbOcXCMg2PZFk3q8MjI7WAG/Dp9AwP7jdGBOOQkAvlFUB+irtm16I1Zw9YBcpGTGXYmk3kQIC/Cds55l+iMI3jqhjAuaoe+am2Jw5GT3Nbz3CkE12NavmzN5+erJW7046n/CH1RO/RVa8lBLozXk9uqykkGAyRXLWlLv5jyp4RFsG5vGVzpDLnIjTWgnRy2Rr+tDKvRc7Y8AyZq10jj8DqXdnIRNtFZb+t/ZRtXcDiVnzpqx8mPcDWxgARUqx0W1QB9MeUZiNrV4qP+Ehc+BpNgATsTX8ozYKL2NtFYAHc84fG7ndxUPr+AR/iQSns7uSUufAymwDOb2+NjK27lEFocm/EE2WpyIy/Hi66MWuMKJn8RvxIcj87IM5Vh9663ziW36kR0HNenXuxmfaD8JC7tfKbrhFr7LiZCrMjrzTeGx+PmkosrkNzW94ObzwocJ7A1HokLolY+AvkTiD/q1H0cN48c5EL8Crkttsa/AXQVDmutfyku0E7jShx49XqV3MFK8IryDhYVbj7Sj2P2eBxwcXoe8T8idsKKPRcnZw1b+slFTubwUwhktrfnAt7J++jwQtLZcm3sr9LQrjRzz6cfMv9aLvgmnAGvpoaGLxM4mAEaLV7iAzQ3oU0IvD5x9ix3yF2RAAuYAOO2f7PEFWCXZ4C9Pb2UsgDeVnFSpbFK7/IWu7TPTvBqzbGdCHOJQSxiEjt6IyZmxQyEJHv6xyQsYk//moVFsN2zP6fRImjfq7/n/wFDguUQFNEwugAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-important.callout-style-default .callout-title {
+    background-color: #f7dddc
+  }
+
+  div.callout-warning {
+    border-left-color: #f0ad4e !important;
+  }
+
+  div.callout-warning .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAETklEQVRYCeVWW2gcVRg+58yaTUnizqbipZeX4uWhBEniBaoUX1Ioze52t7sRq6APio9V9MEaoWlVsFasRq0gltaAPuxms8lu0gcviE/FFOstVbSIxgcv6SU7EZqmdc7v9+9mJtNks51NTUH84ed889/PP+cmxP+d5FIbMJmNbpREu4WUkiTtCicKny0l1pIKmBzovF2S+hIJHX8iEu3hZJ5lNZGqyRrGSIQpq15AzF28jgpeY6yk6GVdrfFqdrD6Iw+QlB8g0YS2g7dyQmXM/IDhBhT0UCiRf59lfqmmDvzRt6kByV/m4JjtzuaujMUM2c5Z2d6JdKrRb3K2q6mA+oYVz8JnDdKPmmNthzkAk/lN63sYPgevrguc72aZX/L9C6x09GYyxBgCX4NlvyGUHOKELlm5rXeR1kchuChJt4SSwyddZRXgvwMGvYo4QSlk3/zkHD8UHxwVJA6zjZZqP8v8kK8OWLnIZtLyCAJagYC4rTGW/9Pqj92N/c+LUaAj27movwbi19tk/whRCIE7Q9vyI6yvRpftAKVTdUjOW40X3h5OXsKCdmFcx0xlLJoSuQngnrJe7Kcjm4OMq9FlC7CMmScQANuNvjfP3PjGXDBaUQmbp296S5L4DrpbrHN1T87ZVEZVCzg1FF0Ft+dKrlLukI+/c9ENo+TvlTDbYFvuKPtQ9+l052rXrgKoWkDAFnvh0wTOmYn8R5f4k/jN/fZiCM1tQx9jQQ4ANhqG4hiL0qIFTGViG9DKB7GYzgubnpofgYRwO+DFjh0Zin2m4b/97EDkXkc+f6xYAPX0KK2I/7fUQuwzuwo/L3AkcjugPNixC8cHf0FyPjWlItmLxWw4Ou9YsQCr5fijMGoD/zpdRy95HRysyXA74MWOnscpO4j2y3HAVisw85hX5+AFBRSHt4ShfLFkIMXTqyKFc46xdzQM6XbAi702a7sy04J0+feReMFKp5q9esYLCqAZYw/k14E/xcLLsFElaornTuJB0svMuJINy8xkIYuL+xPAlWRceH6+HX7THJ0djLUom46zREu7tTkxwmf/FdOZ/sh6Q8qvEAiHpm4PJ4a/doJe0gH1t+aHRgCzOvBvJedEK5OFE5jpm4AGP2a8Dxe3gGJ/pAutug9Gp6he92CsSsWBaEcxGx0FHytmIpuqGkOpldqNYQK8cSoXvd+xLxXADw0kf6UkJNFtdo5MOgaLjiQOQHcn+A6h5NuL2s0qsC2LOM75PcF3yr5STuBSAcGG+meA14K/CI21HcS4LBT6tv0QAh8Dr5l93AhZzG5ZJ4VxAqdZUEl9z7WJ4aN+svMvwHHL21UKTd1mqvChH7/Za5xzXBBKrUcB0TQ+Ulgkfbi/H/YT5EptrGzsEK7tR1B7ln9BBwckYfMiuSqklSznIuoIIOM42MQO+QnduCoFCI0bpkzjCjddHPN/F+2Yu+sd9bKNpVwHhbS3LluK/0zgfwD0xYI5dXuzlQAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-warning.callout-style-default .callout-title {
+    background-color: #fcefdc
+  }
+
+  div.callout-tip {
+    border-left-color: #02b875 !important;
+  }
+
+  div.callout-tip .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAADr0lEQVRYCe1XTWgTQRj9ZjZV8a9SPIkKgj8I1bMHsUWrqYLVg4Ue6v9BwZOxSYsIerFao7UiUryIqJcqgtpimhbBXoSCVxUFe9CTiogUrUp2Pt+3aUI2u5vdNh4dmMzOzHvvezuz8xNFM0mjnbXaNu1MvFWRXkXEyE6aYOYJpdW4IXuA4r0fo8qqSMDBU0v1HJUgVieAXxzCsdE/YJTdFcVIZQNMyhruOMJKXYFoLfIfIvVIMWdsrd+Rpd86ZmyzzjJmLStqRn0v8lzkb4rVIXvnpScOJuAn2ACC65FkPzEdEy4TPWRLJ2h7z4cArXzzaOdKlbOvKKX25Wl00jSnrwVxAg3o4dRxhO13RBSdNvH0xSARv3adTXbBdTf64IWO2vH0LT+cv4GR1DJt+DUItaQogeBX/chhbTBxEiZ6gftlDNXTrvT7co4ub5A6gp9HIcHvzTa46OS5fBeP87Qm0fQkr4FsYgVQ7Qg+ZayaDg9jhg1GkWj8RG6lkeSacrrHgDaxdoBiZPg+NXV/KifMuB6//JmYH4CntVEHy/keA6x4h4CU5oFy8GzrBS18cLJMXcljAKB6INjWsRcuZBWVaS3GDrqB7rdapVIeA+isQ57Eev9eCqzqOa81CY05VLd6SamW2wA2H3SiTbnbSxmzfp7WtKZkqy4mdyAlGx7ennghYf8voqp9cLSgKdqNfa6RdRsAAkPwRuJZNbpByn+RrJi1RXTwdi8RQF6ymDwGMAtZ6TVE+4uoKh+MYkcLsT0Hk8eAienbiGdjJHZTpmNjlbFJNKDVAp2fJlYju6IreQxQ08UJDNYdoLSl6AadO+fFuCQqVMB1NJwPm69T04Wv5WhfcWyfXQB+wXRs1pt+nCknRa0LVzSA/2B+a9+zQJadb7IyyV24YAxKp2Jqs3emZTuNnKxsah+uabKbMk7CbTgJx/zIgQYErIeTKRQ9yD9wxVof5YolPHqaWo7TD6tJlh7jQnK5z2n3+fGdggIOx2kaa2YI9QWarc5Ce1ipNWMKeSG4DysFF52KBmTNMmn5HqCFkwy34rDg05gDwgH3bBi+sgFhN/e8QvRn8kbamCOhgrZ9GJhFDgfcMHzFb6BAtjKpFhzTjwv1KCVuxHvCbsSiEz4CANnj84cwHdFXAbAOJ4LTSAawGWFn5tDhLMYz6nWeU2wJfIhmIJBefcd/A5FWQWGgrWzyORZ3Q6HuV+Jf0Bj+BTX69fm1zWgK7By1YTXchFDORywnfQ7GpzOo6S+qECrsx2ifVQAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-tip.callout-style-default .callout-title {
+    background-color: #ccf1e3
+  }
+
+  div.callout-caution {
+    border-left-color: #fd7e14 !important;
+  }
+
+  div.callout-caution .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAACV0lEQVRYCdVWzWoUQRCuqp2ICBLJXgITZL1EfQDBW/bkzUMUD7klD+ATSHBEfAIfQO+iXsWDxJsHL96EHAwhgzlkg8nBg25XWb0zIb0zs9muYYWkoKeru+vn664fBqElyZNuyh167NXJ8Ut8McjbmEraKHkd7uAnAFku+VWdb3reSmRV8PKSLfZ0Gjn3a6Xlcq9YGb6tADjn+lUfTXtVmaZ1KwBIvFI11rRXlWlatwIAAv2asaa9mlB9wwygiDX26qaw1yYPzFXg2N1GgG0FMF8Oj+VIx7E/03lHx8UhvYyNZLN7BwSPgekXXLribw7w5/c8EF+DBK5idvDVYtEEwMeYefjjLAdEyQ3M9nfOkgnPTEkYU+sxMq0BxNR6jExrAI31H1rzvLEfRIdgcv1XEdj6QTQAS2wtstEALLG1yEZ3QhH6oDX7ExBSFEkFINXH98NTrme5IOaaA7kIfiu2L8A3qhH9zRbukdCqdsA98TdElyeMe5BI8Rs2xHRIsoTSSVFfCFCWGPn9XHb4cdobRIWABNf0add9jakDjQJpJ1bTXOJXnnRXHRf+dNL1ZV1MBRCXhMbaHqGI1JkKIL7+i8uffuP6wVQAzO7+qVEbF6NbS0LJureYcWXUUhH66nLR5rYmva+2tjRFtojkM2aD76HEGAD3tPtKM309FJg5j/K682ywcWJ3PASCcycH/22u+Bh7Aa0ehM2Fu4z0SAE81HF9RkB21c5bEn4Dzw+/qNOyXr3DCTQDMBOdhi4nAgiFDGCinIa2owCEChUwD8qzd03PG+qdW/4fDzjUMcE1ZpIAAAAASUVORK5CYII=');
+  }
+
+  div.callout-caution.callout-style-default .callout-title {
+    background-color: #ffe5d0
+  }
+
+  </style>
+  <style type="text/css">
+    .reveal div.sourceCode {
+      margin: 0;
+      overflow: auto;
+    }
+    .reveal div.hanging-indent {
+      margin-left: 1em;
+      text-indent: -1em;
+    }
+    .reveal .slide:not(.center) {
+      height: 100%;
+    }
+    .reveal .slide.scrollable {
+      overflow-y: auto;
+    }
+    .reveal .footnotes {
+      height: 100%;
+      overflow-y: auto;
+    }
+    .reveal .slide .absolute {
+      position: absolute;
+      display: block;
+    }
+    .reveal .footnotes ol {
+      counter-reset: ol;
+      list-style-type: none; 
+      margin-left: 0;
+    }
+    .reveal .footnotes ol li:before {
+      counter-increment: ol;
+      content: counter(ol) ". "; 
+    }
+    .reveal .footnotes ol li > p:first-child {
+      display: inline-block;
+    }
+    .reveal .slide ul,
+    .reveal .slide ol {
+      margin-bottom: 0.5em;
+    }
+    .reveal .slide ul li,
+    .reveal .slide ol li {
+      margin-top: 0.4em;
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide ul[role="tablist"] li {
+      margin-bottom: 0;
+    }
+    .reveal .slide ul li > *:first-child,
+    .reveal .slide ol li > *:first-child {
+      margin-block-start: 0;
+    }
+    .reveal .slide ul li > *:last-child,
+    .reveal .slide ol li > *:last-child {
+      margin-block-end: 0;
+    }
+    .reveal .slide .columns:nth-child(3) {
+      margin-block-start: 0.8em;
+    }
+    .reveal blockquote {
+      box-shadow: none;
+    }
+    .reveal .tippy-content>* {
+      margin-top: 0.2em;
+      margin-bottom: 0.7em;
+    }
+    .reveal .tippy-content>*:last-child {
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide > img.stretch.quarto-figure-center,
+    .reveal .slide > img.r-stretch.quarto-figure-center {
+      display: block;
+      margin-left: auto;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-left,
+    .reveal .slide > img.r-stretch.quarto-figure-left  {
+      display: block;
+      margin-left: 0;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-right,
+    .reveal .slide > img.r-stretch.quarto-figure-right  {
+      display: block;
+      margin-left: auto;
+      margin-right: 0; 
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+  
+  <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+</head>
+<body class="quarto-light">
+  <div class="reveal">
+    <div class="slides">
+
+<section id="title-slide" class="quarto-title-block center">
+  <h1 class="title">Calibración de probabilidades</h1>
+
+<div class="quarto-title-authors">
+</div>
+
+</section>
+<section>
+<section id="introducción-a-machine-learning" class="title-slide slide level1 center">
+<h1>Introducción a machine learning</h1>
+
+</section>
+<section id="qué-es-un-modelo-de-clasificación" class="slide level2" style="font-size: 50%;">
+<h2>¿Qué es un modelo de clasificación?</h2>
+<p>Se busca predecir la <span style="color: blue">probabilidad de ocurrencia</span> de un evento a partir de ciertas características observables:</p>
+<blockquote>
+<p><span class="math inline">\(P(y=1) = f(X)\)</span></p>
+<p><em>Siendo y una variable que puede tomar 2 valores: 0 o 1</em></p>
+</blockquote>
+<p><br> <strong>Ejemplos de clasificación:</strong></p>
+<ul>
+<li><span style="color: blue">Titanic</span>: Probabilidad de supervivencia</li>
+<li><span style="color: blue">Iris</span>: Clasificación de especies de plantas</li>
+<li><span style="color: blue">German Credit</span>: Probabilidad de default</li>
+</ul>
+</section>
+<section id="ejemplo-caso-titanic" class="slide level2">
+<h2>Ejemplo: caso Titanic</h2>
+<div style="font-size: 50%;">
+<p>Se consideran datos de <a href="https://www.openml.org/search?type=data&amp;status=active&amp;id=43906">OpenML: Titanic</a> para ajustar un modelo que clasifique a individuos en sobrevivientes o no sobrevivientes del Titanic.</p>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="cell" data-execution_count="3">
+<details class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a>data <span class="op">=</span> datasets.fetch_openml(name<span class="op">=</span><span class="st">"titanic"</span>, version<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb1-2"><a href=""></a>y <span class="op">=</span> data.target.astype(<span class="st">"int"</span>)</span>
+<span id="cb1-3"><a href=""></a>X <span class="op">=</span> (data.data[[<span class="st">"age"</span>, <span class="st">"sex"</span>]]</span>
+<span id="cb1-4"><a href=""></a>    <span class="co"># Construcción de dummy de sex=mujer</span></span>
+<span id="cb1-5"><a href=""></a>    .assign(d_mujer<span class="op">=</span><span class="kw">lambda</span> df: [<span class="dv">1</span> <span class="cf">if</span> i <span class="op">==</span> <span class="st">"female"</span> <span class="cf">else</span> <span class="dv">0</span> <span class="cf">for</span> i <span class="kw">in</span> df[<span class="st">"sex"</span>]])</span>
+<span id="cb1-6"><a href=""></a>    .drop(<span class="st">"sex"</span>, axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb1-7"><a href=""></a>)</span>
+<span id="cb1-8"><a href=""></a></span>
+<span id="cb1-9"><a href=""></a>(pd.concat([y, X], axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb1-10"><a href=""></a>    .head(<span class="dv">10</span>)</span>
+<span id="cb1-11"><a href=""></a>    .style.<span class="bu">format</span>(precision<span class="op">=</span><span class="dv">2</span>).hide(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb1-12"><a href=""></a>    .set_table_styles(styles)</span>
+<span id="cb1-13"><a href=""></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div id="tbl-titanic" class="cell quarto-float" data-execution_count="3">
+<figure class="quarto-float quarto-float-tbl">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-titanic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Datos de Titanic (muestra de 8 observaciones)
+</figcaption>
+<div aria-describedby="tbl-titanic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div>
+<style type="text/css">
+#T_415fd th {
+  font-size: 12px;
+  text-align: left;
+  font-weight: bold;
+  color: #255255;
+  background-color: #BDCBCC;
+  border: 1px solid #BDCBCC;
+}
+#T_415fd td {
+  font-size: 14px;
+  text-align: center;
+}
+#T_415fd td:hover {
+  background-color: #BDCBCC;
+}
+#T_415fd th.col_heading.level0 {
+  text-align: center;
+  font-size: 1.1em;
+}
+#T_415fd th.col_heading.level1 {
+  font-size: 14px;
+  text-align: center;
+}
+</style>
+
+<table id="T_415fd" class="do-not-create-environment cell" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th id="T_415fd_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">survived</th>
+<th id="T_415fd_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">age</th>
+<th id="T_415fd_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">d_mujer</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td id="T_415fd_row0_col0" class="data row0 col0">1</td>
+<td id="T_415fd_row0_col1" class="data row0 col1">29.00</td>
+<td id="T_415fd_row0_col2" class="data row0 col2">1</td>
+</tr>
+<tr class="even">
+<td id="T_415fd_row1_col0" class="data row1 col0">1</td>
+<td id="T_415fd_row1_col1" class="data row1 col1">0.92</td>
+<td id="T_415fd_row1_col2" class="data row1 col2">0</td>
+</tr>
+<tr class="odd">
+<td id="T_415fd_row2_col0" class="data row2 col0">0</td>
+<td id="T_415fd_row2_col1" class="data row2 col1">2.00</td>
+<td id="T_415fd_row2_col2" class="data row2 col2">1</td>
+</tr>
+<tr class="even">
+<td id="T_415fd_row3_col0" class="data row3 col0">0</td>
+<td id="T_415fd_row3_col1" class="data row3 col1">30.00</td>
+<td id="T_415fd_row3_col2" class="data row3 col2">0</td>
+</tr>
+<tr class="odd">
+<td id="T_415fd_row4_col0" class="data row4 col0">0</td>
+<td id="T_415fd_row4_col1" class="data row4 col1">25.00</td>
+<td id="T_415fd_row4_col2" class="data row4 col2">1</td>
+</tr>
+<tr class="even">
+<td id="T_415fd_row5_col0" class="data row5 col0">1</td>
+<td id="T_415fd_row5_col1" class="data row5 col1">48.00</td>
+<td id="T_415fd_row5_col2" class="data row5 col2">0</td>
+</tr>
+<tr class="odd">
+<td id="T_415fd_row6_col0" class="data row6 col0">1</td>
+<td id="T_415fd_row6_col1" class="data row6 col1">63.00</td>
+<td id="T_415fd_row6_col2" class="data row6 col2">1</td>
+</tr>
+<tr class="even">
+<td id="T_415fd_row7_col0" class="data row7 col0">0</td>
+<td id="T_415fd_row7_col1" class="data row7 col1">39.00</td>
+<td id="T_415fd_row7_col2" class="data row7 col2">0</td>
+</tr>
+<tr class="odd">
+<td id="T_415fd_row8_col0" class="data row8 col0">1</td>
+<td id="T_415fd_row8_col1" class="data row8 col1">53.00</td>
+<td id="T_415fd_row8_col2" class="data row8 col2">1</td>
+</tr>
+<tr class="even">
+<td id="T_415fd_row9_col0" class="data row9 col0">0</td>
+<td id="T_415fd_row9_col1" class="data row9 col1">71.00</td>
+<td id="T_415fd_row9_col2" class="data row9 col2">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</figure>
+</div>
+</div>
+</div><div class="column" style="width:50%;">
+<div id="cell-fig-decision-tree" class="cell" data-layout-align="center" data-execution_count="4">
+<details class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href=""></a>clf <span class="op">=</span> DecisionTreeClassifier(max_depth<span class="op">=</span><span class="dv">1</span>).fit(X, y)</span>
+<span id="cb2-2"><a href=""></a>plt.figure(figsize<span class="op">=</span>(<span class="fl">4.5</span>, <span class="fl">4.5</span>))</span>
+<span id="cb2-3"><a href=""></a>plot_tree(</span>
+<span id="cb2-4"><a href=""></a>    clf,</span>
+<span id="cb2-5"><a href=""></a>    filled<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb2-6"><a href=""></a>    impurity<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb2-7"><a href=""></a>    feature_names<span class="op">=</span>X.columns.tolist(),</span>
+<span id="cb2-8"><a href=""></a>    class_names<span class="op">=</span>[<span class="st">"Sobrevivió"</span>, <span class="st">"No sobrevivió"</span>],</span>
+<span id="cb2-9"><a href=""></a>)<span class="op">;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-decision-tree" class="quarto-figure quarto-figure-center quarto-float">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-decision-tree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img data-src="01_calibration_slides_files/figure-revealjs/fig-decision-tree-output-1.png" width="354" height="352">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-decision-tree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Modelo de árbol de decisión
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>A partir de los datos de la <a href="#/ejemplo-caso-titanic" class="quarto-xref">Table&nbsp;1</a>, el modelo de la <a href="#/ejemplo-caso-titanic" class="quarto-xref">Figure&nbsp;1</a> (profundidad=1) utiliza la variable de género para clasificar a los tripulantes del Titanic según supervivencia. Según el modelo, las mujeres sobreviven y los hombres no.</p>
+</div>
+</section>
+<section id="ejemplo-cont." class="slide level2">
+<h2>Ejemplo (Cont.)</h2>
+<div style="font-size: 50%;">
+<details class="code-fold">
+<summary>Ver código</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a>y_pred <span class="op">=</span> clf.predict(X)</span>
+<span id="cb3-2"><a href=""></a>ConfusionMatrixDisplay(</span>
+<span id="cb3-3"><a href=""></a>    confusion_matrix<span class="op">=</span>confusion_matrix(y_true<span class="op">=</span>y, y_pred<span class="op">=</span>y_pred),</span>
+<span id="cb3-4"><a href=""></a>    display_labels<span class="op">=</span>clf.classes_</span>
+<span id="cb3-5"><a href=""></a>).plot()<span class="op">;</span></span>
+<span id="cb3-6"><a href=""></a></span>
+<span id="cb3-7"><a href=""></a><span class="co"># Curva ROC</span></span>
+<span id="cb3-8"><a href=""></a>y_pred_proba <span class="op">=</span> clf.predict_proba(X)[:, <span class="dv">1</span>]</span>
+<span id="cb3-9"><a href=""></a>fpr, tpr, _ <span class="op">=</span> roc_curve(y, y_pred_proba)</span>
+<span id="cb3-10"><a href=""></a>roc_display <span class="op">=</span> RocCurveDisplay(fpr<span class="op">=</span>fpr, tpr<span class="op">=</span>tpr).plot()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div id="157b5901" class="cell quarto-layout-panel" data-layout-align="center" data-execution_count="5" data-layout-ncol="2">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<p><img data-src="01_calibration_slides_files/figure-revealjs/cell-6-output-1.png" width="515" height="429"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<p><img data-src="01_calibration_slides_files/figure-revealjs/cell-6-output-2.png" width="812" height="429"></p>
+</div>
+</div>
+</div>
+</div>
+</section></section>
+<section>
+<section id="caso-german-credit" class="title-slide slide level1 center">
+<h1>Caso: German Credit</h1>
+
+</section>
+<section id="datos" class="slide level2">
+<h2>Datos</h2>
+<div style="font-size: 50%;">
+<div class="cell" data-execution_count="7">
+<details class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a>df <span class="op">=</span> (pd.read_csv(PATH_DATA)</span>
+<span id="cb4-2"><a href=""></a>  .drop(<span class="st">'Unnamed: 0'</span>, axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb4-3"><a href=""></a>  .assign(Risk <span class="op">=</span> <span class="kw">lambda</span> x: np.where(x[<span class="st">'Risk'</span>]<span class="op">==</span><span class="st">'good'</span>,<span class="dv">0</span>,<span class="dv">1</span>))</span>
+<span id="cb4-4"><a href=""></a>)</span>
+<span id="cb4-5"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Se cuenta con un dataset de </span><span class="sc">{</span>df<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> observaciones y </span><span class="sc">{</span>df<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="sc">}</span><span class="ss"> variables </span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb4-6"><a href=""></a></span>
+<span id="cb4-7"><a href=""></a>df.sample(<span class="dv">6</span>, random_state<span class="op">=</span><span class="dv">42</span>).style.<span class="bu">format</span>(precision<span class="op">=</span><span class="dv">2</span>).hide(axis<span class="op">=</span><span class="dv">0</span>).set_table_styles(styles)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Se cuenta con un dataset de 1000 observaciones y 10 variables 
+</code></pre>
+</div>
+<div id="tbl-credit-data" class="cell quarto-float" data-execution_count="7">
+<figure class="quarto-float quarto-float-tbl">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-credit-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: Datos de German Credit (muestra de 6 observaciones)
+</figcaption>
+<div aria-describedby="tbl-credit-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-display" data-execution_count="7">
+<div>
+<style type="text/css">
+#T_8affc th {
+  font-size: 12px;
+  text-align: left;
+  font-weight: bold;
+  color: #255255;
+  background-color: #BDCBCC;
+  border: 1px solid #BDCBCC;
+}
+#T_8affc td {
+  font-size: 14px;
+  text-align: center;
+}
+#T_8affc td:hover {
+  background-color: #BDCBCC;
+}
+#T_8affc th.col_heading.level0 {
+  text-align: center;
+  font-size: 1.1em;
+}
+#T_8affc th.col_heading.level1 {
+  font-size: 14px;
+  text-align: center;
+}
+</style>
+
+<table id="T_8affc" class="do-not-create-environment cell" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th id="T_8affc_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Age</th>
+<th id="T_8affc_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Sex</th>
+<th id="T_8affc_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">Job</th>
+<th id="T_8affc_level0_col3" class="col_heading level0 col3" data-quarto-table-cell-role="th">Housing</th>
+<th id="T_8affc_level0_col4" class="col_heading level0 col4" data-quarto-table-cell-role="th">Saving accounts</th>
+<th id="T_8affc_level0_col5" class="col_heading level0 col5" data-quarto-table-cell-role="th">Checking account</th>
+<th id="T_8affc_level0_col6" class="col_heading level0 col6" data-quarto-table-cell-role="th">Credit amount</th>
+<th id="T_8affc_level0_col7" class="col_heading level0 col7" data-quarto-table-cell-role="th">Duration</th>
+<th id="T_8affc_level0_col8" class="col_heading level0 col8" data-quarto-table-cell-role="th">Purpose</th>
+<th id="T_8affc_level0_col9" class="col_heading level0 col9" data-quarto-table-cell-role="th">Risk</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td id="T_8affc_row0_col0" class="data row0 col0">24</td>
+<td id="T_8affc_row0_col1" class="data row0 col1">female</td>
+<td id="T_8affc_row0_col2" class="data row0 col2">2</td>
+<td id="T_8affc_row0_col3" class="data row0 col3">own</td>
+<td id="T_8affc_row0_col4" class="data row0 col4">little</td>
+<td id="T_8affc_row0_col5" class="data row0 col5">little</td>
+<td id="T_8affc_row0_col6" class="data row0 col6">3190</td>
+<td id="T_8affc_row0_col7" class="data row0 col7">18</td>
+<td id="T_8affc_row0_col8" class="data row0 col8">radio/TV</td>
+<td id="T_8affc_row0_col9" class="data row0 col9">1</td>
+</tr>
+<tr class="even">
+<td id="T_8affc_row1_col0" class="data row1 col0">35</td>
+<td id="T_8affc_row1_col1" class="data row1 col1">male</td>
+<td id="T_8affc_row1_col2" class="data row1 col2">1</td>
+<td id="T_8affc_row1_col3" class="data row1 col3">own</td>
+<td id="T_8affc_row1_col4" class="data row1 col4">moderate</td>
+<td id="T_8affc_row1_col5" class="data row1 col5">little</td>
+<td id="T_8affc_row1_col6" class="data row1 col6">4380</td>
+<td id="T_8affc_row1_col7" class="data row1 col7">18</td>
+<td id="T_8affc_row1_col8" class="data row1 col8">car</td>
+<td id="T_8affc_row1_col9" class="data row1 col9">0</td>
+</tr>
+<tr class="odd">
+<td id="T_8affc_row2_col0" class="data row2 col0">32</td>
+<td id="T_8affc_row2_col1" class="data row2 col1">male</td>
+<td id="T_8affc_row2_col2" class="data row2 col2">2</td>
+<td id="T_8affc_row2_col3" class="data row2 col3">own</td>
+<td id="T_8affc_row2_col4" class="data row2 col4">moderate</td>
+<td id="T_8affc_row2_col5" class="data row2 col5">little</td>
+<td id="T_8affc_row2_col6" class="data row2 col6">2325</td>
+<td id="T_8affc_row2_col7" class="data row2 col7">24</td>
+<td id="T_8affc_row2_col8" class="data row2 col8">car</td>
+<td id="T_8affc_row2_col9" class="data row2 col9">0</td>
+</tr>
+<tr class="even">
+<td id="T_8affc_row3_col0" class="data row3 col0">23</td>
+<td id="T_8affc_row3_col1" class="data row3 col1">male</td>
+<td id="T_8affc_row3_col2" class="data row3 col2">2</td>
+<td id="T_8affc_row3_col3" class="data row3 col3">rent</td>
+<td id="T_8affc_row3_col4" class="data row3 col4">little</td>
+<td id="T_8affc_row3_col5" class="data row3 col5">rich</td>
+<td id="T_8affc_row3_col6" class="data row3 col6">1297</td>
+<td id="T_8affc_row3_col7" class="data row3 col7">12</td>
+<td id="T_8affc_row3_col8" class="data row3 col8">radio/TV</td>
+<td id="T_8affc_row3_col9" class="data row3 col9">0</td>
+</tr>
+<tr class="odd">
+<td id="T_8affc_row4_col0" class="data row4 col0">35</td>
+<td id="T_8affc_row4_col1" class="data row4 col1">male</td>
+<td id="T_8affc_row4_col2" class="data row4 col2">3</td>
+<td id="T_8affc_row4_col3" class="data row4 col3">own</td>
+<td id="T_8affc_row4_col4" class="data row4 col4">little</td>
+<td id="T_8affc_row4_col5" class="data row4 col5">nan</td>
+<td id="T_8affc_row4_col6" class="data row4 col6">7253</td>
+<td id="T_8affc_row4_col7" class="data row4 col7">33</td>
+<td id="T_8affc_row4_col8" class="data row4 col8">car</td>
+<td id="T_8affc_row4_col9" class="data row4 col9">0</td>
+</tr>
+<tr class="even">
+<td id="T_8affc_row5_col0" class="data row5 col0">64</td>
+<td id="T_8affc_row5_col1" class="data row5 col1">male</td>
+<td id="T_8affc_row5_col2" class="data row5 col2">1</td>
+<td id="T_8affc_row5_col3" class="data row5 col3">rent</td>
+<td id="T_8affc_row5_col4" class="data row5 col4">little</td>
+<td id="T_8affc_row5_col5" class="data row5 col5">little</td>
+<td id="T_8affc_row5_col6" class="data row5 col6">2384</td>
+<td id="T_8affc_row5_col7" class="data row5 col7">24</td>
+<td id="T_8affc_row5_col8" class="data row5 col8">radio/TV</td>
+<td id="T_8affc_row5_col9" class="data row5 col9">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="particiones" class="slide level2">
+<h2>Particiones</h2>
+<div style="font-size: 50%;">
+<p>Partición en dataset de entrenamiento, validación y evaluación.</p>
+<ul>
+<li>Dataset de entrenamiento –&gt; Ajuste del modelo</li>
+<li>Dataset de validación –&gt; Calibración del modelo</li>
+<li>Dataset de evaluación –&gt; Métricas del modelo calibrado</li>
+</ul>
+<div id="particiones" class="cell" data-execution_count="8">
+<details class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a>y <span class="op">=</span> df[CLASE]</span>
+<span id="cb6-2"><a href=""></a>X <span class="op">=</span> df.drop([CLASE], axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb6-3"><a href=""></a></span>
+<span id="cb6-4"><a href=""></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(</span>
+<span id="cb6-5"><a href=""></a>    X, y, test_size<span class="op">=</span><span class="fl">0.5</span>, shuffle<span class="op">=</span><span class="va">True</span>, stratify<span class="op">=</span>y, random_state<span class="op">=</span><span class="dv">42</span></span>
+<span id="cb6-6"><a href=""></a>)</span>
+<span id="cb6-7"><a href=""></a></span>
+<span id="cb6-8"><a href=""></a><span class="co"># Lo ideal es utilizar la partición de validación para calibración</span></span>
+<span id="cb6-9"><a href=""></a>X_valid, X_test, y_valid, y_test <span class="op">=</span> train_test_split(</span>
+<span id="cb6-10"><a href=""></a>    X_test, y_test, test_size<span class="op">=</span><span class="fl">0.5</span>, shuffle<span class="op">=</span><span class="va">True</span>, stratify<span class="op">=</span>y_test, random_state<span class="op">=</span><span class="dv">42</span></span>
+<span id="cb6-11"><a href=""></a>)</span>
+<span id="cb6-12"><a href=""></a></span>
+<span id="cb6-13"><a href=""></a><span class="bu">print</span>(<span class="ss">f"N observaciones en entrenamiento: </span><span class="sc">{</span>X_train<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb6-14"><a href=""></a><span class="bu">print</span>(<span class="ss">f"N observaciones en validación: </span><span class="sc">{</span>X_valid<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb6-15"><a href=""></a><span class="bu">print</span>(<span class="ss">f"N observaciones en evaluación: </span><span class="sc">{</span>X_test<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>N observaciones en entrenamiento: 500
+N observaciones en validación: 250
+N observaciones en evaluación: 250</code></pre>
+</div>
+</div>
+</div>
+</section>
+<section id="preprocesamiento" class="slide level2">
+<h2>Preprocesamiento</h2>
+<div style="font-size: 50%;">
+<p>Se construye un pipeline de preprocesamiento de variables, diferenciando el procesamiento de variables categóricas y numéricas</p>
+<div id="6ef1a5f2" class="cell" data-execution_count="9">
+<details class="code-fold">
+<summary>Ver código</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href=""></a>numeric_transformer <span class="op">=</span> Pipeline([</span>
+<span id="cb8-2"><a href=""></a>    (<span class="st">'impute'</span>, SimpleImputer(strategy<span class="op">=</span><span class="st">'median'</span>)),</span>
+<span id="cb8-3"><a href=""></a>    (<span class="st">'scaler'</span>, MinMaxScaler())</span>
+<span id="cb8-4"><a href=""></a>])</span>
+<span id="cb8-5"><a href=""></a></span>
+<span id="cb8-6"><a href=""></a>categorical_transformer <span class="op">=</span> Pipeline([</span>
+<span id="cb8-7"><a href=""></a>    (<span class="st">'ohe'</span>,OneHotEncoder(</span>
+<span id="cb8-8"><a href=""></a>        min_frequency<span class="op">=</span><span class="fl">0.05</span>,</span>
+<span id="cb8-9"><a href=""></a>        handle_unknown<span class="op">=</span><span class="st">'infrequent_if_exist'</span>,</span>
+<span id="cb8-10"><a href=""></a>        sparse_output<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb8-11"><a href=""></a>    )</span>
+<span id="cb8-12"><a href=""></a>])</span>
+<span id="cb8-13"><a href=""></a></span>
+<span id="cb8-14"><a href=""></a>preproc <span class="op">=</span> ColumnTransformer([</span>
+<span id="cb8-15"><a href=""></a>    (<span class="st">'num'</span>, numeric_transformer,</span>
+<span id="cb8-16"><a href=""></a>      make_column_selector(dtype_include<span class="op">=</span>[<span class="st">'float'</span>,<span class="st">'int'</span>])),</span>
+<span id="cb8-17"><a href=""></a>    (<span class="st">'cat'</span>, categorical_transformer,</span>
+<span id="cb8-18"><a href=""></a>      make_column_selector(dtype_include<span class="op">=</span>[<span class="st">'object'</span>,<span class="st">'category'</span>]))</span>
+<span id="cb8-19"><a href=""></a>], verbose_feature_names_out<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div id="5ec66ab9" class="cell custom_class_html_display" data-execution_count="10">
+<div class="cell-output cell-output-display" data-execution_count="10">
+<style>#sk-container-id-1 {color: black;}#sk-container-id-1 pre{padding: 0;}#sk-container-id-1 div.sk-toggleable {background-color: white;}#sk-container-id-1 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-1 label.sk-toggleable__label-arrow:before {content: "▸";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-1 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-1 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-1 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-1 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-1 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-1 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: "▾";}#sk-container-id-1 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-1 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-1 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-1 div.sk-parallel-item::after {content: "";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-1 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 div.sk-serial::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-1 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-1 div.sk-item {position: relative;z-index: 1;}#sk-container-id-1 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-1 div.sk-item::before, #sk-container-id-1 div.sk-parallel-item::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-1 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-1 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-1 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-1 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-1 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-1 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-1 div.sk-label-container {text-align: center;}#sk-container-id-1 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-1 div.sk-text-repr-fallback {display: none;}</style><div id="sk-container-id-1" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>ColumnTransformer(transformers=[('num',
+                                 Pipeline(steps=[('impute',
+                                                  SimpleImputer(strategy='median')),
+                                                 ('scaler', MinMaxScaler())]),
+                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd2a0&gt;),
+                                ('cat',
+                                 Pipeline(steps=[('ohe',
+                                                  OneHotEncoder(handle_unknown='infrequent_if_exist',
+                                                                min_frequency=0.05,
+                                                                sparse_output=False))]),
+                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd480&gt;)],
+                  verbose_feature_names_out=False)</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden=""><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-1" type="checkbox"><label for="sk-estimator-id-1" class="sk-toggleable__label sk-toggleable__label-arrow">ColumnTransformer</label><div class="sk-toggleable__content"><pre>ColumnTransformer(transformers=[('num',
+                                 Pipeline(steps=[('impute',
+                                                  SimpleImputer(strategy='median')),
+                                                 ('scaler', MinMaxScaler())]),
+                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd2a0&gt;),
+                                ('cat',
+                                 Pipeline(steps=[('ohe',
+                                                  OneHotEncoder(handle_unknown='infrequent_if_exist',
+                                                                min_frequency=0.05,
+                                                                sparse_output=False))]),
+                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd480&gt;)],
+                  verbose_feature_names_out=False)</pre></div></div></div><div class="sk-parallel"><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-2" type="checkbox"><label for="sk-estimator-id-2" class="sk-toggleable__label sk-toggleable__label-arrow">num</label><div class="sk-toggleable__content"><pre>&lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd2a0&gt;</pre></div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-serial"><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-3" type="checkbox"><label for="sk-estimator-id-3" class="sk-toggleable__label sk-toggleable__label-arrow">SimpleImputer</label><div class="sk-toggleable__content"><pre>SimpleImputer(strategy='median')</pre></div></div></div><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-4" type="checkbox"><label for="sk-estimator-id-4" class="sk-toggleable__label sk-toggleable__label-arrow">MinMaxScaler</label><div class="sk-toggleable__content"><pre>MinMaxScaler()</pre></div></div></div></div></div></div></div></div><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-5" type="checkbox"><label for="sk-estimator-id-5" class="sk-toggleable__label sk-toggleable__label-arrow">cat</label><div class="sk-toggleable__content"><pre>&lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd480&gt;</pre></div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-serial"><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-6" type="checkbox"><label for="sk-estimator-id-6" class="sk-toggleable__label sk-toggleable__label-arrow">OneHotEncoder</label><div class="sk-toggleable__content"><pre>OneHotEncoder(handle_unknown='infrequent_if_exist', min_frequency=0.05,
+              sparse_output=False)</pre></div></div></div></div></div></div></div></div></div></div></div></div>
+</div>
+</div>
+</div>
+</section>
+<section id="modelado" class="slide level2">
+<h2>Modelado</h2>
+<div id="419d0dd6" class="cell" data-execution_count="11">
+<div class="cell-output cell-output-display" data-execution_count="11">
+<style>#sk-container-id-2 {color: black;}#sk-container-id-2 pre{padding: 0;}#sk-container-id-2 div.sk-toggleable {background-color: white;}#sk-container-id-2 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-2 label.sk-toggleable__label-arrow:before {content: "▸";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-2 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-2 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-2 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-2 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-2 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-2 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: "▾";}#sk-container-id-2 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-2 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-2 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-2 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-2 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-2 div.sk-parallel-item::after {content: "";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-2 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-2 div.sk-serial::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-2 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-2 div.sk-item {position: relative;z-index: 1;}#sk-container-id-2 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-2 div.sk-item::before, #sk-container-id-2 div.sk-parallel-item::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-2 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-2 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-2 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-2 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-2 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-2 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-2 div.sk-label-container {text-align: center;}#sk-container-id-2 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-2 div.sk-text-repr-fallback {display: none;}</style><div id="sk-container-id-2" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>Pipeline(steps=[('preproc',
+                 ColumnTransformer(transformers=[('num',
+                                                  Pipeline(steps=[('impute',
+                                                                   SimpleImputer(strategy='median')),
+                                                                  ('scaler',
+                                                                   MinMaxScaler())]),
+                                                  &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd2a0&gt;),
+                                                 ('cat',
+                                                  Pipeline(steps=[('ohe',
+                                                                   OneHotEncoder(handle_unknown='infrequent_if_exist',
+                                                                                 min_frequency=0.05,
+                                                                                 sparse_output=False))]),
+                                                  &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd480&gt;)],
+                                   verbose_feature_names_out=False)),
+                ('model',
+                 HistGradientBoostingClassifier(class_weight={0: 1, 1: 1},
+                                                max_depth=4, max_iter=1000,
+                                                random_state=42))])</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden=""><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-7" type="checkbox"><label for="sk-estimator-id-7" class="sk-toggleable__label sk-toggleable__label-arrow">Pipeline</label><div class="sk-toggleable__content"><pre>Pipeline(steps=[('preproc',
+                 ColumnTransformer(transformers=[('num',
+                                                  Pipeline(steps=[('impute',
+                                                                   SimpleImputer(strategy='median')),
+                                                                  ('scaler',
+                                                                   MinMaxScaler())]),
+                                                  &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd2a0&gt;),
+                                                 ('cat',
+                                                  Pipeline(steps=[('ohe',
+                                                                   OneHotEncoder(handle_unknown='infrequent_if_exist',
+                                                                                 min_frequency=0.05,
+                                                                                 sparse_output=False))]),
+                                                  &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd480&gt;)],
+                                   verbose_feature_names_out=False)),
+                ('model',
+                 HistGradientBoostingClassifier(class_weight={0: 1, 1: 1},
+                                                max_depth=4, max_iter=1000,
+                                                random_state=42))])</pre></div></div></div><div class="sk-serial"><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-8" type="checkbox"><label for="sk-estimator-id-8" class="sk-toggleable__label sk-toggleable__label-arrow">preproc: ColumnTransformer</label><div class="sk-toggleable__content"><pre>ColumnTransformer(transformers=[('num',
+                                 Pipeline(steps=[('impute',
+                                                  SimpleImputer(strategy='median')),
+                                                 ('scaler', MinMaxScaler())]),
+                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd2a0&gt;),
+                                ('cat',
+                                 Pipeline(steps=[('ohe',
+                                                  OneHotEncoder(handle_unknown='infrequent_if_exist',
+                                                                min_frequency=0.05,
+                                                                sparse_output=False))]),
+                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd480&gt;)],
+                  verbose_feature_names_out=False)</pre></div></div></div><div class="sk-parallel"><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-9" type="checkbox"><label for="sk-estimator-id-9" class="sk-toggleable__label sk-toggleable__label-arrow">num</label><div class="sk-toggleable__content"><pre>&lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd2a0&gt;</pre></div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-serial"><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-10" type="checkbox"><label for="sk-estimator-id-10" class="sk-toggleable__label sk-toggleable__label-arrow">SimpleImputer</label><div class="sk-toggleable__content"><pre>SimpleImputer(strategy='median')</pre></div></div></div><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-11" type="checkbox"><label for="sk-estimator-id-11" class="sk-toggleable__label sk-toggleable__label-arrow">MinMaxScaler</label><div class="sk-toggleable__content"><pre>MinMaxScaler()</pre></div></div></div></div></div></div></div></div><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-12" type="checkbox"><label for="sk-estimator-id-12" class="sk-toggleable__label sk-toggleable__label-arrow">cat</label><div class="sk-toggleable__content"><pre>&lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd480&gt;</pre></div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-serial"><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-13" type="checkbox"><label for="sk-estimator-id-13" class="sk-toggleable__label sk-toggleable__label-arrow">OneHotEncoder</label><div class="sk-toggleable__content"><pre>OneHotEncoder(handle_unknown='infrequent_if_exist', min_frequency=0.05,
+              sparse_output=False)</pre></div></div></div></div></div></div></div></div></div></div><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-14" type="checkbox"><label for="sk-estimator-id-14" class="sk-toggleable__label sk-toggleable__label-arrow">HistGradientBoostingClassifier</label><div class="sk-toggleable__content"><pre>HistGradientBoostingClassifier(class_weight={0: 1, 1: 1}, max_depth=4,
+                               max_iter=1000, random_state=42)</pre></div></div></div></div></div></div></div>
+</div>
+</div>
+</section>
+<section id="evaluación" class="slide level2">
+<h2>Evaluación</h2>
+<div id="4efcefca" class="cell" data-execution_count="12">
+<div class="cell-output cell-output-stdout">
+<pre><code>              precision    recall  f1-score   support
+
+           0       0.80      0.79      0.80       175
+           1       0.53      0.53      0.53        75
+
+    accuracy                           0.72       250
+   macro avg       0.66      0.66      0.66       250
+weighted avg       0.72      0.72      0.72       250
+</code></pre>
+</div>
+</div>
+</section></section>
+<section>
+<section id="calibración-de-probabilidades" class="title-slide slide level1 center">
+<h1>Calibración de probabilidades</h1>
+
+</section>
+<section id="calibración-de-probabilidades-1" class="slide level2" style="font-size: 50%;">
+<h2>Calibración de probabilidades</h2>
+<p>Se realiza la calibración del modelo (preajustado) mediante 2 métodos: sigmoide e isotónico. Notar que la probabilidad promedio predicha mediante los modelos claibrados se corresponde con el % de clase positiva observado en el dataset de entrenamiento.</p>
+<p><strong>Métodos</strong></p>
+<ul>
+<li>Calibración sigmoide</li>
+<li>Calibración isotónica</li>
+</ul>
+<p><strong>Referencias:</strong></p>
+<ul>
+<li><a href="https://scikit-learn.org/stable/modules/calibration.html">Calibración de probabilidades en {scikit-learn} 📦</a></li>
+</ul>
+</section>
+<section id="calibración-sigmoide" class="slide level2" style="font-size: 50%;">
+<h2>Calibración sigmoide</h2>
+<p>Este método se basa en el modelo de regresión logística(Platt’s):</p>
+<blockquote>
+<p><span class="math inline">\(P(y_{i}=1) = \frac{1}{1+(e^{α+β(pred_{i})})}\)</span></p>
+<p>Siendo: <span class="math inline">\(y_{i}\)</span> la probabilidad calibrada para el individuo <span class="math inline">\(i\)</span> <span class="math inline">\(pred_{i}\)</span> el output del modelo no calibrado</p>
+</blockquote>
+<p>En general este método es efectivo para muestras pequeñas o cuando el modelo no calibrado tiene errores de similares en predicciones de valores bajos y altos.</p>
+<p><strong>Referencias:</strong></p>
+<ul>
+<li>Platt, John. (2000). Probabilistic Outputs for Support Vector Machines and Comparisons to Regularized Likelihood Methods. Adv. Large Margin Classif, Volume 10.</li>
+</ul>
+</section>
+<section id="calibración-sigmoide-cont." class="slide level2">
+<h2>Calibración sigmoide (Cont.)</h2>
+<div style="font-size: 50%;">
+<div id="da80e611" class="cell" data-execution_count="13">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="01_calibration_slides_files/figure-revealjs/cell-14-output-1.png" width="812" height="451"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="calibración-isotónica" class="slide level2" style="font-size: 50%;">
+<h2>Calibración isotónica</h2>
+<div id="cddc29e8" class="cell" data-execution_count="14">
+<div class="cell-output cell-output-display" data-execution_count="14">
+<style>#sk-container-id-3 {color: black;}#sk-container-id-3 pre{padding: 0;}#sk-container-id-3 div.sk-toggleable {background-color: white;}#sk-container-id-3 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-3 label.sk-toggleable__label-arrow:before {content: "▸";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-3 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-3 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-3 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-3 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-3 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-3 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: "▾";}#sk-container-id-3 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-3 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-3 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-3 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-3 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-3 div.sk-parallel-item::after {content: "";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-3 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-3 div.sk-serial::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-3 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-3 div.sk-item {position: relative;z-index: 1;}#sk-container-id-3 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-3 div.sk-item::before, #sk-container-id-3 div.sk-parallel-item::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-3 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-3 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-3 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-3 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-3 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-3 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-3 div.sk-label-container {text-align: center;}#sk-container-id-3 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-3 div.sk-text-repr-fallback {display: none;}</style><div id="sk-container-id-3" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>CalibratedClassifierCV(cv='prefit',
+                       estimator=Pipeline(steps=[('preproc',
+                                                  ColumnTransformer(transformers=[('num',
+                                                                                   Pipeline(steps=[('impute',
+                                                                                                    SimpleImputer(strategy='median')),
+                                                                                                   ('scaler',
+                                                                                                    MinMaxScaler())]),
+                                                                                   &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd2a0&gt;),
+                                                                                  ('cat',
+                                                                                   Pipeline(steps=[('ohe',
+                                                                                                    OneHotEncoder(handle_unknown='infrequent_if_exist',
+                                                                                                                  min_frequency=0.05,
+                                                                                                                  sparse_output=False))]),
+                                                                                   &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd480&gt;)],
+                                                                    verbose_feature_names_out=False)),
+                                                 ('model',
+                                                  HistGradientBoostingClassifier(class_weight={0: 1,
+                                                                                               1: 1},
+                                                                                 max_depth=4,
+                                                                                 max_iter=1000,
+                                                                                 random_state=42))]),
+                       method='isotonic')</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden=""><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-15" type="checkbox"><label for="sk-estimator-id-15" class="sk-toggleable__label sk-toggleable__label-arrow">CalibratedClassifierCV</label><div class="sk-toggleable__content"><pre>CalibratedClassifierCV(cv='prefit',
+                       estimator=Pipeline(steps=[('preproc',
+                                                  ColumnTransformer(transformers=[('num',
+                                                                                   Pipeline(steps=[('impute',
+                                                                                                    SimpleImputer(strategy='median')),
+                                                                                                   ('scaler',
+                                                                                                    MinMaxScaler())]),
+                                                                                   &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd2a0&gt;),
+                                                                                  ('cat',
+                                                                                   Pipeline(steps=[('ohe',
+                                                                                                    OneHotEncoder(handle_unknown='infrequent_if_exist',
+                                                                                                                  min_frequency=0.05,
+                                                                                                                  sparse_output=False))]),
+                                                                                   &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd480&gt;)],
+                                                                    verbose_feature_names_out=False)),
+                                                 ('model',
+                                                  HistGradientBoostingClassifier(class_weight={0: 1,
+                                                                                               1: 1},
+                                                                                 max_depth=4,
+                                                                                 max_iter=1000,
+                                                                                 random_state=42))]),
+                       method='isotonic')</pre></div></div></div><div class="sk-parallel"><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-16" type="checkbox"><label for="sk-estimator-id-16" class="sk-toggleable__label sk-toggleable__label-arrow">estimator: Pipeline</label><div class="sk-toggleable__content"><pre>Pipeline(steps=[('preproc',
+                 ColumnTransformer(transformers=[('num',
+                                                  Pipeline(steps=[('impute',
+                                                                   SimpleImputer(strategy='median')),
+                                                                  ('scaler',
+                                                                   MinMaxScaler())]),
+                                                  &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd2a0&gt;),
+                                                 ('cat',
+                                                  Pipeline(steps=[('ohe',
+                                                                   OneHotEncoder(handle_unknown='infrequent_if_exist',
+                                                                                 min_frequency=0.05,
+                                                                                 sparse_output=False))]),
+                                                  &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd480&gt;)],
+                                   verbose_feature_names_out=False)),
+                ('model',
+                 HistGradientBoostingClassifier(class_weight={0: 1, 1: 1},
+                                                max_depth=4, max_iter=1000,
+                                                random_state=42))])</pre></div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-serial"><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-17" type="checkbox"><label for="sk-estimator-id-17" class="sk-toggleable__label sk-toggleable__label-arrow">preproc: ColumnTransformer</label><div class="sk-toggleable__content"><pre>ColumnTransformer(transformers=[('num',
+                                 Pipeline(steps=[('impute',
+                                                  SimpleImputer(strategy='median')),
+                                                 ('scaler', MinMaxScaler())]),
+                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd2a0&gt;),
+                                ('cat',
+                                 Pipeline(steps=[('ohe',
+                                                  OneHotEncoder(handle_unknown='infrequent_if_exist',
+                                                                min_frequency=0.05,
+                                                                sparse_output=False))]),
+                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd480&gt;)],
+                  verbose_feature_names_out=False)</pre></div></div></div><div class="sk-parallel"><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-18" type="checkbox"><label for="sk-estimator-id-18" class="sk-toggleable__label sk-toggleable__label-arrow">num</label><div class="sk-toggleable__content"><pre>&lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd2a0&gt;</pre></div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-serial"><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-19" type="checkbox"><label for="sk-estimator-id-19" class="sk-toggleable__label sk-toggleable__label-arrow">SimpleImputer</label><div class="sk-toggleable__content"><pre>SimpleImputer(strategy='median')</pre></div></div></div><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-20" type="checkbox"><label for="sk-estimator-id-20" class="sk-toggleable__label sk-toggleable__label-arrow">MinMaxScaler</label><div class="sk-toggleable__content"><pre>MinMaxScaler()</pre></div></div></div></div></div></div></div></div><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-21" type="checkbox"><label for="sk-estimator-id-21" class="sk-toggleable__label sk-toggleable__label-arrow">cat</label><div class="sk-toggleable__content"><pre>&lt;sklearn.compose._column_transformer.make_column_selector object at 0x1329fd480&gt;</pre></div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-serial"><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-22" type="checkbox"><label for="sk-estimator-id-22" class="sk-toggleable__label sk-toggleable__label-arrow">OneHotEncoder</label><div class="sk-toggleable__content"><pre>OneHotEncoder(handle_unknown='infrequent_if_exist', min_frequency=0.05,
+              sparse_output=False)</pre></div></div></div></div></div></div></div></div></div></div><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-23" type="checkbox"><label for="sk-estimator-id-23" class="sk-toggleable__label sk-toggleable__label-arrow">HistGradientBoostingClassifier</label><div class="sk-toggleable__content"><pre>HistGradientBoostingClassifier(class_weight={0: 1, 1: 1}, max_depth=4,
+                               max_iter=1000, random_state=42)</pre></div></div></div></div></div></div></div></div></div></div></div></div>
+</div>
+</div>
+<div id="4d4c8e9f" class="cell" data-execution_count="15">
+<div class="cell-output cell-output-stdout">
+<pre><code>% observado: 0.3
+Prob promedio: 0.308
+Prob promedio (calibración sigmoide): 0.314
+Prob promedio (calibración isotónica): 0.329</code></pre>
+</div>
+</div>
+</section>
+<section id="comparación-de-modelos" class="slide level2">
+<h2>Comparación de modelos</h2>
+<div style="font-size: 50%;">
+<div id="71667c48" class="cell" data-execution_count="16">
+<div class="cell-output cell-output-stdout">
+<pre><code>ROC AUC modelo=0.744
+ROC AUC modelo calibrado=0.744
+Log loss modelo=0.929
+Log loss modelo calibrado=0.531
+Brier modelo=0.223
+Brier modelo calibrado=0.177
+Recall modelo=0.533
+Recall modelo calibrado=0.400</code></pre>
+</div>
+</div>
+<p>Se visualizan las distribuciones de probabilidad predicha según el modelo calibrado y no calibrado.</p>
+<div id="79a3422d" class="cell" data-execution_count="17">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="01_calibration_slides_files/figure-revealjs/cell-18-output-1.png" width="387" height="240"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="01_calibration_slides_files/figure-revealjs/cell-18-output-2.png" width="387" height="240"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="visualización" class="slide level2">
+<h2>Visualización</h2>
+<div style="font-size: 50%;">
+<div id="dbade445" class="cell quarto-layout-panel" data-layout-ncol="2" data-execution_count="18">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<p><img data-src="01_calibration_slides_files/figure-revealjs/cell-19-output-1.png" width="512" height="522"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<p><img data-src="01_calibration_slides_files/figure-revealjs/cell-19-output-2.png" width="512" height="522"></p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="tablas-de-ganancias" class="slide level2">
+<h2>Tablas de ganancias</h2>
+<div style="font-size: 50%;">
+<p>Se busca un modelo en donde la probabilidad promedio de cada bin se corresponda con el % de clase positiva observado en ese bin según las predicciones del modelo.</p>
+<p>Esto es útil para la toma de decisiones, ya que permite establecer punto de cortes diferenciales en función de la aversión en riesgo de la entidad.</p>
+<p>Por ejemplo:</p>
+<ul>
+<li>En un modelo de scoring crediticio, otorgarle créditos a N individuos con probabilidad en cierto intervalo tiene un riesgo asociado (mora esperada)</li>
+<li>En un modelo de churn (abandono) de clientes, otorgarle una promoción a individuos de cierto intervalo de probabilidad de abandono tiene un costo asociado (descuento para individuos que no abandonarían)</li>
+<li>Entre otros.</li>
+</ul>
+</div>
+</section>
+<section id="tabla-de-ganancias-cont." class="slide level2">
+<h2>Tabla de ganancias (Cont.)</h2>
+<div style="font-size: 50%;">
+<div class="cell" data-execution_count="19">
+<details class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href=""></a>gain_table(preds<span class="op">=</span>preds, bins<span class="op">=</span><span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div id="tbl-gain" class="cell quarto-float" data-execution_count="19">
+<figure class="quarto-float quarto-float-tbl">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-gain-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;3: Tabla de ganancias (modelo no calibrado)
+</figcaption>
+<div aria-describedby="tbl-gain-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-display">
+<div>
+<style type="text/css">
+#T_d6b84_row0_col1, #T_d6b84_row0_col2, #T_d6b84_row0_col3, #T_d6b84_row0_col4, #T_d6b84_row0_col6, #T_d6b84_row0_col7, #T_d6b84_row0_col8, #T_d6b84_row1_col1, #T_d6b84_row2_col1, #T_d6b84_row3_col1, #T_d6b84_row4_col1 {
+  background-color: #fff7fb;
+  color: #000000;
+}
+#T_d6b84_row0_col5 {
+  background-color: #fff7fb;
+  color: #000000;
+  background-color: #fee8dd;
+  color: #000000;
+}
+#T_d6b84_row1_col2, #T_d6b84_row1_col4 {
+  background-color: #eee8f3;
+  color: #000000;
+}
+#T_d6b84_row1_col3 {
+  background-color: #fef6fb;
+  color: #000000;
+}
+#T_d6b84_row1_col5 {
+  background-color: #dcdaeb;
+  color: #000000;
+  background-color: #fedecf;
+  color: #000000;
+}
+#T_d6b84_row1_col6 {
+  background-color: #d0d1e6;
+  color: #000000;
+}
+#T_d6b84_row1_col7 {
+  background-color: #f0eaf4;
+  color: #000000;
+}
+#T_d6b84_row1_col8 {
+  background-color: #eae6f1;
+  color: #000000;
+}
+#T_d6b84_row2_col2, #T_d6b84_row2_col4 {
+  background-color: #a2bcda;
+  color: #000000;
+}
+#T_d6b84_row2_col3 {
+  background-color: #f3edf5;
+  color: #000000;
+}
+#T_d6b84_row2_col5 {
+  background-color: #84b0d3;
+  color: #f1f1f1;
+  background-color: #fdc9b3;
+  color: #000000;
+}
+#T_d6b84_row2_col6 {
+  background-color: #73a9cf;
+  color: #f1f1f1;
+}
+#T_d6b84_row2_col7 {
+  background-color: #c1cae2;
+  color: #000000;
+}
+#T_d6b84_row2_col8 {
+  background-color: #9fbad9;
+  color: #000000;
+}
+#T_d6b84_row3_col2, #T_d6b84_row3_col4 {
+  background-color: #3b92c1;
+  color: #f1f1f1;
+}
+#T_d6b84_row3_col3 {
+  background-color: #63a2cb;
+  color: #f1f1f1;
+}
+#T_d6b84_row3_col5 {
+  background-color: #f1ebf4;
+  color: #000000;
+  background-color: #fee3d7;
+  color: #000000;
+}
+#T_d6b84_row3_col6 {
+  background-color: #056faf;
+  color: #f1f1f1;
+}
+#T_d6b84_row3_col7 {
+  background-color: #4e9ac6;
+  color: #f1f1f1;
+}
+#T_d6b84_row3_col8 {
+  background-color: #2987bc;
+  color: #f1f1f1;
+}
+#T_d6b84_row4_col2, #T_d6b84_row4_col3, #T_d6b84_row4_col4, #T_d6b84_row4_col6, #T_d6b84_row4_col7, #T_d6b84_row4_col8 {
+  background-color: #023858;
+  color: #f1f1f1;
+}
+#T_d6b84_row4_col5 {
+  background-color: #023858;
+  color: #f1f1f1;
+  background-color: #fc9b7c;
+  color: #000000;
+}
+</style>
+
+<table id="T_d6b84" class="do-not-create-environment cell" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th id="T_d6b84_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Bin</th>
+<th id="T_d6b84_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">N</th>
+<th id="T_d6b84_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">N_clase1</th>
+<th id="T_d6b84_level0_col3" class="col_heading level0 col3" data-quarto-table-cell-role="th">avg_prob</th>
+<th id="T_d6b84_level0_col4" class="col_heading level0 col4" data-quarto-table-cell-role="th">perc_clase1</th>
+<th id="T_d6b84_level0_col5" class="col_heading level0 col5" data-quarto-table-cell-role="th">diff</th>
+<th id="T_d6b84_level0_col6" class="col_heading level0 col6" data-quarto-table-cell-role="th">N_acum</th>
+<th id="T_d6b84_level0_col7" class="col_heading level0 col7" data-quarto-table-cell-role="th">N_clase1_acum</th>
+<th id="T_d6b84_level0_col8" class="col_heading level0 col8" data-quarto-table-cell-role="th">TPR</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td id="T_d6b84_row0_col0" class="data row0 col0">(-0.10%, 0.12%]</td>
+<td id="T_d6b84_row0_col1" class="data row0 col1">50</td>
+<td id="T_d6b84_row0_col2" class="data row0 col2">4</td>
+<td id="T_d6b84_row0_col3" class="data row0 col3">0.03%</td>
+<td id="T_d6b84_row0_col4" class="data row0 col4">8.00%</td>
+<td id="T_d6b84_row0_col5" class="data row0 col5">0.080</td>
+<td id="T_d6b84_row0_col6" class="data row0 col6">50</td>
+<td id="T_d6b84_row0_col7" class="data row0 col7">4</td>
+<td id="T_d6b84_row0_col8" class="data row0 col8">8.00%</td>
+</tr>
+<tr class="even">
+<td id="T_d6b84_row1_col0" class="data row1 col0">(0.12%, 1.75%]</td>
+<td id="T_d6b84_row1_col1" class="data row1 col1">50</td>
+<td id="T_d6b84_row1_col2" class="data row1 col2">7</td>
+<td id="T_d6b84_row1_col3" class="data row1 col3">0.65%</td>
+<td id="T_d6b84_row1_col4" class="data row1 col4">14.00%</td>
+<td id="T_d6b84_row1_col5" class="data row1 col5">0.134</td>
+<td id="T_d6b84_row1_col6" class="data row1 col6">100</td>
+<td id="T_d6b84_row1_col7" class="data row1 col7">11</td>
+<td id="T_d6b84_row1_col8" class="data row1 col8">11.00%</td>
+</tr>
+<tr class="odd">
+<td id="T_d6b84_row2_col0" class="data row2 col0">(1.75%, 22.80%]</td>
+<td id="T_d6b84_row2_col1" class="data row2 col1">50</td>
+<td id="T_d6b84_row2_col2" class="data row2 col2">14</td>
+<td id="T_d6b84_row2_col3" class="data row2 col3">7.58%</td>
+<td id="T_d6b84_row2_col4" class="data row2 col4">28.00%</td>
+<td id="T_d6b84_row2_col5" class="data row2 col5">0.204</td>
+<td id="T_d6b84_row2_col6" class="data row2 col6">150</td>
+<td id="T_d6b84_row2_col7" class="data row2 col7">25</td>
+<td id="T_d6b84_row2_col8" class="data row2 col8">16.67%</td>
+</tr>
+<tr class="even">
+<td id="T_d6b84_row3_col0" class="data row3 col0">(22.80%, 83.70%]</td>
+<td id="T_d6b84_row3_col1" class="data row3 col1">50</td>
+<td id="T_d6b84_row3_col2" class="data row3 col2">20</td>
+<td id="T_d6b84_row3_col3" class="data row3 col3">50.60%</td>
+<td id="T_d6b84_row3_col4" class="data row3 col4">40.00%</td>
+<td id="T_d6b84_row3_col5" class="data row3 col5">0.106</td>
+<td id="T_d6b84_row3_col6" class="data row3 col6">200</td>
+<td id="T_d6b84_row3_col7" class="data row3 col7">45</td>
+<td id="T_d6b84_row3_col8" class="data row3 col8">22.50%</td>
+</tr>
+<tr class="odd">
+<td id="T_d6b84_row4_col0" class="data row4 col0">(83.70%, 100.00%]</td>
+<td id="T_d6b84_row4_col1" class="data row4 col1">50</td>
+<td id="T_d6b84_row4_col2" class="data row4 col2">30</td>
+<td id="T_d6b84_row4_col3" class="data row4 col3">95.09%</td>
+<td id="T_d6b84_row4_col4" class="data row4 col4">60.00%</td>
+<td id="T_d6b84_row4_col5" class="data row4 col5">0.351</td>
+<td id="T_d6b84_row4_col6" class="data row4 col6">250</td>
+<td id="T_d6b84_row4_col7" class="data row4 col7">75</td>
+<td id="T_d6b84_row4_col8" class="data row4 col8">30.00%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<div class="cell" data-execution_count="20">
+<details class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href=""></a>gain_table(preds<span class="op">=</span>preds, pred_column<span class="op">=</span><span class="st">'pred_sigmoid'</span>, bins<span class="op">=</span><span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div id="tbl-gain-sigmoid" class="cell quarto-float" data-execution_count="20">
+<figure class="quarto-float quarto-float-tbl">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-gain-sigmoid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;4: Tabla de ganancias (calibración sigmoide)
+</figcaption>
+<div aria-describedby="tbl-gain-sigmoid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-display">
+<div>
+<style type="text/css">
+#T_247d5_row0_col1, #T_247d5_row0_col2, #T_247d5_row0_col3, #T_247d5_row0_col4, #T_247d5_row0_col6, #T_247d5_row0_col7, #T_247d5_row0_col8, #T_247d5_row1_col1, #T_247d5_row2_col1, #T_247d5_row3_col1, #T_247d5_row4_col1 {
+  background-color: #fff7fb;
+  color: #000000;
+}
+#T_247d5_row0_col5 {
+  background-color: #ebe6f2;
+  color: #000000;
+  background-color: #fff4ef;
+  color: #000000;
+}
+#T_247d5_row1_col2, #T_247d5_row1_col4 {
+  background-color: #eee8f3;
+  color: #000000;
+}
+#T_247d5_row1_col3 {
+  background-color: #dedcec;
+  color: #000000;
+}
+#T_247d5_row1_col5 {
+  background-color: #023858;
+  color: #f1f1f1;
+  background-color: #ffeee6;
+  color: #000000;
+}
+#T_247d5_row1_col6 {
+  background-color: #d0d1e6;
+  color: #000000;
+}
+#T_247d5_row1_col7 {
+  background-color: #f0eaf4;
+  color: #000000;
+}
+#T_247d5_row1_col8 {
+  background-color: #eae6f1;
+  color: #000000;
+}
+#T_247d5_row2_col2, #T_247d5_row2_col4 {
+  background-color: #a2bcda;
+  color: #000000;
+}
+#T_247d5_row2_col3 {
+  background-color: #a5bddb;
+  color: #000000;
+}
+#T_247d5_row2_col5 {
+  background-color: #fff7fb;
+  color: #000000;
+  background-color: #fff5f0;
+  color: #000000;
+}
+#T_247d5_row2_col6 {
+  background-color: #73a9cf;
+  color: #f1f1f1;
+}
+#T_247d5_row2_col7 {
+  background-color: #c1cae2;
+  color: #000000;
+}
+#T_247d5_row2_col8 {
+  background-color: #9fbad9;
+  color: #000000;
+}
+#T_247d5_row3_col2, #T_247d5_row3_col4 {
+  background-color: #3b92c1;
+  color: #f1f1f1;
+}
+#T_247d5_row3_col3 {
+  background-color: #328dbf;
+  color: #f1f1f1;
+}
+#T_247d5_row3_col5 {
+  background-color: #bdc8e1;
+  color: #000000;
+  background-color: #fff3ed;
+  color: #000000;
+}
+#T_247d5_row3_col6 {
+  background-color: #056faf;
+  color: #f1f1f1;
+}
+#T_247d5_row3_col7 {
+  background-color: #4e9ac6;
+  color: #f1f1f1;
+}
+#T_247d5_row3_col8 {
+  background-color: #2987bc;
+  color: #f1f1f1;
+}
+#T_247d5_row4_col2, #T_247d5_row4_col3, #T_247d5_row4_col4, #T_247d5_row4_col6, #T_247d5_row4_col7, #T_247d5_row4_col8 {
+  background-color: #023858;
+  color: #f1f1f1;
+}
+#T_247d5_row4_col5 {
+  background-color: #fbf3f9;
+  color: #000000;
+  background-color: #fff5f0;
+  color: #000000;
+}
+</style>
+
+<table id="T_247d5" class="do-not-create-environment cell" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th id="T_247d5_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Bin</th>
+<th id="T_247d5_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">N</th>
+<th id="T_247d5_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">N_clase1</th>
+<th id="T_247d5_level0_col3" class="col_heading level0 col3" data-quarto-table-cell-role="th">avg_prob</th>
+<th id="T_247d5_level0_col4" class="col_heading level0 col4" data-quarto-table-cell-role="th">perc_clase1</th>
+<th id="T_247d5_level0_col5" class="col_heading level0 col5" data-quarto-table-cell-role="th">diff</th>
+<th id="T_247d5_level0_col6" class="col_heading level0 col6" data-quarto-table-cell-role="th">N_acum</th>
+<th id="T_247d5_level0_col7" class="col_heading level0 col7" data-quarto-table-cell-role="th">N_clase1_acum</th>
+<th id="T_247d5_level0_col8" class="col_heading level0 col8" data-quarto-table-cell-role="th">TPR</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td id="T_247d5_row0_col0" class="data row0 col0">(1.20%, 14.10%]</td>
+<td id="T_247d5_row0_col1" class="data row0 col1">50</td>
+<td id="T_247d5_row0_col2" class="data row0 col2">4</td>
+<td id="T_247d5_row0_col3" class="data row0 col3">8.69%</td>
+<td id="T_247d5_row0_col4" class="data row0 col4">8.00%</td>
+<td id="T_247d5_row0_col5" class="data row0 col5">0.007</td>
+<td id="T_247d5_row0_col6" class="data row0 col6">50</td>
+<td id="T_247d5_row0_col7" class="data row0 col7">4</td>
+<td id="T_247d5_row0_col8" class="data row0 col8">8.00%</td>
+</tr>
+<tr class="even">
+<td id="T_247d5_row1_col0" class="data row1 col0">(14.10%, 22.80%]</td>
+<td id="T_247d5_row1_col1" class="data row1 col1">50</td>
+<td id="T_247d5_row1_col2" class="data row1 col2">7</td>
+<td id="T_247d5_row1_col3" class="data row1 col3">18.47%</td>
+<td id="T_247d5_row1_col4" class="data row1 col4">14.00%</td>
+<td id="T_247d5_row1_col5" class="data row1 col5">0.045</td>
+<td id="T_247d5_row1_col6" class="data row1 col6">100</td>
+<td id="T_247d5_row1_col7" class="data row1 col7">11</td>
+<td id="T_247d5_row1_col8" class="data row1 col8">11.00%</td>
+</tr>
+<tr class="odd">
+<td id="T_247d5_row2_col0" class="data row2 col0">(22.80%, 35.00%]</td>
+<td id="T_247d5_row2_col1" class="data row2 col1">50</td>
+<td id="T_247d5_row2_col2" class="data row2 col2">14</td>
+<td id="T_247d5_row2_col3" class="data row2 col3">28.12%</td>
+<td id="T_247d5_row2_col4" class="data row2 col4">28.00%</td>
+<td id="T_247d5_row2_col5" class="data row2 col5">0.001</td>
+<td id="T_247d5_row2_col6" class="data row2 col6">150</td>
+<td id="T_247d5_row2_col7" class="data row2 col7">25</td>
+<td id="T_247d5_row2_col8" class="data row2 col8">16.67%</td>
+</tr>
+<tr class="even">
+<td id="T_247d5_row3_col0" class="data row3 col0">(35.00%, 49.90%]</td>
+<td id="T_247d5_row3_col1" class="data row3 col1">50</td>
+<td id="T_247d5_row3_col2" class="data row3 col2">20</td>
+<td id="T_247d5_row3_col3" class="data row3 col3">41.46%</td>
+<td id="T_247d5_row3_col4" class="data row3 col4">40.00%</td>
+<td id="T_247d5_row3_col5" class="data row3 col5">0.015</td>
+<td id="T_247d5_row3_col6" class="data row3 col6">200</td>
+<td id="T_247d5_row3_col7" class="data row3 col7">45</td>
+<td id="T_247d5_row3_col8" class="data row3 col8">22.50%</td>
+</tr>
+<tr class="odd">
+<td id="T_247d5_row4_col0" class="data row4 col0">(49.90%, 80.70%]</td>
+<td id="T_247d5_row4_col1" class="data row4 col1">50</td>
+<td id="T_247d5_row4_col2" class="data row4 col2">30</td>
+<td id="T_247d5_row4_col3" class="data row4 col3">60.25%</td>
+<td id="T_247d5_row4_col4" class="data row4 col4">60.00%</td>
+<td id="T_247d5_row4_col5" class="data row4 col5">0.003</td>
+<td id="T_247d5_row4_col6" class="data row4 col6">250</td>
+<td id="T_247d5_row4_col7" class="data row4 col7">75</td>
+<td id="T_247d5_row4_col8" class="data row4 col8">30.00%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</figure>
+</div>
+</div>
+</div>
+<div class="quarto-auto-generated-content">
+<p><img src="logo-uba.jpeg" class="slide-logo"></p>
+<div class="footer footer-default">
+<p>Facultad de Ciencias Económicas - UBA</p>
+</div>
+</div>
+</section></section>
+    </div>
+  </div>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script>
+  <script src="01_calibration_slides_files/libs/revealjs/dist/reveal.js"></script>
+  <!-- reveal.js plugins -->
+  <script src="01_calibration_slides_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
+  <script src="01_calibration_slides_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
+  <script src="01_calibration_slides_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
+  <script src="01_calibration_slides_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="01_calibration_slides_files/libs/revealjs/plugin/quarto-support/support.js"></script>
+  
+
+  <script src="01_calibration_slides_files/libs/revealjs/plugin/notes/notes.js"></script>
+  <script src="01_calibration_slides_files/libs/revealjs/plugin/search/search.js"></script>
+  <script src="01_calibration_slides_files/libs/revealjs/plugin/zoom/zoom.js"></script>
+  <script src="01_calibration_slides_files/libs/revealjs/plugin/math/math.js"></script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://revealjs.com/config/
+      Reveal.initialize({
+'controlsAuto': true,
+'previewLinksAuto': false,
+'pdfSeparateFragments': false,
+'autoAnimateEasing': "ease",
+'autoAnimateDuration': 1,
+'autoAnimateUnmatched': true,
+'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.togglePdfExport(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'smaller': false,
+ 
+        // Display controls in the bottom right corner
+        controls: false,
+
+        // Help the user learn the controls by providing hints, for example by
+        // bouncing the down arrow when they first encounter a vertical slide
+        controlsTutorial: false,
+
+        // Determines where controls appear, "edges" or "bottom-right"
+        controlsLayout: 'edges',
+
+        // Visibility rule for backwards navigation arrows; "faded", "hidden"
+        // or "visible"
+        controlsBackArrows: 'faded',
+
+        // Display a presentation progress bar
+        progress: true,
+
+        // Display the page number of the current slide
+        slideNumber: false,
+
+        // 'all', 'print', or 'speaker'
+        showSlideNumber: 'all',
+
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+        hash: true,
+
+        // Start with 1 for the hash rather than 0
+        hashOneBasedIndex: false,
+
+        // Flags if we should monitor the hash and change slides accordingly
+        respondToHashChanges: true,
+
+        // Push each slide change to the browser history
+        history: true,
+
+        // Enable keyboard shortcuts for navigation
+        keyboard: true,
+
+        // Enable the slide overview mode
+        overview: true,
+
+        // Disables the default reveal.js slide layout (scaling and centering)
+        // so that you can use custom CSS layout
+        disableLayout: false,
+
+        // Vertical centering of slides
+        center: false,
+
+        // Enables touch navigation on devices with touch input
+        touch: true,
+
+        // Loop the presentation
+        loop: false,
+
+        // Change the presentation direction to be RTL
+        rtl: false,
+
+        // see https://revealjs.com/vertical-slides/#navigation-mode
+        navigationMode: 'linear',
+
+        // Randomizes the order of slides each time the presentation loads
+        shuffle: false,
+
+        // Turns fragments on and off globally
+        fragments: true,
+
+        // Flags whether to include the current fragment in the URL,
+        // so that reloading brings you to the same fragment position
+        fragmentInURL: false,
+
+        // Flags if the presentation is running in an embedded mode,
+        // i.e. contained within a limited portion of the screen
+        embedded: false,
+
+        // Flags if we should show a help overlay when the questionmark
+        // key is pressed
+        help: true,
+
+        // Flags if it should be possible to pause the presentation (blackout)
+        pause: true,
+
+        // Flags if speaker notes should be visible to all viewers
+        showNotes: false,
+
+        // Global override for autoplaying embedded media (null/true/false)
+        autoPlayMedia: null,
+
+        // Global override for preloading lazy-loaded iframes (null/true/false)
+        preloadIframes: null,
+
+        // Number of milliseconds between automatically proceeding to the
+        // next slide, disabled when set to 0, this value can be overwritten
+        // by using a data-autoslide attribute on your slides
+        autoSlide: 0,
+
+        // Stop auto-sliding after user input
+        autoSlideStoppable: true,
+
+        // Use this method for navigation when auto-sliding
+        autoSlideMethod: null,
+
+        // Specify the average time in seconds that you think you will spend
+        // presenting each slide. This is used to show a pacing timer in the
+        // speaker view
+        defaultTiming: null,
+
+        // Enable slide navigation via mouse wheel
+        mouseWheel: false,
+
+        // The display mode that will be used to show slides
+        display: 'block',
+
+        // Hide cursor if inactive
+        hideInactiveCursor: true,
+
+        // Time before the cursor is hidden (in ms)
+        hideCursorTime: 5000,
+
+        // Opens links in an iframe preview overlay
+        previewLinks: false,
+
+        // Transition style (none/fade/slide/convex/concave/zoom)
+        transition: 'none',
+
+        // Transition speed (default/fast/slow)
+        transitionSpeed: 'default',
+
+        // Transition style for full page slide backgrounds
+        // (none/fade/slide/convex/concave/zoom)
+        backgroundTransition: 'none',
+
+        // Number of slides away from the current that are visible
+        viewDistance: 3,
+
+        // Number of slides away from the current that are visible on mobile
+        // devices. It is advisable to set this to a lower number than
+        // viewDistance in order to save resources.
+        mobileViewDistance: 2,
+
+        // The "normal" size of the presentation, aspect ratio will be preserved
+        // when the presentation is scaled to fit different resolutions. Can be
+        // specified using percentage units.
+        width: 1050,
+
+        height: 700,
+
+        // Factor of the display size that should remain empty around the content
+        margin: 0.1,
+
+        math: {
+          mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
+          config: 'TeX-AMS_HTML-full',
+          tex2jax: {
+            inlineMath: [['\\(','\\)']],
+            displayMath: [['\\[','\\]']],
+            balanceBraces: true,
+            processEscapes: false,
+            processRefs: true,
+            processEnvironments: true,
+            preview: 'TeX',
+            skipTags: ['script','noscript','style','textarea','pre','code'],
+            ignoreClass: 'tex2jax_ignore',
+            processClass: 'tex2jax_process'
+          },
+        },
+
+        // reveal.js plugins
+        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, QuartoSupport,
+
+          RevealMath,
+          RevealNotes,
+          RevealSearch,
+          RevealZoom
+        ]
+      });
+    </script>
+    <script id="quarto-html-after-body" type="application/javascript">
+    window.document.addEventListener("DOMContentLoaded", function (event) {
+      const toggleBodyColorMode = (bsSheetEl) => {
+        const mode = bsSheetEl.getAttribute("data-mode");
+        const bodyEl = window.document.querySelector("body");
+        if (mode === "dark") {
+          bodyEl.classList.add("quarto-dark");
+          bodyEl.classList.remove("quarto-light");
+        } else {
+          bodyEl.classList.add("quarto-light");
+          bodyEl.classList.remove("quarto-dark");
+        }
+      }
+      const toggleBodyColorPrimary = () => {
+        const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+        if (bsSheetEl) {
+          toggleBodyColorMode(bsSheetEl);
+        }
+      }
+      toggleBodyColorPrimary();  
+      const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
+      tabsets.forEach(function(tabset) {
+        const tabby = new Tabby('#' + tabset.id);
+      });
+      const isCodeAnnotation = (el) => {
+        for (const clz of el.classList) {
+          if (clz.startsWith('code-annotation-')) {                     
+            return true;
+          }
+        }
+        return false;
+      }
+      const clipboard = new window.ClipboardJS('.code-copy-button', {
+        text: function(trigger) {
+          const codeEl = trigger.previousElementSibling.cloneNode(true);
+          for (const childEl of codeEl.children) {
+            if (isCodeAnnotation(childEl)) {
+              childEl.remove();
+            }
+          }
+          return codeEl.innerText;
+        }
+      });
+      clipboard.on('success', function(e) {
+        // button target
+        const button = e.trigger;
+        // don't keep focus
+        button.blur();
+        // flash "checked"
+        button.classList.add('code-copy-button-checked');
+        var currentTitle = button.getAttribute("title");
+        button.setAttribute("title", "Copied!");
+        let tooltip;
+        if (window.bootstrap) {
+          button.setAttribute("data-bs-toggle", "tooltip");
+          button.setAttribute("data-bs-placement", "left");
+          button.setAttribute("data-bs-title", "Copied!");
+          tooltip = new bootstrap.Tooltip(button, 
+            { trigger: "manual", 
+              customClass: "code-copy-button-tooltip",
+              offset: [0, -8]});
+          tooltip.show();    
+        }
+        setTimeout(function() {
+          if (tooltip) {
+            tooltip.hide();
+            button.removeAttribute("data-bs-title");
+            button.removeAttribute("data-bs-toggle");
+            button.removeAttribute("data-bs-placement");
+          }
+          button.setAttribute("title", currentTitle);
+          button.classList.remove('code-copy-button-checked');
+        }, 1000);
+        // clear code selection
+        e.clearSelection();
+      });
+        var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+        var mailtoRegex = new RegExp(/^mailto:/);
+          var filterRegex = new RegExp('/' + window.location.host + '/');
+        var isInternal = (href) => {
+            return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+        }
+        // Inspect non-navigation links and adorn them if external
+     	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+        for (var i=0; i<links.length; i++) {
+          const link = links[i];
+          if (!isInternal(link.href)) {
+            // undo the damage that might have been done by quarto-nav.js in the case of
+            // links that we want to consider external
+            if (link.dataset.originalHref !== undefined) {
+              link.href = link.dataset.originalHref;
+            }
+          }
+        }
+      function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+        const config = {
+          allowHTML: true,
+          maxWidth: 500,
+          delay: 100,
+          arrow: false,
+          appendTo: function(el) {
+              return el.closest('section.slide') || el.parentElement;
+          },
+          interactive: true,
+          interactiveBorder: 10,
+          theme: 'light-border',
+          placement: 'bottom-start',
+        };
+        if (contentFn) {
+          config.content = contentFn;
+        }
+        if (onTriggerFn) {
+          config.onTrigger = onTriggerFn;
+        }
+        if (onUntriggerFn) {
+          config.onUntrigger = onUntriggerFn;
+        }
+          config['offset'] = [0,0];
+          config['maxWidth'] = 700;
+        window.tippy(el, config); 
+      }
+      const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+      for (var i=0; i<noterefs.length; i++) {
+        const ref = noterefs[i];
+        tippyHover(ref, function() {
+          // use id or data attribute instead here
+          let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+          try { href = new URL(href).hash; } catch {}
+          const id = href.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note) {
+            return note.innerHTML;
+          } else {
+            return "";
+          }
+        });
+      }
+      const findCites = (el) => {
+        const parentEl = el.parentElement;
+        if (parentEl) {
+          const cites = parentEl.dataset.cites;
+          if (cites) {
+            return {
+              el,
+              cites: cites.split(' ')
+            };
+          } else {
+            return findCites(el.parentElement)
+          }
+        } else {
+          return undefined;
+        }
+      };
+      var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+      for (var i=0; i<bibliorefs.length; i++) {
+        const ref = bibliorefs[i];
+        const citeInfo = findCites(ref);
+        if (citeInfo) {
+          tippyHover(citeInfo.el, function() {
+            var popup = window.document.createElement('div');
+            citeInfo.cites.forEach(function(cite) {
+              var citeDiv = window.document.createElement('div');
+              citeDiv.classList.add('hanging-indent');
+              citeDiv.classList.add('csl-entry');
+              var biblioDiv = window.document.getElementById('ref-' + cite);
+              if (biblioDiv) {
+                citeDiv.innerHTML = biblioDiv.innerHTML;
+              }
+              popup.appendChild(citeDiv);
+            });
+            return popup.innerHTML;
+          });
+        }
+      }
+    });
+    </script>
+    
+
+</body></html>

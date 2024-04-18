@@ -1,0 +1,53 @@
+/*-- scss:defaults --*/
+
+// fonts
+$font-family-sans-serif: "Palatino Linotype", "Book Antiqua", Palatino,
+  FreeSerif, serif !default;
+
+// colors
+$body-bg: #ffffff !default;
+$body-color: #000 !default;
+$link-color: #51483d !default;
+$selection-bg: #26351c !default;
+
+// headings
+$presentation-heading-font: "Palatino Linotype", "Book Antiqua", Palatino,
+  FreeSerif, serif !default;
+$presentation-heading-color: #383d3d !default;
+
+/*-- scss:rules --*/
+
+.reveal a {
+  line-height: 1.3em;
+}
+
+.reveal .footer {
+  display: block;
+  position: fixed;
+  bottom: 18px;
+  width: 100%;
+  margin: 0px -20px;
+  text-align: right;
+  font-size: 18px;
+  z-index: 2;
+}
+.reveal .slide-logo {
+  z-index: 2;
+  right: 3 !important;
+  height: unset !important;
+  bottom: unset !important;
+  width: 50px !important;
+  max-width: unset !important;
+  max-height: unset !important;
+}
+
+title-slide .title {
+  font-size: 24px;
+  color: #b22222;
+}
+
+.custom_class_html_display {
+  height: 100%;
+  width: 100%;
+  font-size: 30px;
+}
