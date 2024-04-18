@@ -1,5 +1,8 @@
 # workshops
 
+[Calibración de probabilidades](https://karbartolome.github.io/workshops/01_ml/01_clasificacion/01_calibracion/01_calibration_slides)
+
+
 
 Para configurar kernelspec: 
 
