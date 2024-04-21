@@ -1,0 +1,69 @@
+---
+title: "Calibración de probabilidades"
+subtitle: "Estimación de default mediante modelos de machine learning"
+author: Karina Bartolomé
+institute: "Organizadora: Natalia Salaberry <br> CIMBAGE (IADCOM) - Facultad Ciencias Económicas (UBA)"
+date: 2024-05-13
+format: 
+    revealjs:
+        theme: [default, custom.scss]
+        logo: logo-uba.jpeg
+        footer: |
+            <body>
+            Facultad de Ciencias Económicas - UBA  | 
+            <a href="https://github.com/karbartolome/workshops">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub" width="20" height="20">
+            </a>
+            </body>
+        self-contained: true
+        embed-resources: true
+        slide-number: true
+        toc: true
+        number-sections: true
+        number-depth: 2
+        title-slide-attributes:
+            data-background-size: contain  
+#format: beamer
+jupyter: 
+  kernelspec:
+    name: "quarto-env"
+    language: "python"
+    display_name: "quarto-env"
+execute:
+  echo: false
+  warning: false
+  code-fold: false
+  layout-align: center
+lang: es
+---
+
+# Introducción a machine learning
+
+::: {style="font-size: 50%;"}
+## ¿Qué es un modelo de clasificación?
+
+Se busca predecir la [probabilidad de ocurrencia]{style="color: blue"} de un evento a partir de ciertas características observables:
+
+> $P(y=1) = f(X)$
+>
+> *Siendo y una variable que puede tomar 2 valores: 0 o 1*
+
+<br> **Ejemplos de clasificación:**
+
+
+
+::: {.fragment .fade-in}
+-   **Iris**: Clasificación de especies de plantas
+:::
+
+::: {.fragment .fade-in}
+-   **Titanic**: Probabilidad de supervivencia
+:::
+
+::: {.fragment .fade-in}
+::: {.fragment .highlight-red}
+-   **German Credit**: Probabilidad de default
+:::
+:::
+
+:::

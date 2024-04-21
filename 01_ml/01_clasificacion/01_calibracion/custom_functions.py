@@ -7,32 +7,34 @@ from IPython.display import display
 
 
 def plot_distribution(
-    data, obs_column="y_obs", pred_column="pred_prob", positive_class=1, subtitle=""
+    data, obs_column="y_obs", pred_column="pred_prob", positive_class=1,
+    class_0_color=None, class_1_color=None
 ):
-    sns.set(font_scale=0.8)
+    if class_0_color is None:
+        class_0_color = 'blue'
+    if class_1_color is None:
+        class_1_color = 'red'
+    #sns.set(font_scale=0.8)
     plt.figure(figsize=(4, 2))
     sns.kdeplot(
         data=data[data[obs_column] == positive_class],
         x=pred_column,
-        color="red",
+        color=class_1_color,
         label="Class 1",
     )
     sns.kdeplot(
         data=data[data[obs_column] != positive_class],
         x=pred_column,
-        color="blue",
+        color=class_0_color,
         label="Class 0",
     )
     plt.xlim([0, 1])
-    plt.title(
-        f"Distribución de probabilidad predicha según clase observada\n{subtitle}"
-    )
     plt.legend()
     plt.show()
 
 
 def plot_calibration_models(
-    y_obs, y_pred_prob, y_pred_prob_cal, bins=10, strategy="uniform"
+    y_obs, y_pred_prob, y_pred_prob_cal, bins=10, strategy="uniform", figsize=(6,6),display_bins=False
 ) -> None:
     """
     Gráfico comparando probabilidad vs probabilidad calibrada
@@ -48,11 +50,8 @@ def plot_calibration_models(
     prob_true, prob_pred = calibration_curve(
         y_obs, y_pred_prob, n_bins=bins, strategy=strategy
     )
-    prob_true_cal, prob_pred_cal = calibration_curve(
-        y_obs, y_pred_prob_cal, n_bins=bins, strategy=strategy
-    )
 
-    plt.figure(figsize=(6, 6))
+    plt.figure(figsize=figsize)
     plt.plot(
         prob_pred,
         prob_true,
@@ -60,21 +59,34 @@ def plot_calibration_models(
         color="red",
         label="Probabilidades no calibradas",
     )
-    plt.plot(
-        prob_pred_cal,
-        prob_true_cal,
-        marker="o",
-        color="blue",
-        label="Probabilidades calibradas",
-    )
+    if y_pred_prob_cal is not None:
+        prob_true_cal, prob_pred_cal = calibration_curve(
+            y_obs, y_pred_prob_cal, n_bins=bins, strategy=strategy
+        )
+
+        plt.plot(
+            prob_pred_cal,
+            prob_true_cal,
+            marker="o",
+            color="blue",
+            label="Probabilidades calibradas",
+        )
 
     plt.axline([0, 0], [1, 1], label="Calibración perfecta", c="green")
+    plt.text(0.8, 0.85, "Línea 45°", fontsize=10, rotation=45, c='green')
+
     plt.legend()
-    plt.title("Probabilidades calibradas vs no calibradas")
-    plt.xlabel("Probabilidad predicha promedio (clase positiva=1)")
+    #plt.title("Probabilidades calibradas vs no calibradas")
+    plt.xlabel("Probabilidad predicha promedio")
     plt.ylabel("Fracción de positivos (clase positiva=1)")
     plt.text(0.10, 0.70, "Subestimación", fontsize=10, rotation=45)
     plt.text(0.70, 0.10, "Sobreestimación", fontsize=10, rotation=45)
+
+    if display_bins:
+        return (pd.DataFrame({
+            'prob_true': prob_true,
+            'prob_pred': prob_pred
+        }))
 
 
 def gain_table(preds, pred_column="pred_prob", bins=10, title=""):

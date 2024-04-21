@@ -31,12 +31,13 @@ $presentation-heading-color: #383d3d !default;
   font-size: 18px;
   z-index: 2;
 }
+
 .reveal .slide-logo {
   z-index: 2;
   right: 3 !important;
   height: unset !important;
   bottom: unset !important;
-  width: 50px !important;
+  width: 70px !important;
   max-width: unset !important;
   max-height: unset !important;
 }
@@ -50,4 +51,12 @@ title-slide .title {
   height: 100%;
   width: 100%;
   font-size: 30px;
+}
+
+// Slide numbers to the bottom-left
+.slide-number, .reveal.has-logo .slide-number {
+  bottom: 14px !important;
+  left: 50px !important;
+  top: unset !important;
+  color: #777777 !important;
 }
