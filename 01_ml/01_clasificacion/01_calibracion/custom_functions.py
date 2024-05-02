@@ -115,7 +115,7 @@ def plot_calibration_models(
     plt.text(0.8, 0.85, "Línea 45°", fontsize=10, rotation=45, c=color_verde)
 
     plt.legend()
-    plt.title(f"Curvas de calibración {model_name}")
+    plt.title('Reliability diagram')
     plt.xlabel("Probabilidad predicha promedio")
     plt.ylabel("Fracción de positivos (clase positiva=1)")
     plt.text(0.10, 0.70, "Subestimación", fontsize=10, rotation=45)

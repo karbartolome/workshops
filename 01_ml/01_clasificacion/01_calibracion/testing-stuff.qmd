@@ -36,6 +36,14 @@ execute:
 lang: es
 ---
 
+## Flow
+
+```{mermaid}
+flowchart TD
+    a --> b
+```
+
+
 ## A
 
 ```{python}
@@ -74,6 +82,36 @@ great_tables.GT(pd.DataFrame({'a':[1,2,3],'b':['a','b','c']}))
 ```
 
 
+# Temp
+
+## Temp b
+
+::: {.nav-pills}
+::: {.panel-tabset}
+
+```{python}
+#| output: asis
+df = pd.DataFrame({
+  'var':['a']*10+['b']*3,
+  'value':list(range(0,10))+list(range(0,3))
+})
+
+for i in ['a','b']:
+    display(Markdown(f"## {i}"))
+    display(Markdown("::: {.cell tbl-cap='"+i+"'}\n"))
+    display(Markdown("::: {.cell label='tbl-"+i+"'}\n"))
+    display(great_tables.GT(df.query('var==@i')))
+    display(Markdown(":::\n"))
+    display(Markdown(":::\n"))
+```
+:::
+:::
+
+# Nueva sección
+
+## Temp
+
+@tbl-a es una tabla y @tbl-b es otra
 
 ## Contacto
 
