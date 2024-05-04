@@ -137,49 +137,66 @@ color_verde_claro = "#BDCBCC"
 # Introducción a machine learning
 
 ## Machine Learning
+::: {style="font-size: 50%;"}
+En general al hablar de machine learning se hace referencia a diversos tipos de modelos. En la @fig-ml-types se muestran los distintos tipos de modelos de aprendizaje automático.
 
-En general al hablar de machine learning se hace referencia a diversos tipos de modelos. En esta presentación se analizará el caso particular de los modelos de clasificación, haciendo énfasis en la estimación de probabilidad.
-
+En esta presentación se analizará el caso particular de los [modelos de clasificación]{style="color: blue"}, haciendo énfasis en la [Estimación de probabilidad]{style="color: blue"}. 
 ```{mermaid}
+%%| fig-cap: "Tipos de modelos de aprendizaje automático"
+%%| label: fig-ml-types
+%%{init: {'flowchart' : {'curve' : 'linear'}}}%%
+
 flowchart LR
-    ml[Machine Learning]
-    supervised[Aprendizaje <br> supervisado]
+    ml[Machine Learning]:::greenclass1
+    supervised[Aprendizaje <br> supervisado]:::greenclass1
     unsupervised[Aprendizaje <br> no supervisado]
-    semisupervised[Aprendizaje <br> semi supervizado]
     reinforce[Aprendizaje <br> por refuerzo]
 
-    ml_clf[Modelos de <br>clasificación]
+    ml_clf[Modelos de <br>clasificación]:::greenclass1
     ml_reg[Modelos de <br>regresión]
     ml_clfclass[Predicción de<br>clase]
-    ml_clfprob[Predicción de <br>probabilidad]:::redclass
+    ml_clfrank[Predicción de<br>ordenamiento]
+    ml_clfprob[Predicción de <br>probabilidad]:::greenclass2
 
-    ml-->supervised
-    ml-->unsupervised
-    ml-->semisupervised
-    ml-->reinforce
+    ml---temp1[ ]
 
-    supervised-->ml_clf
-    supervised-->ml_reg
-    ml_clf-->ml_clfclass
-    ml_clf-->ml_clfprob
+    temp1-->supervised
+    temp1-->unsupervised
+    temp1-->reinforce
 
-    classDef redclass fill:#255255,stroke:#333,stroke-width:2px,color:white;
-    classDef blueclass fill:#BDCBCC,stroke:#333,stroke-width:2px,color:white;
+    supervised---temp2[ ]
+
+    temp2-->ml_clf
+    temp2-->ml_reg
+
+    ml_clf---temp3[ ]
+
+    temp3-->ml_clfclass
+    temp3-->ml_clfrank
+    temp3-->ml_clfprob
+
+    classDef greenclass2 fill:#255255,stroke:#333,stroke-width:2px,color:white;
+    classDef greenclass1 fill:#BDCBCC,stroke:#333,stroke-width:2px,color:black;
+    style temp1 fill:#FFFFFF00,stroke:#FFFFFF00,height:0px,width:0px;
+    style temp2 fill:#FFFFFF00,stroke:#FFFFFF00,height:0px,width:0px;
+    style temp3 fill:#FFFFFF00,stroke:#FFFFFF00,height:0px,width:0px;
 ```
-
+:::
 
 ## ¿Qué es un modelo de clasificación binaria?
 ::: {style="font-size: 50%;"}
 
-Se busca predecir la [probabilidad de ocurrencia]{style="color: blue"} de un evento a partir de ciertas características observables:
+Se busca [predecir la ocurrencia de un evento]{style="color: blue"} a partir de ciertas características observables:
 
 > $P(y=1) = f(X)$
 >
-> *Siendo y una variable que puede tomar 2 valores: 0 o 1*
+> *y: variable que puede tomar 2 valores: 0 o 1*
+>
+> *X: matriz de nxm, siendo n la cantidad de observaciones y m la cantidad de variables (o atributos)*
 
 ::: {.fragment .fade-in}
 <br> 
-**Ejemplos de clasificación:**
+**Ejemplos populares de modelos de clasificación:**
 
 ▪️**Iris**: Clasificación de especies de plantas
 
@@ -204,7 +221,7 @@ Se busca predecir la [probabilidad de ocurrencia]{style="color: blue"} de un eve
 #| code-summary: "Código"
 PATH_DATA = 'https://raw.githubusercontent.com/ayseceyda/german-credit-gini-analysis/master/gc.csv'
 TARGET = "Risk"
-
+# pd.read_csv(PATH_DATA).to_csv('df_german_credit.csv', index=False)
 df = (pd.read_csv(PATH_DATA)
   .drop('Unnamed: 0', axis=1)
   .assign(Risk = lambda x: np.where(x['Risk']=='good',0,1))
@@ -278,7 +295,6 @@ print(f"N observaciones en evaluación: {X_test.shape[0]}")
 ```
 ::: 
 
-# Modelo simple
 
 ::: {style="font-size: 50%;"}
 ## Modelo de clasificación simple
@@ -366,8 +382,8 @@ plt.show()
 :::
 :::
 
-::: {style="font-size: 50%;"}
 ## Evaluación de un modelo de clasificación
+::: {style="font-size: 50%;"}
 ::: columns
 ::: {.column width="50%"}
 ::: {.fragment .fade-in}
@@ -441,17 +457,110 @@ distrib
 :::
 :::
 
-# Modelos más complejos
 
+## Evaluación de un modelo de clasificación (Cont.)
+::: {style="font-size: 50%;"}
+En la @fig-ml-metrics se presentan distintas métricas de clasificación. En este caso el foco estará sobre las métricas basadas en probabilidad. 
+
+```{mermaid}
+%%| fig-cap: "Métricas de modelos de clasificación"
+%%| label: fig-ml-metrics
+%%{init: {'flowchart' : {'curve' : 'linear'}}}%%
+
+flowchart LR
+    ml[Modelo de <br>clasificación]
+    metrics[Métricas]
+
+    ml_clfclass[Predicción de<br>clase]
+    ml_clfrank[Predicción de<br>ordenamiento]
+    ml_clfprob[Predicción de <br>probabilidad]:::greenclass2
+    
+    ml-->metrics
+    metrics---temp1[ ]
+
+    temp1-->ml_clfclass
+    temp1-->ml_clfrank
+    temp1-->ml_clfprob
+
+    ml_clfclass---temp2[ ]
+    temp2-->accuracy
+    temp2-->precision
+    temp2-->etc
+
+    ml_clfrank---temp3[ ]
+    temp3-->roc_auc
+    
+    ml_clfprob---temp4[ ]
+    temp4-->log_loss:::greenclass2
+    temp4-->brier_loss:::greenclass2
+
+    classDef greenclass2 fill:#255255,stroke:#333,stroke-width:2px,color:white;
+    classDef greenclass1 fill:#BDCBCC,stroke:#333,stroke-width:2px,color:black;
+    style temp1 fill:#FFFFFF00,stroke:#FFFFFF00,height:0px,width:0px;
+    style temp2 fill:#FFFFFF00,stroke:#FFFFFF00,height:0px,width:0px;
+    style temp3 fill:#FFFFFF00,stroke:#FFFFFF00,height:0px,width:0px;
+    style temp4 fill:#FFFFFF00,stroke:#FFFFFF00,height:0px,width:0px;
+```
+:::
+
+## Evaluación de un modelo de clasificación (Cont.)
+::: {style="font-size: 50%;"}
+
+Siendo $N$ la cantidad de observaciones, $y_i$ el valor observado para la obseravción $i$ y $\hat{y_i}$ el valor predicho para la observación $i$, se definen las funciones de pérdida:
+
+::: {.nav-pills .panel-tabset}
+## Log loss
+También denominada Negative Mean Log-Likelihood
+
+::: columns
+::: {.column width="50%"}
+$$
+\text{Log Loss} = -\frac{1}{N} \sum_{i=1}^{N} \left( \color{red}{y_i \log(\hat{y_i})} + \color{blue}{(1 - y_i) \log(1 - \hat{y_i})} \right)
+$$
+
+> Si $y_i=1$ => $\text{Log Loss}_{i}=-\color{red}{\log(\hat{y_i})}$
+>
+> Si $y_i=0$ => $\text{Log Loss}_{i}=-\color{blue}{\log(1 - \hat{y_i})}$
+
+- La pérdida es 0 si se tiene seguridad sobre una predicción y la predicción es correcta
+- La pérdida es $\infty$ si se tiene seguridad sobre una predicción y la predicción es incorrecta
+
+:::
+::: {.column width="50%"}
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Código"
+#| layout-align: center
+#| fig-cap: "Logatitmo de una probabilidad"
+#| label: fig-log
+N=100
+temp = (pd.DataFrame({
+    'y_pred':[i/N for i in range(1,N,1)]
+    })
+    .assign(y_pred_log = lambda x: np.log(x['y_pred']))
+).plot(x='y_pred', y='y_pred_log', figsize=(3,3), xlabel='Prob', ylabel='Log(Prob)');
+```
+:::
+:::
+
+
+## Brier loss
+Error Cuadrático Medio pero para clasificación:
+
+$$
+\text{Brier Loss} = \frac{1}{N} \sum_{i=1}^{N} (y_i - \hat{y_i})^2
+$$
+
+:::
+:::
+# Comparación de modelos de ML
 ::: {style="font-size: 50%;"}
 ## Preprocesamiento
 
-Se construye un pipeline de preprocesamiento de variables, diferenciando el procesamiento según tipo de datos: 
+Muchos modelos de aprendizaje automático requieren que los datos sean numéricos. Para ello, se construye un pipeline de preprocesamiento de variables, diferenciando el procesamiento según tipo de variables: categóricas y numéricas.
 
-- Variables categóricas
-- Variables numéricas
-
-<br>
+🔗 [sklearn.preprocessing](https://scikit-learn.org/stable/modules/preprocessing.html)
 
 ```{python}
 #| echo: true
@@ -477,7 +586,6 @@ preproc = ColumnTransformer([
       make_column_selector(dtype_include=['object','category']))
 ], verbose_feature_names_out=False)
 ```
-
 ```{python}
 #| echo: false
 #| code-fold: false
@@ -486,6 +594,7 @@ preproc = ColumnTransformer([
 preproc
 ```
 
+En la @tbl-credit-data-preproc se visualizan los datos luego del preprocesamiento. Esta es la matriz que será utilizada para ajustar múltiples modelos de clasificación.
 ```{python}
 #| echo: true
 #| code-fold: true
@@ -499,8 +608,8 @@ display(GT(preproc.fit_transform(X_train).sample(2).round(2))
     )
 )
 ```
-::: 
 
+:::
 
 ## Modelado
 ::: {style="font-size: 50%;"}
@@ -607,14 +716,82 @@ for i in models_dict.keys():
 :::
 
 ::: {style="font-size: 50%;"}
-## Problema
+## Problema organizacional
 
-Planteo de problema organizacional
+Se utiliza el modelo para generar predicciones sobre las observaciones de test (@tbl-pred), agrupando las predicciones en 5 intervalos de probabilidad. La @tbl-pred-bins contiene la cantidad de observaciones por bin y el promedio de y_obs e y_pred. En la @fig-reliability se visualiza la probabilidad promedio por bin en el eje x y la fracción de clase positiva observada en el eje y.
+
+::: columns
+::: {.column width="30%" .add-space}
 
 ```{python}
-
+#| echo: true
+#| code-fold: true
+#| code-summary: "Ver código"
+#| tbl-cap: "Predicciones"
+#| label: tbl-pred
+preds_df = (pd.DataFrame({
+        'y_obs':y_test,
+        'y_pred':pipe_hist.predict_proba(X_test)[:,1]
+    })
+    .assign(bin=lambda x: pd.qcut(x['y_pred'],q=5, precision=5))
+)
+preds_df['bin'] = pd.IntervalIndex(preds_df['bin']).map(lambda x: pd.Interval(round(x.left, 2), round(x.right, 2)))
+(GT(preds_df
+    .sample(3, random_state=123).round(4))
+    .tab_options(
+        column_labels_background_color=color_verde,
+        table_font_names="Times New Roman"
+    )
+)
 ```
 
+:::
+::: {.column width="30%" .add-space}
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Ver código"
+#| tbl-cap: "Bins de las predicciones"
+#| label: tbl-pred-bins
+(GT(preds_df.groupby('bin')
+    .agg(
+        N = ('y_obs','count'), 
+        frac_positive=('y_obs','mean'),
+        avg_pred = ('y_pred','mean')
+    ).round(2).reset_index()
+    )
+    .tab_options(
+        column_labels_background_color=color_verde,
+        table_font_names="Times New Roman"
+    )
+)
+```
+:::
+::: {.column width="30%"}
+
+```{python}
+# | echo: true
+# | eval: true
+# | code-fold: true
+# | code-summary: "Ver código"
+# | label: fig-reliability
+# | fig-cap: "Gráfico de calibración (Reliability diagram)"
+from sklearn.calibration import calibration_curve
+prob_true, prob_pred = calibration_curve(
+    y_test, pipe_hist.predict_proba(X_test)[:,1], 
+    n_bins=5,
+    strategy='uniform'
+)
+plt.figure(figsize=(3,3))
+sns.lineplot(x=prob_pred, y=prob_true, color='red', label='Modelo')
+sns.scatterplot(x=prob_pred, y=prob_true, color='red')
+plt.axline([0, 0], [1, 1], c=color_verde)
+plt.legend()
+plt.xlabel("Probabilidad predicha")
+plt.ylabel("Fracción de positivos");
+```
+:::
+:::
 :::
 
 # Calibración de probabilidades
@@ -908,13 +1085,7 @@ for i in metrics_dfs.keys():
 
 Se busca un modelo en donde la probabilidad promedio de cada bin se corresponda con el % de clase positiva observado en ese bin según las predicciones del modelo.
 
-Esto es útil para la toma de decisiones, ya que permite establecer punto de cortes diferenciales en función de la aversión en riesgo de la entidad.
-
-Por ejemplo:
-
-- En un modelo de scoring crediticio, otorgarle créditos a N individuos con probabilidad en cierto intervalo tiene un riesgo asociado (mora esperada)
-- En un modelo de churn (abandono) de clientes, otorgarle una promoción a individuos de cierto intervalo de probabilidad de abandono tiene un costo asociado (descuento para individuos que no abandonarían)
-- Entre otros.
+Esto es útil para la toma de decisiones, ya que permite establecer punto de cortes diferenciales en función de la probabilidad. 
 
 :::
 
