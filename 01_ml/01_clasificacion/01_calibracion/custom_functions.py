@@ -34,7 +34,7 @@ def plot_distribution(
     if class_1_color is None:
         class_1_color = "red"
     # sns.set(font_scale=0.8)
-    plt.figure(figsize=(4, 2))
+    plt.figure(figsize=(3.5, 1.7))
     sns.kdeplot(
         data=data[data[obs_column] == positive_class],
         x=pred_column,

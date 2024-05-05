@@ -222,7 +222,7 @@ Se busca [predecir la ocurrencia de un evento]{style="color: blue"} a partir de 
 PATH_DATA = 'https://raw.githubusercontent.com/ayseceyda/german-credit-gini-analysis/master/gc.csv'
 TARGET = "Risk"
 # pd.read_csv(PATH_DATA).to_csv('df_german_credit.csv', index=False)
-df = (pd.read_csv(PATH_DATA)
+df = (pd.read_csv('df_german_credit.csv')
   .drop('Unnamed: 0', axis=1)
   .assign(Risk = lambda x: np.where(x['Risk']=='good',0,1))
 )
@@ -382,27 +382,66 @@ plt.show()
 :::
 :::
 
-## Evaluación de un modelo de clasificación
 ::: {style="font-size: 50%;"}
-::: columns
-::: {.column width="50%"}
-::: {.fragment .fade-in}
-Se utiliza el método `clf.predict()`para predecir la clase (0,1) según el modelo (`clf`). A partir de la clase predicha se obtiene la matriz de confusión:
+## Evaluación de un modelo de clasificación
+Dados los datos de evaluación, se utiliza el modelo para predecir el valor de la variable objetivo. Mediante `predict()` se obtienen las predicciones de clase. Con `predict_proba()`el clasificador devuelve un score (valor entre 0 y 1). 
 
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Ver código"
+preds = (pd.concat([y_test, X_test], axis=1)
+    .set_index(TARGET)
+    [subset_cols]
+    .reset_index()
+    .assign(
+        Risk_pred = clf.predict(X_test[subset_cols]),
+        Risk_pred_prob = clf.predict_proba(X_test[subset_cols])[:,1]
+    )
+)
+```
+
+::: {.columns}
+::: {.column width="40%"}
+::: {.fragment .fade-in}
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Ver código"
+#| label: tbl-preds-tree
+#| tbl-cap: 'Predicciones'
+(GT(preds.sample(6, random_state=123).round(2))
+    .fmt_currency(columns="Credit amount")
+    .tab_style(
+        style=style.fill(color=map_color), locations=loc.body(columns=df.columns.tolist()),
+    )
+    .tab_style(
+        style=style.text(color='red', weight = "bold"), locations=loc.body(TARGET),
+    )
+    .tab_options(
+        column_labels_background_color=color_verde,
+        table_font_names="Times New Roman"
+    )
+)
+```
+:::
+:::
+
+::: {.column width="60%"}
+::: {.fragment .fade-in}
 ```{python}
 #| echo: true
 #| code-fold: true
 #| code-summary: "Ver código"
 #| label: tbl-cm
 #| tbl-cap: 'Matriz de confusión'
-preds = pd.DataFrame({'Valor observado':y_test,'Valor predicho':clf.predict(X_test[subset_cols])})
 display(GT(preds
-    .groupby(['Valor observado','Valor predicho'], as_index=False).size()
-    .pivot(index='Valor observado', columns='Valor predicho', values='size')
+    .groupby(['Risk','Risk_pred'], as_index=False).size()
+    .pivot(index='Risk', columns='Risk_pred', values='size')
     .rename({0:'0',1:'1'}, axis=1)
     .reset_index()
     )
-    .tab_spanner('Valor predicho', columns = ['0','1'])
+    .tab_spanner('Risk_pred', columns = ['0','1'])
     .data_color(
         columns=['0','1'],
         domain=[0,X.shape[0]],
@@ -412,49 +451,26 @@ display(GT(preds
 )
 ```
 :::
-:::
-::: {.column width="50%"}
 ::: {.fragment .fade-in}
-
-Además de predecir una clase, sklearn permite predecir una "probabilidad" con `clf.predict_proba()`:
-
-```{python}
-#| echo: true
-#| code-fold: true
-#| code-summary: "Ver código"
-#| label: tbl-predictproba
-#| tbl-cap: 'clf.predict_proba(), muestra de 2 observaciones'
-y_pred_proba = clf.predict_proba(X_test[subset_cols])[:, 1]
-preds = pd.DataFrame({
-    'y_obs':y_test,
-    'predict_proba':y_pred_proba
-})
-GT(preds.sample(2, random_state=42)).fmt_number('predict_proba')
-```
-
-```{python}
-metrica_auc = roc_auc_score(y_true=y_test, y_score=y_pred_proba)
-metrica_logloss = log_loss(y_true=y_test, y_pred=y_pred_proba)
-metrica_brierloss = brier_score_loss(y_true=y_test, y_prob=y_pred_proba)
-
-print(f"""
-ROC AUC = {metrica_auc:.2}, Log loss = {metrica_logloss:.2}, Brier loss = {metrica_brierloss:.2}
-""")
-```
-
 ```{python}
 #| echo: true
 #| code-fold: true
 #| code-summary: "Ver código"
 #| label: fig-distrib-tree
 #| fig-cap: 'Distribución de "probabilidad" predicha'
-distrib=plot_distribution(data=preds, pred_column='predict_proba', class_0_color=color_verde)
+distrib=plot_distribution(
+    data=preds,
+    obs_column='Risk', 
+    pred_column='Risk_pred_prob', 
+    class_0_color=color_verde
+)
 distrib
 ```
+:::
+:::
 
 :::
-:::
-:::
+
 :::
 
 
