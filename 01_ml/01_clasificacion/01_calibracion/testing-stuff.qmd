@@ -1,17 +1,27 @@
 ---
 title: "Calibración de probabilidades"
 subtitle: "Estimación de default mediante modelos de machine learning"
-author: Karina Bartolomé
-institute: "Organizadora: Natalia Salaberry <br> CIMBAGE (IADCOM) - Facultad Ciencias Económicas (UBA)"
+author: Karina A. Bartolomé
+institute: |
+  Especialista en Métodos Cuantitativos para la Gestión y Análisis de Datos en Organizaciones (FCE, UBA). Lic. en Economía, FCE, UNLP. Líder técnica de Ciencia de Datos en Ualá
+
+  <br>
+
+  **Organizadora: Natalia R. Salaberry** <br>
+  Doctoranda en la Universidad de Buenos Aires, Ciencias Económicas. Magister en Métodos Cuantitativos para la Gestión y Análisis de Datos en Organizaciones (FCE, UBA). Lic. en Economía, FCE, UBA. Investigadora en CIMBAGE (IADCOM), Docente de posgrados y Estadística I, FCE, UBA
+  <br> 
+
+  **CIMBAGE (IADCOM)** - Facultad Ciencias Económicas (UBA)
+
 date: 2024-05-13
 format: 
     revealjs:
         theme: [default, custom_testing.scss]
-        logo: logo-uba.jpeg
+        logo: logo-uba.png
         footer: |
             <body>
-            Facultad de Ciencias Económicas - UBA   |  
-            {{< fa brands github size=1x >}} [github.com/karbartolome/workshops](https://github.com/karbartolome/workshops)
+            Cimbage - IADCOM | Facultad de Ciencias Económicas - UBA   |  
+            {{< fa brands github size=1x >}} [Repositorio](https://github.com/karbartolome/workshops)
             </body>
         self-contained: true
         embed-resources: true
@@ -76,55 +86,7 @@ import numpy as np
 import pandas as pd
 ```
 
-## Evaluación de un modelo de clasificación (Cont.)
-::: {style="font-size: 50%;"}
 
-Siendo $N$ la cantidad de observaciones, $y_i$ el valor observado para la obseravción $i$ y $\hat{y_i}$ el valor predicho para la observación $i$, se definen las funciones de pérdida:
-
-::: {.nav-pills .panel-tabset}
-## Log loss
-También denominada Negative Mean Log-Likelihood
-
-::: columns
-::: {.column width="50%"}
-$$
-\text{Log Loss} = -\frac{1}{N} \sum_{i=1}^{N} \left( \color{red}{y_i \log(\hat{y_i})} + \color{blue}{(1 - y_i) \log(1 - \hat{y_i})} \right)
-$$
-
-> Si $y_i=1$ => $\text{Log Loss}=\color{red}{\log(\hat{y_i})}$
->
-> Si $y_i=0$ => $\text{Log Loss}=\color{blue}{\log(1 - \hat{y_i})}$
-:::
-::: {.column width="50%"}
-```{python}
-#| echo: true
-#| code-fold: true
-#| code-summary: "Código"
-#| layout-align: center
-#| fig-cap: "Logatitmo de una probabilidad"
-#| label: fig-log
-N=100
-temp = (pd.DataFrame({
-    'y_pred':[i/N for i in range(1,N,1)]
-    })
-    .assign(y_pred_log = lambda x: np.log(x['y_pred']))
-).plot(x='y_pred', y='y_pred_log', figsize=(3,3), xlabel='Prob', ylabel='Log(Prob)');
-```
-:::
-:::
-
-- La pérdida es 0 si se tiene seguridad sobre una predicción y la predicción es correcta
-- La pérdida es $\infty$ si se tiene seguridad sobre una predicción y la predicción es incorrecta
-
-## Brier loss
-Error Cuadrático Medio pero para clasificación:
-
-$$
-\text{Brier Loss} = \frac{1}{N} \sum_{i=1}^{N} (y_i - \hat{y_i})^2
-$$
-
-:::
-:::
 
 
 
