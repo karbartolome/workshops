@@ -14,9 +14,12 @@ institute: |
   **CIMBAGE (IADCOM)** - Facultad Ciencias Económicas (UBA)
 
 date: 2024-05-13
+bibliography: bib.bib
+nocite: |
+  @*
 format: 
     revealjs:
-        theme: [default, custom_testing.scss]
+        theme: [default, custom.scss]
         logo: logo-uba.png
         footer: |
             <body>
@@ -101,7 +104,7 @@ from sklearn.metrics import (
 from IPython.display import display, Markdown
 
 # Funciones adicionales: 
-from custom_functions import (
+from functions import (
     plot_distribution,
     plot_calibration_models,
     plot_calibration,
@@ -148,7 +151,7 @@ color_verde_claro = "#BDCBCC"
 
 ## Machine Learning
 ::: {style="font-size: 50%;"}
-En general al hablar de machine learning se hace referencia a diversos tipos de modelos. En la @fig-ml-types se muestran los distintos tipos de modelos de aprendizaje automático.
+En general al hablar de **aprendizaje automático** se hace referencia a diversos tipos de modelos. En la @fig-ml-types se muestra una clasificaicón comunmente utilizada^[Para una introducción a este tipo de modelos, ver @james2023introduction].
 
 En esta presentación se analizará el caso particular de los [modelos de clasificación]{style="color: blue"}, haciendo énfasis en la [Estimación de probabilidad]{style="color: blue"}. 
 ```{mermaid}
@@ -210,6 +213,8 @@ Se busca [predecir la ocurrencia de un evento]{style="color: blue"} a partir de 
 
 ▪️**Iris**: Clasificación de especies de plantas
 
+▪️**Breast Cancer Wisconsin (Diagnostic)**: Clasificación de tumores benignos o malignos
+
 ▪️**Titanic**: Clasificación de individuos en sobrevivientes y no sobrevivientes
 
 ::: {.fragment .highlight-red}
@@ -229,7 +234,7 @@ Se busca [predecir la ocurrencia de un evento]{style="color: blue"} a partir de 
 #| echo: true
 #| code-fold: true
 #| code-summary: "Código"
-PATH_DATA = 'https://raw.githubusercontent.com/ayseceyda/german-credit-gini-analysis/master/gc.csv'
+PATH_DATA = 'https://raw.githubusercontent.com/karbartolome/workshops/main/01_ml/01_clasificacion/01_calibracion/df_german_credit.csv'
 TARGET = "Risk"
 # pd.read_csv(PATH_DATA).to_csv('df_german_credit.csv', index=False)
 df = (pd.read_csv('df_german_credit.csv')
@@ -238,7 +243,7 @@ df = (pd.read_csv('df_german_credit.csv')
 )
 ```
 
-Se cuenta con un dataset de `{python} df.shape[0]` observaciones y `{python} df.shape[1]` variables.
+Se cuenta con un dataset de `{python} df.shape[0]` observaciones y `{python} df.shape[1]` variables^[Fuente de los datos: [Statlog (German Credit Data)](https://archive.ics.uci.edu/dataset/144/statlog+german+credit+data), en Kaggle en un formato más simple: [German Credit Risk - With Target](https://www.kaggle.com/datasets/kabure/german-credit-data-with-risk)].
 
 ```{python}
 #| echo: true
@@ -863,7 +868,7 @@ Un clasificador binario bien calibrado debería clasificar de forma tal que para
 ::: {style="font-size: 50%;"}
 ## Calibración sigmoide (Platt scaling)
 
-Este método asume una relación logística entre los scores (z) y la probabilidad real (p):
+Este método [@platt2000] asume una relación logística entre los scores (z) y la probabilidad real (p):
 
 > $log(\frac{p}{1-p})=\alpha+\beta(z_{i})$ 
 >
@@ -879,11 +884,6 @@ Se estiman 2 parámetros ($\alpha$ y $\beta$), como en una regresión logística
 - Requiere pocos datos
 
 - Es útil cuando el modelo no calibrado tiene errores similares en predicción de valores bajos y altos 
-
-<br>
-**Referencias:**
-
-- Platt, John. (2000). Probabilistic Outputs for Support Vector Machines and Comparisons to Regularized Likelihood Methods. Adv. Large Margin Classif, Volume 10 (pp. 61-74).
 
 :::
 
@@ -967,7 +967,9 @@ for i in models_dict.keys():
 ::: {style="font-size: 50%;"}
 ## Calibración isotónica
 
-Se ajusta un regresor isotónico no paramétrico, que produce una función escalonada no decreciente:
+@Zadrozny2002 proponen un método alternativo al propuesto por @platt2000: calibrar probabilidades mediante el uso de un método de regresión no paramétrico (**regresión isotónica**). 
+
+Si se asume que el modelo ordena bien, el mappeo de `scores` a probabilidades es `no decreciente`. De esta forma, este método genera una función escalonada no decreciente:
 
 > $\sum_{i=1}^{n}(y_i - \hat{f_i})^2$
 > 
@@ -1118,9 +1120,8 @@ Esto es útil para la toma de decisiones, ya que permite establecer punto de cor
 
 ::: {style="font-size: 50%;"}
 ## Referencias / Recursos
-
-[Probability Calibration Workshop - PyData 2020](https://www.youtube.com/watch?v=A1NGGV3Z4m4&list=PLeVfk5xTWHYBw22D52etymvcpxey4QFIk&ab_channel=numeristical)
-
+::: {#refs}
+:::
 :::
 
 
@@ -1128,9 +1129,9 @@ Esto es útil para la toma de decisiones, ya que permite establecer punto de cor
 
 {{< fa brands linkedin size=1x >}} [karinabartolome](https://www.linkedin.com/in/karinabartolome/)
 
-{{< fa brands twitter size=1x >}} [@karbartolome](https://twitter.com/karbartolome)
+{{< fa brands twitter size=1x >}} [karbartolome](https://twitter.com/karbartolome)
 
-{{< fa brands github size=1x >}} [@karbartolome](http://github.com/karbartolome)
+{{< fa brands github size=1x >}} [karbartolome](http://github.com/karbartolome)
 
 {{< fa link >}} [Blog](https://karbartolome-blog.netlify.com)
 
