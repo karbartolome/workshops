@@ -23,7 +23,7 @@ format:
         logo: logo-uba.png
         footer: |
             <body>
-            Cimbage - IADCOM | Facultad de Ciencias Económicas - UBA | bit.ly/uba-calibracion
+            Cimbage - IADCOM | Facultad de Ciencias Económicas - UBA | bit.ly/calibracion-uba
             </body>
         self-contained: true
         embed-resources: true
