@@ -1,0 +1,147 @@
+---
+title: "Calibración de probabilidades"
+subtitle: "Estimación de default mediante modelos de machine learning"
+author: Karina A. Bartolomé
+institute: |
+  Especialista en Métodos Cuantitativos para la Gestión y Análisis de Datos en Organizaciones (FCE, UBA). Lic. en Economía, FCE, UNLP. Líder técnica de Ciencia de Datos en Ualá
+
+  <br>
+
+  **Organizadora: Natalia R. Salaberry** <br>
+  Doctoranda en la Universidad de Buenos Aires, Ciencias Económicas. Magister en Métodos Cuantitativos para la Gestión y Análisis de Datos en Organizaciones (FCE, UBA). Lic. en Economía, FCE, UBA. Investigadora en CIMBAGE (IADCOM), Docente de posgrados y Estadística I, FCE, UBA
+  <br> 
+
+  **CIMBAGE (IADCOM)** - Facultad Ciencias Económicas (UBA)
+date: 2024-05-13
+bibliography: bib.bib
+format: 
+    revealjs:
+        theme: [default, custom_testing.scss]
+        logo: logo-uba.png
+        footer: |
+            <body>
+            Cimbage - IADCOM | Facultad de Ciencias Económicas - UBA   |  
+            {{< fa brands github size=1x >}} [Repositorio](https://github.com/karbartolome/workshops)
+            </body>
+        self-contained: true
+        embed-resources: true
+        slide-number: true
+        toc: true
+        toc-depth: 1
+        number-sections: true
+        number-depth: 2
+        title-slide-attributes:
+            data-background-size: contain  
+# format: beamer
+jupyter: 
+  kernelspec:
+    name: "quarto-env"
+    language: "python"
+    display_name: "quarto-env"
+execute:
+  echo: false
+  warning: false
+  code-fold: false
+  layout-align: center
+lang: es
+---
+
+@platt2000
+
+Ver [@platt2000]
+
+## Flow
+
+```{mermaid}
+flowchart TD
+    a --> b
+```
+
+
+## A
+
+```{python}
+#| echo: false
+import seaborn as sns
+import pandas as pd
+import numpy as np
+import sklearn
+import matplotlib
+import great_tables
+from IPython.display import display, Markdown, Latex
+Markdown(f"""
+**Procesamiento de datos**:\n
+📦 pandas=={pd.__version__}\n
+📦 numpy=={np.__version__}\n
+\n
+**Modelado**:\n
+📦 scikit-learn=={sklearn.__version__}\n
+\n
+**Visualización y tablas:**\n
+📦 matplotlib=={matplotlib.__version__}\n
+📦 seaborn=={sns.__version__}\n
+📦 great_tables=={great_tables.__version__}\n
+""")
+```
+
+```{python}
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+```
+
+
+
+
+
+# Great tables
+
+## Tabla
+
+Un texto para probar el tamaño del texto!
+
+```{python}
+great_tables.GT(pd.DataFrame({'a':[1,2,3],'b':['a','b','c']}))
+```
+
+
+# Temp
+
+## Temp b
+
+::: {.nav-pills}
+::: {.panel-tabset}
+
+```{python}
+#| output: asis
+df = pd.DataFrame({
+  'var':['a']*10+['b']*3,
+  'value':list(range(0,10))+list(range(0,3))
+})
+
+for i in ['a','b']:
+    display(Markdown(f"## {i}"))
+    display(Markdown("::: {.cell tbl-cap='"+i+"'}\n"))
+    display(Markdown("::: {.cell label='tbl-"+i+"'}\n"))
+    display(great_tables.GT(df.query('var==@i')))
+    display(Markdown(":::\n"))
+    display(Markdown(":::\n"))
+```
+:::
+:::
+
+# Nueva sección
+
+## Temp
+
+@tbl-a es una tabla y @tbl-b es otra
+
+
+
+## Contacto
+
+{{< fa link >}} [Blog](https://karbartolome-blog.netlify.com)
+
+{{< fa brands twitter size=1x >}} [@karbartolome](https://twitter.com/karbartolome)
+
+{{< fa brands github size=1x >}} [@karbartolome](http://github.com/karbartolome)

@@ -1,8 +1,14 @@
-# workshops
+# Workshops
 
-[Calibración de probabilidades](https://karbartolome.github.io/workshops/01_ml/01_clasificacion/01_calibracion/01_calibration_slides)
+> Karina Bartolomé
+
+## 2024
+
+[CIMBAGE (IADCOM) - Facultad Ciencias Económicas (UBA)](https://karbartolome.github.io/workshops/20240513-cimbage-calibracion/slides)
 
 
+
+## Configs
 
 Para configurar kernelspec: 
 
