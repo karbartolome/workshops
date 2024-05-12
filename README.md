@@ -4,8 +4,8 @@
 
 ## 2024
 
-[CIMBAGE (IADCOM) - Facultad Ciencias Económicas (UBA)](https://karbartolome.github.io/workshops/20240513-cimbage-calibracion/slides)
-
+[Calibración de probabilidades](https://karbartolome.github.io/workshops/20240513-cimbage-calibracion/slides)
+CIMBAGE (IADCOM) - Facultad Ciencias Económicas (UBA)
 
 
 ## Configs
