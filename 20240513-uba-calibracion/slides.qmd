@@ -1143,7 +1143,7 @@ for i in models_dict.keys():
 
 # Comentarios finales
 ## Comentarios finales
-- En ciertos casos de modelos de clasificación podría no importar la calibración de probabilidades (si interesa el ordenamiento)
+- En ciertos casos de modelos de clasificación podría no importar la calibración de probabilidades
 
 - Algunos modelos tienden a estar más calibrados por defecto (regresión logística)
 
@@ -1168,4 +1168,4 @@ for i in models_dict.keys():
 
 {{< fa brands github size=1x >}} [karbartolome](http://github.com/karbartolome)
 
-{{< fa link >}} [Blog](https://karbartolome-blog.netlify.com)
+{{< fa link >}} [Blog](https://karbartolome-blog.netlify.app/)
