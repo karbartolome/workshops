@@ -132,6 +132,7 @@ def calibrate_model(
     cal_isotonic=True,
     model_name="",
     plot_cal=True,
+    bins=5
 ):
     preds = pd.DataFrame(
         {
@@ -168,7 +169,7 @@ def calibrate_model(
             y_pred_prob=preds["pred_prob"],
             y_pred_prob_cal_sigmoid=preds["pred_sigmoid"],
             y_pred_prob_cal_isotonic=preds["pred_isotonic"],
-            bins=7,
+            bins=bins,
             strategy="uniform",
             figsize=(4, 4),
             display_bins=True,
@@ -184,14 +185,23 @@ def plot_calibration(
     preds, y_pred_prob_calibrated, y_obs='y_obs', y_pred_prob="pred_prob", model_name=""
 ):
     plt.figure(figsize=(4, 4))
-    sns.scatterplot(
+    sns.lineplot(
         x=y_pred_prob,
         y=y_pred_prob_calibrated,
         data=preds,
         color="blue",
-        alpha=0.7,
+        alpha=1,
         label="Calibración sklearn",
     )
+    # sns.scatterplot(
+    #     x=y_pred_prob,
+    #     y=y_pred_prob_calibrated,
+    #     data=preds,
+    #     color="blue",
+    #     alpha=1,
+    #     size=0.3,
+    #     label="Calibración sklearn",
+    # )
     sns.scatterplot(
         x=y_pred_prob,
         y=y_obs,
