@@ -1,0 +1,610 @@
+---
+title: "Del dato al modelo"
+subtitle: "Piplines personalizados utilizando python"
+author: Karina A. Bartolomé
+institute: |
+  Especialista en Métodos Cuantitativos para la Gestión y Análisis de Datos en Organizaciones (FCE, UBA). Lic. en Economía (FCE, UNLP). Líder técnica de Ciencia de Datos (Ualá).
+
+  <br>
+
+  **Organizadora: Natalia R. Salaberry** <br>
+  Doctora en la Universidad de Buenos Aires, Ciencias Económicas. Magister en Métodos Cuantitativos para la Gestión y Análisis de Datos en Organizaciones (FCE, UBA). Lic. en Economía, FCE, UBA. Investigadora en CIMBAGE (IADCOM), Docente de posgrados y Estadística I, FCE, UBA
+  <br> 
+
+  **CIMBAGE (IADCOM)** - Facultad Ciencias Económicas (UBA)
+
+date: 2025-09-05
+bibliography: bib.bib
+nocite: |
+  @*
+format: 
+    revealjs:
+        theme: [default, custom.scss]
+        logo: logo-uba.png
+        footer: |
+            <body>
+            Cimbage - IADCOM | Facultad de Ciencias Económicas - UBA
+            </body>
+        self-contained: true
+        embed-resources: true
+        slide-number: true
+        toc: true
+        toc-depth: 1
+        number-sections: true
+        number-depth: 2
+        title-slide-attributes:
+            data-background-size: contain  
+        fontawesome: true
+        code-overflow: scroll
+# format: beamer
+jupyter: 
+  kernelspec:
+    name: ".venv"
+    language: "python"
+    display_name: "uba-pipelines"
+execute:
+  echo: false
+  warning: false
+  code-fold: false
+  layout-align: center
+lang: es
+---
+
+```{python}
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap, to_rgb
+from great_tables import GT, from_column, style, loc
+from collections import Counter
+
+# from sklearn import datasets
+# Modelado
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.compose import make_column_selector
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
+from sklearn.svm import SVC, LinearSVC
+from sklearn.calibration import calibration_curve, CalibratedClassifierCV
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score, f1_score,
+    roc_auc_score,
+    roc_curve,
+    RocCurveDisplay,
+    log_loss,
+    recall_score,
+    brier_score_loss,
+    confusion_matrix,
+    ConfusionMatrixDisplay,
+)
+from IPython.display import display, Markdown
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.ensemble import IsolationForest
+from catboost import CatBoostClassifier
+
+# Funciones adicionales: 
+
+import sklearn
+sklearn.set_config(transform_output="pandas")
+```
+
+```{python}
+import matplotlib
+import great_tables
+from IPython.display import display, Markdown, Latex
+```
+
+```{python}
+color_verde = "#255255"
+color_verde_claro = "#BDCBCC"
+```
+
+![Esquema de modelado](diagramas/esquema.svg){#fig-drawio style="width:100%; height:auto;"}
+
+# Planteo del caso
+
+## Prevención del fraude transaccional
+
+::: {style="font-size: 75%;"}
+
+```{python}
+#| echo: true
+#| eval: false
+#| code-fold: true
+#| code-summary: "Lectura de datos"
+import kagglehub
+path = kagglehub.dataset_download("kartik2112/fraud-detection")
+df_train = pd.read_csv(f"{path}/fraudTrain.csv")
+df_test = pd.read_csv(f"{path}/fraudTest.csv")
+df = pd.concat([df_train, df_test], axis=0, ignore_index=True).reset_index(drop=True)
+
+target = 'is_fraud'
+cols_selected = [
+    "trans_date_trans_time",
+    "merchant",
+    "category",
+    "amt",
+    "city_pop",
+    "job",
+    "dob",
+    "zip",
+    "lat",
+    "long",
+    "merch_lat",
+    "merch_long",
+    "is_fraud",
+]
+df = df[cols_selected]
+```
+
+```{python}
+#| echo: false
+# import kagglehub
+# path = kagglehub.dataset_download("kartik2112/fraud-detection")
+# df_train = pd.read_csv(f"{path}/fraudTrain.csv")
+# df_test = pd.read_csv(f"{path}/fraudTest.csv")
+# df = pd.concat([df_train, df_test], axis=0, ignore_index=True).reset_index(drop=True)
+# df.to_parquet('df_fraud.parquet', index=False, engine='fastparquet')
+df = pd.read_parquet('df_fraud.parquet')
+target = 'is_fraud'
+cols_selected = [
+    "trans_date_trans_time",
+    "merchant",
+    "category",
+    "amt",
+    "city_pop",
+    "job",
+    "dob",
+    "zip",
+    "lat",
+    "long",
+    "merch_lat",
+    "merch_long",
+    "is_fraud",
+]
+df = df[cols_selected]
+
+df = df.sample(10000, random_state=42).reset_index(drop=True)
+```
+
+Se cuenta con un dataset de `{python} df.shape[0]` observaciones y `{python} df.shape[1]` variables. Fuente de los datos: [Credit Card Transactions Fraud Detection Dataset](https://www.kaggle.com/datasets/kartik2112/fraud-detection/data). Son datos sintéticos por lo que el foco está sobre cómo procesarlos y no sobre la `performance` del modelo.
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Generador de ruido en el dataset"
+## Valores faltantes
+def add_random_nans(values, fraction=0.2):
+    """
+    Generador de valores faltantes
+    """
+    np.random.seed(42)
+    mask = np.random.rand(len(values)) < fraction
+    new_values = values.copy()
+    new_values[mask] = np.nan
+    return new_values
+
+df = df.assign(
+    merchant = lambda x: [i.replace('fraud_','') for i in x['merchant']],
+    dob = lambda x: add_random_nans(x['dob'], fraction=0.05),
+    job = lambda x: add_random_nans(x['job'], fraction=0.1),
+    city_pop = lambda x: add_random_nans(x['city_pop'], fraction=0.03),
+    merch_lat = lambda x: add_random_nans(x['merch_lat'], fraction=0.02),
+    merch_long = lambda x: add_random_nans(x['merch_long'], fraction=0.02),
+)
+```
+
+:::
+
+---
+
+::: {style="font-size: 75%;"}
+
+La variable objetivo (target) es `is_fraud`, donde el porcentaje de observaciones de clase 1 (fraudulentos) es `{python} f"{df['is_fraud'].sum()/df.shape[0]:.2%}"`. 
+
+> $P(\color{red}{fraud}=1) = f(\color{blue}{X})$
+>
+> $\color{red}{fraud}$: *variable que puede tomar 2 valores: 1 (transacción fraudulenta) o 0 (transacción legítima)*
+>
+> $\color{blue}{X}$: *matriz nxm, siendo n la cantidad de observaciones y m la cantidad de variables (o atributos)*
+
+```{python}
+#| echo: false
+#| code-fold: false
+#| tbl-cap: "Datos transaccionales (muestra de 6 observaciones)"
+#| label: tbl-fraud-data
+def map_color(data):
+    return (data[target] == 1).map(
+        {True: color_verde_claro, False: 'white'}
+    )
+
+(GT(df.sample(4, random_state=13).round(2)
+        .set_index(target)
+        .reset_index()
+    )
+    .fmt_currency(columns="amt")
+    .tab_style(
+        style=style.fill(color=map_color), locations=loc.body(columns=df.columns.tolist()),
+    )
+    .tab_style(
+        style=style.text(color='red', weight = "bold"), locations=loc.body(target),
+    )
+    .tab_options(
+        column_labels_background_color=color_verde,
+        table_font_names="Times New Roman"
+    )
+)
+```
+
+:::
+
+# Particiones
+
+::: {style="font-size: 75%;"}
+
+Partición en dataset de entrenamiento y evaluación.
+
+- Dataset de **entrenamiento** --> Ajuste del modelo
+- Dataset de **evaluación** --> Métricas
+
+<br>
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Generación de particiones"
+#| label: particiones
+#| results: 'asis'
+y = df[target]
+X = df.drop([target], axis=1)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, shuffle=True, stratify=y, random_state=42
+)
+
+display(Markdown(f"N observaciones en entrenamiento: {X_train.shape[0]}"))
+display(Markdown(f"N observaciones en evaluación: {X_test.shape[0]}"))
+```
+
+```{python}
+#| echo: false
+X_train = X_train.reset_index(drop=True)
+X_test = X_test.reset_index(drop=True)
+y_train = y_train.reset_index(drop=True)
+y_test = y_test.reset_index(drop=True)
+```
+
+:::
+
+# Preprocesamiento
+
+## Transformaciones iniciales
+
+::: {style="font-size: 50%;"}
+
+- Cálculo de la edad
+
+- Cálculo de la distancia entre el comercio y el usuario
+
+- Generación de variables vinculadas a la fecha y hora de la transacción
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Transformaciones iniciales"
+#| label: transformaciones-iniciales
+class TransformacionesIniciales(BaseEstimator, TransformerMixin):
+    """
+    Transformaciones iniciales del dataset. 
+    """
+
+    def __init__(self, age_features=True, timestamp_features=True, distance_features=True):
+        """
+        Args:
+            timestamp_features (bool): Generar variables basadas en la fecha/hora de la trx
+            distance_features (bool): Generar variables basadas en la distancia al comercio
+        """
+        self.age_features = age_features
+        self.timestamp_features = distance_features
+        self.distance_features = distance_features
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X, y=None):
+        # Se genera una copia para no afectar al df original:
+        X_ = X.copy()
+
+        # Cast features:
+        X_ = (X_
+            .assign(
+                dob = lambda x: pd.to_datetime(x['dob'], errors='coerce'),
+                trans_date_trans_time = lambda x: pd.to_datetime(x["trans_date_trans_time"], errors="coerce"),
+            )
+        )
+
+        # Features basadas en la edad:
+        if self.age_features:
+            X_ = X_.assign(
+                age = lambda x: round((x['trans_date_trans_time']-x['dob']).dt.days / 365.25,2)
+            )
+
+        # Features basadas en fecha y hora de la trx:
+        def categorize_part_of_day(hour):
+            if 5 <= hour < 12:
+                return 'Morning'
+            elif 12 <= hour < 17:
+                return 'Afternoon'
+            elif 17 <= hour < 21:
+                return 'Evening'
+            elif 21 <= hour or hour < 5:
+                return 'Night'
+
+        if self.timestamp_features:
+            X_ = X_.assign(
+                trans_date__year = lambda x: x["trans_date_trans_time"].dt.year,
+                trans_date__month = lambda x: x["trans_date_trans_time"].dt.month,
+                trans_date__day = lambda x: x["trans_date_trans_time"].dt.day,
+                trans_date__dow = lambda x: x["trans_date_trans_time"].dt.dayofweek,
+                trans_date__hour = lambda x: x["trans_date_trans_time"].dt.hour,
+                trans_date__partofday = lambda x: x['trans_date__hour'].apply(categorize_part_of_day)
+            )
+
+        if self.distance_features:
+            # Latitud y longitud en radianes
+            lat1 = np.radians(X_['lat'])
+            lon1 = np.radians(X_['long'])
+            lat2 = np.radians(X_['merch_lat'])
+            lon2 = np.radians(X_['merch_long'])
+            
+            # Fórmula Haversine para calcular la distancia:
+            dlat = lat2 - lat1
+            dlon = lon2 - lon1
+            a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
+            c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
+            R = 6371  # Radio de la tierra (en kilometros)
+            X_['distance_to_merch'] = round(R * c, 3) # Distancia (en kilometros)
+
+        X_ = X_.drop(['trans_date_trans_time','dob'], axis=1) 
+        return X_
+```
+
+:::
+
+## Feature engineering
+
+::: {style="font-size: 75%;"}
+
+```{python}   
+class RareCategoryGrouper(BaseEstimator, TransformerMixin):
+    """
+    Groups infrequent categories into a single label 'infrequent'.
+    """
+
+    def __init__(self, variables=None, min_freq=0.05):
+        """
+        Args:
+            variables (list): List of categorical variables to group.
+            min_freq (float or int): 
+                If float (0 < min_freq < 1), minimum proportion of dataset.
+                If int (>=1), minimum absolute count.
+        """
+        self.variables = variables
+        self.min_freq = min_freq
+        self.frequent_categories_ = {}
+
+    def fit(self, X, y=None):
+        X_ = X.copy()
+
+        if self.variables is None:
+            self.variables = X_.select_dtypes(include="object").columns.tolist()
+
+        for var in self.variables:
+            freqs = X_[var].value_counts(normalize=isinstance(self.min_freq, float))
+            self.frequent_categories_[var] = freqs[freqs >= self.min_freq].index.tolist()
+
+        return self
+
+    def transform(self, X):
+        X_ = X.copy()
+        for var in self.variables:
+            X_[var] = X_[var].where(X_[var].isin(self.frequent_categories_[var]), "infrequent")
+        return X_
+
+
+class MeanEncoder(BaseEstimator, TransformerMixin):
+    """
+    Mean target encoding for categorical variables.
+    Replaces each category with the mean of y for that category.
+    """
+
+    def __init__(self, variables=None):
+        self.variables = variables
+        self.encoding_dict_ = {}
+        self.global_mean_ = None
+
+    def fit(self, X, y):
+        X_ = X.copy()
+        y_ = pd.Series(y)
+
+        if self.variables is None:
+            self.variables = X_.select_dtypes(include=["object", "category"]).columns.tolist()
+
+        self.global_mean_ = y_.mean()
+
+        for var in self.variables:
+            self.encoding_dict_[var] = y_.groupby(X_[var]).mean().to_dict()
+
+        return self
+
+    def transform(self, X):
+        X_ = X.copy()
+        for var in self.variables:
+            X_[var] = X_[var].map(self.encoding_dict_[var])
+            X_[var] = X_[var].fillna(self.global_mean_)  # unseen categories → global mean
+        return X_
+
+
+class OutlierRemover(BaseEstimator, TransformerMixin):
+    """
+    Removes outliers from numeric columns based on IQR method.
+    """
+    def __init__(self, numeric_features=None, factor=1.5):
+        """
+        Args:
+            numeric_features (list): list of numeric columns to check for outliers
+            factor (float): IQR multiplier, default 1.5
+        """
+        self.numeric_features = numeric_features
+        self.factor = factor
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X, y=None):
+        X_ = X.copy()
+        
+        if self.numeric_features is None:
+            self.numeric_features = X_.select_dtypes(include='number').columns.tolist()
+        
+        # IQR
+        Q1 = X_[self.numeric_features].quantile(0.25)
+        Q3 = X_[self.numeric_features].quantile(0.75)
+        IQR = Q3 - Q1
+        
+        lower_bound = Q1 - self.factor * IQR
+        upper_bound = Q3 + self.factor * IQR
+        
+        # Keep only rows where all numeric columns are within bounds
+        mask = ~((X_[self.numeric_features] < lower_bound) | (X_[self.numeric_features] > upper_bound)).any(axis=1)
+        X_filtered = X_[mask]
+        
+        # If y is provided, filter it too
+        if y is not None:
+            y_filtered = y[mask]
+            return X_filtered, y_filtered
+        
+        return X_filtered
+
+
+class IsolationForestTransformer(BaseEstimator, TransformerMixin):
+    """
+    Fits an IsolationForest and outputs anomaly scores as a feature.
+    """
+    def __init__(self, **kwargs):
+        self.iforest_kwargs = kwargs
+
+    def fit(self, X, y=None):
+        self.iforest_ = IsolationForest(**self.iforest_kwargs)
+        self.iforest_.fit(X)
+        return self
+
+    def transform(self, X):
+        scores = self.iforest_.decision_function(X)
+        return pd.DataFrame({"anomaly_score": scores})
+
+```
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Preprocesamiento"
+#| label: preprocessor
+preproc_categoricas = Pipeline(steps=[
+    ('rare_labels', RareCategoryGrouper(min_freq=0.01)),
+    ('imputar_nulos', SimpleImputer(missing_values=np.nan, strategy='most_frequent')),
+    ('mean_encoder', MeanEncoder())
+])
+
+preproc_numericas = Pipeline(steps=[
+    ('imputar_nulos', SimpleImputer(strategy='median'))
+])
+
+feature_eng = ColumnTransformer([
+    ('cat', preproc_categoricas, make_column_selector(dtype_exclude=['float','int'])),
+    ('num', preproc_numericas, make_column_selector(dtype_include=['float','int']))
+], verbose_feature_names_out=False, remainder='drop', verbose=True)
+
+from sklearn.pipeline import FeatureUnion
+preproc = Pipeline([
+    ('init', TransformacionesIniciales()),
+    ('feature_eng', feature_eng),
+    ('features', FeatureUnion([
+            ('anomaly', IsolationForestTransformer()),
+            ('outliers', OutlierRemover())
+        ])
+    )
+], verbose=True)
+```
+
+:::
+
+::: {style="font-size: 50%;"}
+
+```{python}
+preproc
+```
+
+:::
+
+# Pipeline de modelado
+
+::: {style="font-size: 50%;"}
+
+```{python}
+# cat_features = preproc.fit_transform(X_train.sample(1000, random_state=42)).select_dtypes(['category','object']).columns.tolist()
+
+clf = CatBoostClassifier(
+    iterations=500,
+    # depth=6,
+    #learning_rate=0.1,
+    loss_function="Logloss",
+    eval_metric="Recall",
+    class_weights=[1, 20],
+    random_seed=42,
+    verbose=100,
+    # cat_features = cat_features
+    
+)
+
+pipe = Pipeline([
+    ('preproc', preproc),
+    ('model', clf)   
+])
+
+pipe.fit(X_train, y_train)
+```
+
+:::
+
+# Predicciones sobre datos nuevos
+
+Save and load
+
+Predict
+
+
+# Comentarios finales
+
+## Comentarios finales
+
+## Referencias / Recursos
+
+::: {#refs}
+:::
+
+## Contacto
+
+{{< fa brands linkedin size=1x >}} [karinabartolome](https://www.linkedin.com/in/karinabartolome/)
+
+{{< fa brands twitter size=1x >}} [karbartolome](https://twitter.com/karbartolome)
+
+{{< fa brands github size=1x >}} [karbartolome](http://github.com/karbartolome)
+
+{{< fa link >}} [Blog](https://karbartolome-blog.netlify.app/)
