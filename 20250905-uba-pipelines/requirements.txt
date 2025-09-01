@@ -10,4 +10,4 @@ kagglehub
 jinja2
 shap
 catboost
-pyarrow
+fastparquet
