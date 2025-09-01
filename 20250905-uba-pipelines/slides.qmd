@@ -1,0 +1,845 @@
+---
+title: "Del dato al modelo"
+subtitle: "Piplines personalizados utilizando python"
+author: Karina A. Bartolomé
+institute: |
+  Especialista en Métodos Cuantitativos para la Gestión y Análisis de Datos en Organizaciones (FCE, UBA). Lic. en Economía (FCE, UNLP). Líder técnica de Ciencia de Datos (Ualá).
+
+  <br>
+
+  **Organizadora: Natalia R. Salaberry** <br>
+  Doctora en la Universidad de Buenos Aires, Ciencias Económicas. Magister en Métodos Cuantitativos para la Gestión y Análisis de Datos en Organizaciones (FCE, UBA). Lic. en Economía, FCE, UBA. Investigadora en CIMBAGE (IADCOM), Docente de posgrados y Estadística I, FCE, UBA
+  <br> 
+
+  **CIMBAGE (IADCOM)** - Facultad Ciencias Económicas (UBA)
+
+date: 2025-09-05
+bibliography: bib.bib
+nocite: |
+  @*
+format: 
+    revealjs:
+        theme: [default, custom.scss]
+        logo: images/logo-uba.png
+        footer: |
+            <body>
+            Cimbage - IADCOM | Facultad de Ciencias Económicas - UBA
+            </body>
+        self-contained: true
+        embed-resources: true
+        slide-number: true
+        toc: true
+        toc-depth: 1
+        number-sections: true
+        number-depth: 2
+        title-slide-attributes:
+            data-background-size: contain  
+        fontawesome: true
+        code-overflow: scroll
+# format: beamer
+jupyter: 
+  kernelspec:
+    name: ".venv"
+    language: "python"
+    display_name: "uba-pipelines"
+execute:
+  echo: false
+  warning: false
+  code-fold: false
+  layout-align: center
+lang: es
+---
+
+```{python}
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pickle 
+from matplotlib.colors import ListedColormap, to_rgb
+from great_tables import GT, from_column, style, loc
+from collections import Counter
+
+# from sklearn import datasets
+# Modelado
+from sklearn.model_selection import train_test_split
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.compose import ColumnTransformer, make_column_selector
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.ensemble import IsolationForest
+from catboost import CatBoostClassifier
+from IPython.display import display, Markdown, Latex
+
+import sklearn
+sklearn.set_config(transform_output="pandas", display='diagram')
+```
+
+```{python}
+color_verde = "#255255"
+color_verde_claro = "#BDCBCC"
+target = 'is_fraud'
+```
+
+## Consideraciones previas
+
+::: {style="font-size: 70%;"}
+
+- Este taller está enfocado en cuestiones avanzadas sobre el flujo de modelado de datos en python, se recomienda algún conocimiento previo para un mejor entendimiento del código. 
+
+- Durante el seminario se utilizarán los siguientes paquetes (**python**). 
+
+```{python}
+#| echo: false
+import matplotlib
+import great_tables
+import catboost
+from IPython.display import display, Markdown, Latex
+Markdown(f"""
+📦 pandas=={pd.__version__}\n
+📦 numpy=={np.__version__}\n
+📦 scikit-learn=={sklearn.__version__}\n
+📦 catboost=={catboost.__version__}\n
+📦 matplotlib=={matplotlib.__version__}\n
+📦 seaborn=={sns.__version__}\n
+📦 great_tables=={great_tables.__version__}\n
+""")
+```
+
+- Todo el código se encuentra disponible en {{< fa brands github size=1x >}} <a href="https://github.com/karbartolome/workshops" target="_blank">Repositorio</a>
+
+:::
+
+
+# Planteo del caso
+
+## Prevención del fraude transaccional
+
+::: {style="font-size: 70%;"}
+```{python}
+#| echo: true
+#| eval: false
+#| code-fold: true
+#| code-summary: "Lectura de datos"
+import kagglehub
+path = kagglehub.dataset_download("kartik2112/fraud-detection")
+df_train = pd.read_csv(f"{path}/fraudTrain.csv")
+df_test = pd.read_csv(f"{path}/fraudTest.csv")
+df = pd.concat([df_train, df_test], axis=0, ignore_index=True).reset_index(drop=True)
+
+target = 'is_fraud'
+cols_selected = [
+    "trans_date_trans_time",
+    "merchant",
+    "category",
+    "amt",
+    "city_pop",
+    "job",
+    "dob",
+    "lat",
+    "long",
+    "merch_lat",
+    "merch_long",
+    "is_fraud",
+]
+df = df[cols_selected]
+```
+
+```{python}
+#| echo: false
+# import kagglehub
+# path = kagglehub.dataset_download("kartik2112/fraud-detection")
+# df_train = pd.read_csv(f"{path}/fraudTrain.csv")
+# df_test = pd.read_csv(f"{path}/fraudTest.csv")
+# df = pd.concat([df_train, df_test], axis=0, ignore_index=True).reset_index(drop=True)
+# df.to_parquet('df_fraud.parquet', index=False, engine='fastparquet')
+df = pd.read_parquet('data/df_fraud.parquet')
+```
+
+```{python}
+#| echo: false
+# df = df.sample(10000, random_state=42).reset_index(drop=True)
+```
+
+Se cuenta con un dataset de `{python} df.shape[0]` transacciones de tarjetas de crédito. Son `{python} df.shape[1]` variables generadas sintéticamente por lo que el foco está sobre cómo procesarlos y no sobre la performance del modelo [^1].
+
+No se cuenta con valores faltantes, por lo que se genera "ruido" en el dataset, añadiendo valores faltantes en distintas variables para el ejemplo.
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Generador de ruido en el dataset"
+## Valores faltantes
+def add_random_nans(values, fraction=0.2):
+    """
+    Generador de valores faltantes
+    """
+    np.random.seed(42)
+    mask = np.random.rand(len(values)) < fraction
+    new_values = values.copy()
+    new_values[mask] = np.nan
+    return new_values
+
+df = df.assign(
+    merchant = lambda x: [i.replace('fraud_','') for i in x['merchant']],
+    dob = lambda x: add_random_nans(x['dob'], fraction=0.05),
+    job = lambda x: add_random_nans(x['job'], fraction=0.1),
+    city_pop = lambda x: add_random_nans(x['city_pop'], fraction=0.03),
+    merch_lat = lambda x: add_random_nans(x['merch_lat'], fraction=0.02),
+    merch_long = lambda x: add_random_nans(x['merch_long'], fraction=0.02),
+)
+```
+
+> Ante una nueva transacción, ¿cuál es la probabilidad de que sea fraudulenta? ¿Debería bloquarse?
+
+![Diagrama caso](images/diagrama_caso.png){#fig-caso width="30%" fig-align="center"}
+:::
+
+[^1]: @calibracion2024 es un workshop similar a este, enfocadao en la performance de modelos de clasificación binaria.
+
+------------------------------------------------------------------------
+
+::: {style="font-size: 75%;"}
+La variable objetivo (target) es [is_fraud]{style="color:#FF9933"} , donde el porcentaje de observaciones de clase 1 (fraudulentos) es `{python} f"{df['is_fraud'].sum()/df.shape[0]:.2%}"`.
+
+> $P(\color{#FF9933}{is\_fraud}=1) = f(\color{#3399FF}{X})$
+>
+> $\color{#FF9933}{is\_fraud}$: *variable que puede tomar 2 valores: 1 (transacción fraudulenta) o 0 (transacción legítima)*
+>
+> $\color{#3399FF}{X}$: *matriz nxm, siendo n la cantidad de observaciones y m la cantidad de variables (o atributos)*
+
+```{python}
+#| echo: false
+#| code-fold: false
+#| tbl-cap: "Datos transaccionales (muestra de 4 observaciones)"
+#| label: tbl-fraud-data
+def map_color(data):
+    return (data[target] == 1).map(
+        {True: color_verde_claro, False: 'white'}
+    )
+
+(GT(df.sample(4, random_state=13).round(2)
+        .set_index(target)
+        .reset_index()
+    )
+    .fmt_currency(columns="amt")
+    .tab_style(
+        style=style.fill(color=map_color), locations=loc.body(columns=df.columns.tolist()),
+    )
+    .tab_style(
+        style=style.text(color='#FF9933', weight = "bold"), locations=loc.body(target),
+    )
+    .tab_options(
+        column_labels_background_color=color_verde,
+        table_font_names="Times New Roman"
+    )
+)
+```
+
+Fuente de los datos: [Credit Card Transactions Fraud Detection Dataset](https://www.kaggle.com/datasets/kartik2112/fraud-detection/data).
+:::
+
+# Esquema de modelado
+
+## Esquema de modelado
+
+::: {style="font-size: 75%;"}
+La Figura @fig-esquema muestra un posible esquema de trabajo para modelos de aprendizaje automático en donde se busca predecir sobre datos nuevos. @quemy2019two destaca la importancia de diseñar primero el flujo de datos y luego destinar tiempo al ajuste de hiperparámetros del modelo.
+
+![Diagrama caso](images/diagrama_esquema.svg){#fig-esquema width="70%" fig-align="center"}
+:::
+
+## Particiones
+
+::: {style="font-size: 75%;"}
+Partición en dataset de entrenamiento y evaluación.
+
+-   Dataset de [entrenamiento (train)]{style="color:#4D9900; font-weight:bold"} → Ajuste del modelo
+-   Dataset de [evaluación (test)]{style="color:#FF9933; font-weight:bold"} → Métricas
+
+<br>
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Generación de particiones"
+#| label: particiones
+#| results: 'asis'
+y = df[target]
+X = df.drop([target], axis=1)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, shuffle=True, stratify=y, random_state=42
+)
+```
+
+```{python}
+# | echo: false
+X_train = X_train.reset_index(drop=True)
+X_test = X_test.reset_index(drop=True)
+y_train = y_train.reset_index(drop=True)
+y_test = y_test.reset_index(drop=True)
+
+for particion, (color, X, y) in {
+    "entrenamiento": ("#4D9900", X_train, y_train),
+    "evaluación": ("#FF9933", X_test, y_test),
+}.items():
+    particion_string = (
+        f'<span style="color:{color}; font-weight:bold;">{particion}</span>'
+    )
+    display(
+        Markdown(
+            f"N observaciones para {particion_string}: {X.shape[0]} "
+            f"({y.sum() / len(y):.2%} de transacciones fraudulentas)"
+        )
+    )
+```
+:::
+
+# Preprocesamiento
+
+## Tipos de transformaciones
+
+> Ciertos tipos de transformaciones requieren `“aprender”` algunos aspectos de los [datos de entrenamiento]{style="color:#4D9900"} mientras que otras no.
+
+Ejemplos de transformaciones que dependen de los datos de entrenamiento :
+
+-   Imputación de valores faltantes con la mediana → La mediana depende de los datos
+
+-   Escalado → Se debe calcular la media y desvío estándar de los datos
+
+Ejemplos de transformaciones que no dependen de los datos de entrenamiento:
+
+-   Construcción de una nueva variable mediante un cálculo simple → x\^2
+
+-   Combinaciones de variables en una nueva variable → x/y
+
+## Transformaciones en python, mediante scikit-learn
+
+::: {style="font-size: 70%;"}
+Para implementar este tipo de aprendizajes de ciertos aspectos de los datos al generar transformaciones custom, en scikit-learn se utiliza una clase específica [TransformerMixin](https://scikit-learn.org/stable/modules/generated/sklearn.base.TransformerMixin.html).
+
+![CustomTransformers en scikit-learn](images/diagrama_transformers.svg){#fig-transformers style="width:85%; height:auto;"}
+:::
+
+## Transformaciones iniciales
+
+::: {style="font-size: 50%;"}
+-   Cálculo de la edad
+
+-   Cálculo de la distancia entre el comercio y el usuario
+
+-   Generación de variables vinculadas a la fecha y hora de la transacción
+
+```{python}
+# | echo: false
+def categorizar_hora(hora: int) -> str:
+    """
+    Discretizar la hora en momentos del día.
+    """
+    if 0 <= hora < 6:
+        return "madrugada"
+    elif 6 <= hora < 12:
+        return "mañana"
+    elif 12 <= hora < 19:
+        return "tarde"
+    else:
+        return "noche"
+
+
+def calcular_distancia_haversine(lat1, lon1, lat2, lon2, radio_tierra=6371):
+    """
+    Calcular la distancia Haversine entre dos pares de coordenadas (lat, lon)
+    """
+    R = 6371  # Radio de la Tierra en KMs
+
+    lat1 = np.radians(lat1)
+    lon1 = np.radians(lon1)
+    lat2 = np.radians(lat2)
+    lon2 = np.radians(lon2)
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    a = np.sin(dlat/2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2)**2
+    c = 2 * np.arcsin(np.sqrt(a))
+
+    return R * c
+
+```
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Transformaciones iniciales"
+#| label: transformaciones-iniciales
+class TransformacionesIniciales(BaseEstimator, TransformerMixin):
+
+    def __init__(self, timestamp_features=True, distance_features=True):
+        """
+        Args:
+            timestamp_features (bool): Generar variables basadas en la fecha/hora de la trx
+            distance_features (bool): Generar variables basadas en la distancia al comercio
+        """
+        self.timestamp_features = distance_features
+        self.distance_features = distance_features
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X, y=None):
+        X_ = X.copy() # Copia para no afectar al df original
+
+        # Casteo de variables
+        X_ = X_.assign(
+            dob = lambda x: pd.to_datetime(x['dob'], errors='coerce'),
+            trans_date_trans_time = lambda x: pd.to_datetime(
+                x["trans_date_trans_time"], errors="coerce"
+            ),
+        )
+
+        # Cálculo de edad
+        X_ = X_.assign(
+            age = lambda x: round((x['trans_date_trans_time']-x['dob']).dt.days / 365.25,2)
+        )
+
+        # Features basadas en fecha y hora de la trx:
+        if self.timestamp_features:
+            X_ = X_.assign(
+                trans_date__year = lambda x: x["trans_date_trans_time"].dt.year,
+                trans_date__month = lambda x: x["trans_date_trans_time"].dt.month,
+                trans_date__day = lambda x: x["trans_date_trans_time"].dt.day,
+                trans_date__dow = lambda x: x["trans_date_trans_time"].dt.dayofweek,
+                trans_date__hour = lambda x: x["trans_date_trans_time"].dt.hour,
+                trans_date__partofday = lambda x: x['trans_date__hour'].apply(categorizar_hora)
+            )
+
+        if self.distance_features:
+            # Distancia (en kilometros)
+            X_["distance_to_merch"] = calcular_distancia_haversine(
+                X_["lat"], X_["long"], X_["merch_lat"], X_["merch_long"]
+            )
+
+        X_ = X_.drop(['trans_date_trans_time','dob'], axis=1) 
+        return X_
+```
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: ".fit_transform()"
+#| label: transformaciones-iniciales-fittransform
+transformaciones = TransformacionesIniciales()
+transformaciones.fit(X_train)
+X_test_transformed = transformaciones.transform(X_test)
+```
+
+```{python}
+#| echo: false
+(GT(X_test_transformed.sample(4, random_state=42).round(2))
+    .fmt_currency(columns="amt")
+    .tab_options(
+        column_labels_background_color=color_verde,
+        table_font_names="Times New Roman"
+    )
+)
+```
+:::
+
+## Feature engineering
+
+Flujo de procesamiento de variables previo al modelado.
+
+::: {style="font-size: 50%;"}
+```{python}
+class RareCategoryGrouper(BaseEstimator, TransformerMixin):
+    """
+    Agrupar categorías poco frecuentes en "infrequent"
+    """
+
+    def __init__(self, variables=None, min_freq=0.05):
+        """
+        Args:
+            variables (list): List of categorical variables to group.
+            min_freq (float or int):
+                Si float (0 < min_freq < 1), mínima proporción en el dataset.
+                Si int (>=1), mínima cantidad de observaciones.
+        """
+        self.variables = variables
+        self.min_freq = min_freq
+        self.frequent_categories_ = {}
+
+    def fit(self, X, y=None):
+        X_ = X.copy()
+
+        if self.variables is None:
+            self.variables = X_.select_dtypes(include="object").columns.tolist()
+
+        for var in self.variables:
+            freqs = X_[var].value_counts(normalize=isinstance(self.min_freq, float))
+            self.frequent_categories_[var] = freqs[
+                freqs >= self.min_freq
+            ].index.tolist()
+
+        return self
+
+    def transform(self, X):
+        X_ = X.copy()
+        for var in self.variables:
+            X_[var] = X_[var].where(
+                X_[var].isin(self.frequent_categories_[var]), "infrequent"
+            )
+        return X_
+
+
+class MeanEncoder(BaseEstimator, TransformerMixin):
+    """
+    Encoding de variables categóricas mediante el promedio de la target en esa categoría.
+    """
+
+    def __init__(self, variables=None):
+        self.variables = variables
+        self.encoding_dict_ = {}
+        self.global_mean_ = None
+
+    def fit(self, X, y):
+        X_ = X.copy()
+        y_ = pd.Series(y)
+
+        if self.variables is None:
+            self.variables = X_.select_dtypes(
+                include=["object", "category"]
+            ).columns.tolist()
+
+        self.global_mean_ = y_.mean()
+
+        for var in self.variables:
+            self.encoding_dict_[var] = y_.groupby(X_[var]).mean().to_dict()
+
+        return self
+
+    def transform(self, X):
+        X_ = X.copy()
+        for var in self.variables:
+            X_[var] = X_[var].map(self.encoding_dict_[var])
+            # Para nuevas categorías asigna el valor promedio
+            X_[var] = X_[var].fillna(self.global_mean_)
+        return X_
+
+
+class OutlierRemover(BaseEstimator, TransformerMixin):
+    """
+    Cappear las variables mediante el método de IQR
+    """
+
+    def __init__(self, numeric_features=None, factor=1.5):
+        """
+        Args:
+            numeric_features (list): lista de variables sobre las cuales remover valores atípicos
+            factor (float): multiplicador del IQR
+        """
+        self.numeric_features = numeric_features
+        self.factor = factor
+
+    def fit(self, X, y=None):
+        X_ = X.copy()
+        if self.numeric_features is None:
+            self.numeric_features = X_.select_dtypes(include="number").columns.tolist()
+        # IQR
+        Q1 = X_[self.numeric_features].quantile(0.25)
+        Q3 = X_[self.numeric_features].quantile(0.75)
+        IQR = Q3 - Q1
+        self.lower_bound = Q1 - self.factor * IQR
+        self.upper_bound = Q3 + self.factor * IQR
+        return self
+
+    def transform(self, X, y=None):
+        X_ = X.copy()
+        for col in self.numeric_features:
+            X_[col] = X_[col].clip(
+                lower=self.lower_bound[col], 
+                upper=self.upper_bound[col]
+            )
+        return X_
+
+
+class IsolationForestTransformer(BaseEstimator, TransformerMixin):
+    """
+    Ajustar un modelo IssolationForest para detección de anomalías. 
+    Retorna un anomaly_score. 
+    """
+
+    def __init__(self, **kwargs):
+        self.iforest_kwargs = kwargs
+
+    def fit(self, X, y=None):
+        self.iforest_ = IsolationForest(**self.iforest_kwargs)
+        self.iforest_.fit(X)
+        return self
+
+    def transform(self, X):
+        scores = self.iforest_.decision_function(X)
+        return pd.DataFrame({"anomaly_score": scores}, index=X.index)
+
+```
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Preprocesamiento"
+#| label: preprocessor
+preproc_categoricas = Pipeline(steps=[
+    ('rare_labels', RareCategoryGrouper(min_freq=0.01)),
+    ('imputar_nulos', SimpleImputer(missing_values=np.nan, strategy='most_frequent')),
+    ('mean_encoder', MeanEncoder())
+])
+
+preproc_numericas = Pipeline(steps=[
+    ('imputar_nulos', SimpleImputer(strategy='median')),
+    ('scale', MinMaxScaler())
+])
+
+feature_eng = ColumnTransformer([
+    ('cat', preproc_categoricas, make_column_selector(dtype_exclude=['float','int'])),
+    ('num', preproc_numericas, make_column_selector(dtype_include=['float','int']))
+], verbose_feature_names_out=False, remainder='drop', verbose=True)
+
+features_preprocessing = Pipeline([
+    ('data_cleaning', TransformacionesIniciales()),
+    ('feature_eng', feature_eng),
+    ('anomalies', FeatureUnion([
+            ('outliers', OutlierRemover()),
+            ('anomaly', IsolationForestTransformer())
+        ])
+    )
+], verbose=True)
+```
+
+```{python}
+#| echo: false
+preproc_html = features_preprocessing._repr_html_()
+with open("artifacts/preproc_display.html", "w") as f:
+    f.write(preproc_html)
+```
+
+<iframe src="artifacts/preproc_display.html" width="100%" height="600px" style="border: none;">
+
+</iframe>
+:::
+
+## Datos transformados
+
+::: {style="font-size: 75%;"}
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: ".fit_transform()"
+#| label: preproc-transform
+#| warning: false
+#| message: false
+features_preprocessing.fit(X_train, y_train)
+X_test_transformed = features_preprocessing.transform(X_test)
+```
+
+<br>
+
+```{python}
+#| echo: false
+#| tbl-cap: "Datos post procesamiento (muestra de 4 observaciones de la partición de evaluación)"
+#| label: tbl-postprocessing-data
+(GT(X_test_transformed.sample(4, random_state=42).round(3))
+    .tab_options(
+        column_labels_background_color=color_verde,
+        table_font_names="Times New Roman"
+    )
+)
+```
+:::
+
+# Modelo
+
+## Pipeline de modelado
+
+::: {style="font-size: 70%;"}
+```{python}
+# | echo: true
+# | code-fold: true
+# | code-summary: "Pipeline"
+# | label: pipeline
+# | eval: false
+clf = CatBoostClassifier(
+    iterations=500,
+    depth=6,
+    learning_rate=0.1,
+    loss_function="Logloss",
+    class_weights=[1, 20],
+    random_seed=42,
+    verbose=100,
+)
+
+pipe = Pipeline([("preproc", features_preprocessing), ("model", clf)])
+```
+
+```{python}
+#| echo: false
+#| eval: false
+pipe_html = pipe._repr_html_()
+with open("artifacts/pipe_display.html", "w") as f:
+    f.write(pipe_html)
+```
+
+<iframe src="artifacts/pipe_display.html" width="100%" height="600px" style="border: none;">
+
+</iframe>
+:::
+
+## Entrenamiento del pipeline completo
+
+::: {style="font-size: 75%;"}
+Durante el entrenamiento del pipeline (preprocesamiento + modelo), se visualizan los tiempos que tarda cada uno de los pasos:
+
+```{python}
+#| eval: false
+#| echo: true
+pipe.fit(X_train, y_train)
+```
+
+```{python}
+#| echo: false
+#| eval: false
+df_preds_test = pd.DataFrame({
+    'y_true': y_test.reset_index(drop=True),
+    'y_pred_class': pipe.predict(X_test),
+    'y_pred_prob': round(pd.Series(pipe.predict_proba(X_test)[:,1]),4)
+})
+index_fraud_prob = df_preds_test.sort_values('y_pred_prob', ascending=False).head(1).index
+
+X_test.iloc[index_fraud_prob].to_dict(orient='index')
+```
+
+```{python}
+#| results: 'asis'
+print(f"""
+[Pipeline] ..... (step 1 of 3) Processing data_cleaning, total=   1.9s
+[ColumnTransformer] ........... (1 of 2) Processing cat, total=   2.4s
+[ColumnTransformer] ........... (2 of 2) Processing num, total=   2.7s
+[Pipeline] ....... (step 2 of 3) Processing feature_eng, total=   5.3s
+[Pipeline] ......... (step 3 of 3) Processing anomalies, total=  10.8s
+0:	    learn: 0.4501382	total: 98.1ms	remaining: 48.9s
+100:	learn: 0.0492939	total: 13.2s	remaining: 52.3s
+200:	learn: 0.0390136	total: 26.7s	remaining: 39.8s
+300:	learn: 0.0324107	total: 39.1s	remaining: 25.9s
+400:	learn: 0.0280930	total: 52.5s	remaining: 13s
+499:	learn: 0.0247809	total: 1m 5s	remaining: 0us
+""")
+```
+
+Almacenar el modelo para luego utilizarlo (despliegue):
+
+```{python}
+#| echo: true
+#| eval: false
+#| code-fold: true
+#| code-summary: "pickle.dump(): Guardar el modelo"
+#| label: save-model
+with open('artifacts/pipe_model_fraud.pkl', 'wb') as file:
+    pickle.dump(pipe, file)
+```
+
+:::
+
+# Predicciones
+
+## Predicciones sobre datos nuevos (despliegue de modelos)
+
+::: {style="font-size: 50%;"}
+Cargar el archivo .pkl para utilizarlo:
+
+```{python}
+#| echo: true
+#| eval: true
+#| code-fold: true
+#| code-summary: "pickle.load(): Cargar el modelo"
+#| label: load-model
+with open('artifacts/pipe_model_fraud.pkl', 'rb') as file:
+    pipe = pickle.load(file)
+```
+
+🆕 Datos de una nueva transacción ([datos en producción]{style="color:#3399FF"}):
+
+```{python}
+# | echo: true
+# | eval: true
+# | code-fold: true
+# | code-summary: "Nueva transacción"
+# | label: new-trx
+nueva_trx = pd.DataFrame({
+    "trans_date_trans_time": "2019-10-09 20:38:49",
+    "merchant": np.nan,
+    "category": "gas_transport",
+    "amt": 9.66,
+    "city_pop": 10000,
+    "job": np.nan,
+    "dob": "1995-08-16",
+    "zip": np.nan,
+    "lat": 45.8433,
+    "long": -113.1948,
+    "merch_lat": 45.837213,
+    "merch_long": -113.191425,
+}, index=["nueva_trx"])
+```
+
+```{python}
+#| echo: false
+(GT(nueva_trx.round(2))
+    .fmt_currency(columns="amt")
+    .tab_options(
+        column_labels_background_color=color_verde,
+        table_font_names="Times New Roman"
+    )
+)
+```
+
+Utilizar el modelo para estimar la `probabilidad` de que la nueva transacción sea fraudulenta:
+
+```{python}
+#| echo: true
+#| eval: true
+#| code-fold: true
+#| code-summary: "Predicción de probabilidad"
+#| label: new-prediction
+
+y_pred = pipe.predict_proba(nueva_trx)[:,1]
+```
+
+```{python}
+#| echo: false
+Markdown(f"La probabilidad de que la transacción sea fraudulenta es: {y_pred[0]:.2%}")
+```
+:::
+
+# Comentarios finales
+
+## Comentarios finales
+
+-   El uso de pipelines en python permite organizar el flujo de procesamiento de datos de manera clara, reproducible y escalable.
+
+-   Esto permite reducir el riesgo durante el despliegue de modelos al eliminar código duplicado o transformaciones inconsistentes entre entrenamiento y predicción.
+
+-   Todas las transformaciones mostradas son ejemplos ilustrativos, otras transformaciones podrían generar mejores resultados.
+
+## Referencias / Recursos
+
+::: {#refs}
+:::
+
+## Contacto
+
+{{< fa brands linkedin size=1x >}} [karinabartolome](https://www.linkedin.com/in/karinabartolome/)
+
+{{< fa brands twitter size=1x >}} [karbartolome](https://twitter.com/karbartolome)
+
+{{< fa brands github size=1x >}} [karbartolome](http://github.com/karbartolome)
+
+{{< fa link >}} [Blog](https://karbartolome-blog.netlify.app/)

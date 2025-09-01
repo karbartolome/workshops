@@ -1,0 +1,13 @@
+numpy<=2.2.0
+pandas
+seaborn
+matplotlib
+scikit-learn
+ipykernel
+rich
+great_tables
+kagglehub
+jinja2
+shap
+catboost
+fastparquet
