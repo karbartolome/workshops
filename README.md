@@ -7,6 +7,11 @@
 [2024-05-13: Calibración de probabilidades](https://karbartolome.github.io/workshops/20240513-uba-calibracion/slides)
 CIMBAGE (IADCOM) - Facultad Ciencias Económicas (UBA)
 
+## 2025
+
+[2025-09-05: Del dato al modelo](https://karbartolome.github.io/workshops/20250905-uba-pipelines/slides)
+CIMBAGE (IADCOM) - Facultad Ciencias Económicas (UBA)
+
 
 ## Configs
 
