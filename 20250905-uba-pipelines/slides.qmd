@@ -1,6 +1,6 @@
 ---
-title: "Del dato al modelo"
-subtitle: "Piplines personalizados utilizando python"
+title: "Del dato al modelo: piplines personalizados utilizando python"
+subtitle: "3er Encuentro Interdisciplinar: Gestión de datos en organizaciones"
 author: Karina A. Bartolomé
 institute: |
   Especialista en Métodos Cuantitativos para la Gestión y Análisis de Datos en Organizaciones (FCE, UBA). Lic. en Economía (FCE, UNLP). Líder técnica de Ciencia de Datos (Ualá).
@@ -88,7 +88,7 @@ target = 'is_fraud'
 
 - Este taller está enfocado en cuestiones avanzadas sobre el flujo de modelado de datos en python, se recomienda algún conocimiento previo para un mejor entendimiento del código. 
 
-- Durante el seminario se utilizarán los siguientes paquetes (**python**). 
+- Durante el seminario se utilizarán los siguientes paquetes (**python**):
 
 ```{python}
 #| echo: false
@@ -162,7 +162,7 @@ df = pd.read_parquet('data/df_fraud.parquet')
 # df = df.sample(10000, random_state=42).reset_index(drop=True)
 ```
 
-Se cuenta con un dataset de `{python} df.shape[0]` transacciones de tarjetas de crédito. Son `{python} df.shape[1]` variables generadas sintéticamente por lo que el foco está sobre cómo procesarlos y no sobre la performance del modelo [^1].
+Se cuenta con un dataset de `{python} df.shape[0]` transacciones (compras). Son `{python} df.shape[1]` variables generadas sintéticamente por lo que el foco está sobre cómo procesarl los datos y no sobre la performance del modelo [^1].
 
 No se cuenta con valores faltantes, por lo que se genera "ruido" en el dataset, añadiendo valores faltantes en distintas variables para el ejemplo.
 
@@ -253,10 +253,8 @@ La Figura @fig-esquema muestra un posible esquema de trabajo para modelos de apr
 ## Particiones
 
 ::: {style="font-size: 75%;"}
-Partición en dataset de entrenamiento y evaluación.
 
--   Dataset de [entrenamiento (train)]{style="color:#4D9900; font-weight:bold"} → Ajuste del modelo
--   Dataset de [evaluación (test)]{style="color:#FF9933; font-weight:bold"} → Métricas
+El dataset se separa en un segmento para [entrenamiento (train)]{style="color:#4D9900; font-weight:bold"} y otro para la [evaluación (test)]{style="color:#FF9933; font-weight:bold"}. En general se habla de particiones para el entrenamiento del modelo pero en este caso se trabajará con 2 particiones para el ajuste del procesamiento y modelado en conjunto. 
 
 <br>
 
@@ -449,10 +447,55 @@ X_test_transformed = transformaciones.transform(X_test)
 
 ## Feature engineering
 
-Flujo de procesamiento de variables previo al modelado.
-
 ::: {style="font-size: 50%;"}
+
+Scikit-learn cuenta con múltiples transformers ya definidos (SimpleImput, MinMaxScaler, etc). Además, se definen 4 transformers custom adicionales (`MeanEncoder, RareCategoryGrouper, ColumnCapper, IsolationForestTransformer`):
+
 ```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "MeanEncoder"
+#| label: preproc-meanencoder
+class MeanEncoder(BaseEstimator, TransformerMixin):
+    """
+    Encoding de variables categóricas mediante el promedio de la target en esa categoría.
+    """
+
+    def __init__(self, variables=None):
+        self.variables = variables
+        self.encoding_dict_ = {}
+        self.global_mean_ = None
+
+    def fit(self, X, y):
+        X_ = X.copy()
+        y_ = pd.Series(y)
+
+        if self.variables is None:
+            self.variables = X_.select_dtypes(
+                include=["object", "category"]
+            ).columns.tolist()
+
+        self.global_mean_ = y_.mean()
+
+        for var in self.variables:
+            self.encoding_dict_[var] = y_.groupby(X_[var]).mean().to_dict()
+
+        return self
+
+    def transform(self, X):
+        X_ = X.copy()
+        for var in self.variables:
+            X_[var] = X_[var].map(self.encoding_dict_[var])
+            # Para nuevas categorías asigna el valor promedio
+            X_[var] = X_[var].fillna(self.global_mean_)
+        return X_
+```
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "RareCategoryGrouper"
+#| label: preproc-rarecategory
 class RareCategoryGrouper(BaseEstimator, TransformerMixin):
     """
     Agrupar categorías poco frecuentes en "infrequent"
@@ -491,44 +534,14 @@ class RareCategoryGrouper(BaseEstimator, TransformerMixin):
                 X_[var].isin(self.frequent_categories_[var]), "infrequent"
             )
         return X_
+```
 
-
-class MeanEncoder(BaseEstimator, TransformerMixin):
-    """
-    Encoding de variables categóricas mediante el promedio de la target en esa categoría.
-    """
-
-    def __init__(self, variables=None):
-        self.variables = variables
-        self.encoding_dict_ = {}
-        self.global_mean_ = None
-
-    def fit(self, X, y):
-        X_ = X.copy()
-        y_ = pd.Series(y)
-
-        if self.variables is None:
-            self.variables = X_.select_dtypes(
-                include=["object", "category"]
-            ).columns.tolist()
-
-        self.global_mean_ = y_.mean()
-
-        for var in self.variables:
-            self.encoding_dict_[var] = y_.groupby(X_[var]).mean().to_dict()
-
-        return self
-
-    def transform(self, X):
-        X_ = X.copy()
-        for var in self.variables:
-            X_[var] = X_[var].map(self.encoding_dict_[var])
-            # Para nuevas categorías asigna el valor promedio
-            X_[var] = X_[var].fillna(self.global_mean_)
-        return X_
-
-
-class OutlierRemover(BaseEstimator, TransformerMixin):
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "ColumnCapper"
+#| label: preproc-outliers
+class ColumnCapper(BaseEstimator, TransformerMixin):
     """
     Cappear las variables mediante el método de IQR
     """
@@ -562,8 +575,13 @@ class OutlierRemover(BaseEstimator, TransformerMixin):
                 upper=self.upper_bound[col]
             )
         return X_
+```
 
-
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "IsolationForestTransformer"
+#| label: preproc-anomaly
 class IsolationForestTransformer(BaseEstimator, TransformerMixin):
     """
     Ajustar un modelo IssolationForest para detección de anomalías. 
@@ -581,8 +599,24 @@ class IsolationForestTransformer(BaseEstimator, TransformerMixin):
     def transform(self, X):
         scores = self.iforest_.decision_function(X)
         return pd.DataFrame({"anomaly_score": scores}, index=X.index)
-
 ```
+
+:::
+
+---
+
+::: {style="font-size: 50%;"}
+
+Se crea un Pipeline de preprocesamiento general:
+
+1. Transformaciones iniciales
+
+2. Transformer que según el tipo de variable (numérica o categórica) aplica ciertas transformaciones:
+
+    - Pipeline para procesamiento de variables categóricas
+    - Pipeline para procesamiento de variables numéricas
+
+3. Identificación de observaciones anómalas y cappeo de variables según el IQR
 
 ```{python}
 #| echo: true
@@ -609,7 +643,7 @@ features_preprocessing = Pipeline([
     ('data_cleaning', TransformacionesIniciales()),
     ('feature_eng', feature_eng),
     ('anomalies', FeatureUnion([
-            ('outliers', OutlierRemover()),
+            ('outliers', ColumnCapper()),
             ('anomaly', IsolationForestTransformer())
         ])
     )
@@ -624,8 +658,8 @@ with open("artifacts/preproc_display.html", "w") as f:
 ```
 
 <iframe src="artifacts/preproc_display.html" width="100%" height="600px" style="border: none;">
-
 </iframe>
+
 :::
 
 ## Datos transformados
@@ -661,29 +695,32 @@ X_test_transformed = features_preprocessing.transform(X_test)
 
 ## Pipeline de modelado
 
+Se crea un nuevo Pipeline que incluye un primer paso de preprocesamiento y un segundo paso de modelado (un clasificador). 
+
 ::: {style="font-size: 70%;"}
 ```{python}
 # | echo: true
 # | code-fold: true
 # | code-summary: "Pipeline"
 # | label: pipeline
-# | eval: false
+# | eval: true
 clf = CatBoostClassifier(
     iterations=500,
-    depth=6,
-    learning_rate=0.1,
     loss_function="Logloss",
     class_weights=[1, 20],
     random_seed=42,
     verbose=100,
 )
 
-pipe = Pipeline([("preproc", features_preprocessing), ("model", clf)])
+pipe = Pipeline([
+    ("preproc", features_preprocessing), 
+    ("model", clf)
+], verbose=True)
 ```
 
 ```{python}
 #| echo: false
-#| eval: false
+#| eval: true
 pipe_html = pipe._repr_html_()
 with open("artifacts/pipe_display.html", "w") as f:
     f.write(pipe_html)
@@ -702,24 +739,15 @@ Durante el entrenamiento del pipeline (preprocesamiento + modelo), se visualizan
 ```{python}
 #| eval: false
 #| echo: true
+#| message: false
+#| warning: false
+#| label: pipeline-fit
 pipe.fit(X_train, y_train)
 ```
 
 ```{python}
-#| echo: false
-#| eval: false
-df_preds_test = pd.DataFrame({
-    'y_true': y_test.reset_index(drop=True),
-    'y_pred_class': pipe.predict(X_test),
-    'y_pred_prob': round(pd.Series(pipe.predict_proba(X_test)[:,1]),4)
-})
-index_fraud_prob = df_preds_test.sort_values('y_pred_prob', ascending=False).head(1).index
-
-X_test.iloc[index_fraud_prob].to_dict(orient='index')
-```
-
-```{python}
 #| results: 'asis'
+#| eval: true
 print(f"""
 [Pipeline] ..... (step 1 of 3) Processing data_cleaning, total=   1.9s
 [ColumnTransformer] ........... (1 of 2) Processing cat, total=   2.4s
@@ -733,6 +761,19 @@ print(f"""
 400:	learn: 0.0280930	total: 52.5s	remaining: 13s
 499:	learn: 0.0247809	total: 1m 5s	remaining: 0us
 """)
+```
+
+```{python}
+#| echo: false
+#| eval: false
+df_preds_test = pd.DataFrame({
+    'y_true': y_test.reset_index(drop=True),
+    'y_pred_class': pipe.predict(X_test),
+    'y_pred_prob': round(pd.Series(pipe.predict_proba(X_test)[:,1]),4)
+})
+index_fraud_prob = df_preds_test.sort_values('y_pred_prob', ascending=False).head(1).index
+
+X_test.iloc[index_fraud_prob].to_dict(orient='index')
 ```
 
 Almacenar el modelo para luego utilizarlo (despliegue):
@@ -815,7 +856,8 @@ y_pred = pipe.predict_proba(nueva_trx)[:,1]
 
 ```{python}
 #| echo: false
-Markdown(f"La probabilidad de que la transacción sea fraudulenta es: {y_pred[0]:.2%}")
+Markdown(f"""La probabilidad de que la transacción sea fraudulenta es: {y_pred[0]:.2%} → ¿Aprobar o rechazar la transacción? Depende de la aversión al riesgo de la entidad en cuestión. 
+""")
 ```
 :::
 
