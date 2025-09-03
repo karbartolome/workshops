@@ -4,15 +4,6 @@ subtitle: "3er Encuentro Interdisciplinar: Gestión de datos en organizaciones"
 author: Karina A. Bartolomé
 institute: |
   Especialista en Métodos Cuantitativos para la Gestión y Análisis de Datos en Organizaciones (FCE, UBA). Lic. en Economía (FCE, UNLP). Líder técnica de Ciencia de Datos (Ualá).
-
-  <br>
-
-  **Organizadora: Natalia R. Salaberry** <br>
-  Doctora en la Universidad de Buenos Aires, Ciencias Económicas. Magister en Métodos Cuantitativos para la Gestión y Análisis de Datos en Organizaciones (FCE, UBA). Lic. en Economía, FCE, UBA. Investigadora en CIMBAGE (IADCOM), Docente de posgrados y Estadística I, FCE, UBA
-  <br> 
-
-  **CIMBAGE (IADCOM)** - Facultad Ciencias Económicas (UBA)
-
 date: 2025-09-05
 bibliography: bib.bib
 nocite: |
@@ -51,6 +42,7 @@ lang: es
 ---
 
 ```{python}
+#| label: libs
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -77,6 +69,7 @@ sklearn.set_config(transform_output="pandas", display='diagram')
 ```
 
 ```{python}
+#| label: params
 color_verde = "#255255"
 color_verde_claro = "#BDCBCC"
 target = 'is_fraud'
@@ -85,13 +78,13 @@ target = 'is_fraud'
 ## Consideraciones previas
 
 ::: {style="font-size: 70%;"}
+-   Este taller está enfocado en cuestiones avanzadas sobre el flujo de modelado de datos en python, se recomienda algún conocimiento previo para un mejor entendimiento del código.
 
-- Este taller está enfocado en cuestiones avanzadas sobre el flujo de modelado de datos en python, se recomienda algún conocimiento previo para un mejor entendimiento del código. 
-
-- Durante el seminario se utilizarán los siguientes paquetes (**python**):
+-   Durante el seminario se utilizarán los siguientes paquetes (**python**):
 
 ```{python}
 #| echo: false
+#| label: libs-versions
 import matplotlib
 import great_tables
 import catboost
@@ -107,10 +100,8 @@ Markdown(f"""
 """)
 ```
 
-- Todo el código se encuentra disponible en {{< fa brands github size=1x >}} <a href="https://github.com/karbartolome/workshops" target="_blank">Repositorio</a>
-
+-   Todo el código se encuentra disponible en {{< fa brands github size=1x >}} <a href="https://github.com/karbartolome/workshops" target="_blank">Repositorio</a>
 :::
-
 
 # Planteo del caso
 
@@ -122,6 +113,7 @@ Markdown(f"""
 #| eval: false
 #| code-fold: true
 #| code-summary: "Lectura de datos"
+#| label: data
 import kagglehub
 path = kagglehub.dataset_download("kartik2112/fraud-detection")
 df_train = pd.read_csv(f"{path}/fraudTrain.csv")
@@ -148,6 +140,7 @@ df = df[cols_selected]
 
 ```{python}
 #| echo: false
+#| label: data-read
 # import kagglehub
 # path = kagglehub.dataset_download("kartik2112/fraud-detection")
 # df_train = pd.read_csv(f"{path}/fraudTrain.csv")
@@ -155,11 +148,6 @@ df = df[cols_selected]
 # df = pd.concat([df_train, df_test], axis=0, ignore_index=True).reset_index(drop=True)
 # df.to_parquet('df_fraud.parquet', index=False, engine='fastparquet')
 df = pd.read_parquet('data/df_fraud.parquet')
-```
-
-```{python}
-#| echo: false
-# df = df.sample(10000, random_state=42).reset_index(drop=True)
 ```
 
 Se cuenta con un dataset de `{python} df.shape[0]` transacciones (compras). Son `{python} df.shape[1]` variables generadas sintéticamente por lo que el foco está sobre cómo procesarl los datos y no sobre la performance del modelo [^1].
@@ -170,6 +158,7 @@ No se cuenta con valores faltantes, por lo que se genera "ruido" en el dataset, 
 #| echo: true
 #| code-fold: true
 #| code-summary: "Generador de ruido en el dataset"
+#| label: noise
 ## Valores faltantes
 def add_random_nans(values, fraction=0.2):
     """
@@ -253,8 +242,7 @@ La Figura @fig-esquema muestra un posible esquema de trabajo para modelos de apr
 ## Particiones
 
 ::: {style="font-size: 75%;"}
-
-El dataset se separa en un segmento para [entrenamiento (train)]{style="color:#4D9900; font-weight:bold"} y otro para la [evaluación (test)]{style="color:#FF9933; font-weight:bold"}. En general se habla de particiones para el entrenamiento del modelo pero en este caso se trabajará con 2 particiones para el ajuste del procesamiento y modelado en conjunto. 
+El dataset se separa en un segmento para [entrenamiento (train)]{style="color:#4D9900; font-weight:bold"} y otro para la [evaluación (test)]{style="color:#FF9933; font-weight:bold"}. En general se habla de particiones para el entrenamiento del modelo pero en este caso se trabajará con 2 particiones para el ajuste del procesamiento y modelado en conjunto.
 
 <br>
 
@@ -262,7 +250,7 @@ El dataset se separa en un segmento para [entrenamiento (train)]{style="color:#4
 #| echo: true
 #| code-fold: true
 #| code-summary: "Generación de particiones"
-#| label: particiones
+#| label: splits
 #| results: 'asis'
 y = df[target]
 X = df.drop([target], axis=1)
@@ -273,7 +261,8 @@ X_train, X_test, y_train, y_test = train_test_split(
 ```
 
 ```{python}
-# | echo: false
+#| echo: false
+#| label: splits-print
 X_train = X_train.reset_index(drop=True)
 X_test = X_test.reset_index(drop=True)
 y_train = y_train.reset_index(drop=True)
@@ -332,6 +321,7 @@ Para implementar este tipo de aprendizajes de ciertos aspectos de los datos al g
 
 ```{python}
 # | echo: false
+# | label: functions
 def categorizar_hora(hora: int) -> str:
     """
     Discretizar la hora en momentos del día.
@@ -435,6 +425,8 @@ X_test_transformed = transformaciones.transform(X_test)
 
 ```{python}
 #| echo: false
+#| label: tbl-transformaciones-iniciales
+#| tbl-cap: "Transformaciones iniciales"
 (GT(X_test_transformed.sample(4, random_state=42).round(2))
     .fmt_currency(columns="amt")
     .tab_options(
@@ -448,8 +440,7 @@ X_test_transformed = transformaciones.transform(X_test)
 ## Feature engineering
 
 ::: {style="font-size: 50%;"}
-
-Scikit-learn cuenta con múltiples transformers ya definidos (SimpleImput, MinMaxScaler, etc). Además, se definen 4 transformers custom adicionales (`MeanEncoder, RareCategoryGrouper, ColumnCapper, IsolationForestTransformer`):
+Scikit-learn cuenta con múltiples transformers ya definidos (SimpleImputer, MinMaxScaler, etc). Además, se definen 4 transformers custom adicionales (`MeanEncoder, RareCategoryGrouper, ColumnCapper, IsolationForestTransformer`):
 
 ```{python}
 #| echo: true
@@ -540,7 +531,7 @@ class RareCategoryGrouper(BaseEstimator, TransformerMixin):
 #| echo: true
 #| code-fold: true
 #| code-summary: "ColumnCapper"
-#| label: preproc-outliers
+#| label: preproc-capper
 class ColumnCapper(BaseEstimator, TransformerMixin):
     """
     Cappear las variables mediante el método de IQR
@@ -577,6 +568,8 @@ class ColumnCapper(BaseEstimator, TransformerMixin):
         return X_
 ```
 
+@Devarakonda2023 propone un enfoque híbrido para la detección de fraude, combinando modelos supervisados y no supervisados (Issolation Forest). En este caso, se utilizará un score de cuán anómala es la transacción como variable explicativa del fraude. 
+
 ```{python}
 #| echo: true
 #| code-fold: true
@@ -600,23 +593,21 @@ class IsolationForestTransformer(BaseEstimator, TransformerMixin):
         scores = self.iforest_.decision_function(X)
         return pd.DataFrame({"anomaly_score": scores}, index=X.index)
 ```
-
 :::
 
----
+------------------------------------------------------------------------
 
 ::: {style="font-size: 50%;"}
-
 Se crea un Pipeline de preprocesamiento general:
 
-1. Transformaciones iniciales
+1.  Transformaciones iniciales
 
-2. Transformer que según el tipo de variable (numérica o categórica) aplica ciertas transformaciones:
+2.  Transformer que según el tipo de variable (numérica o categórica) aplica ciertas transformaciones:
 
-    - Pipeline para procesamiento de variables categóricas
-    - Pipeline para procesamiento de variables numéricas
+    -   Pipeline para procesamiento de variables categóricas
+    -   Pipeline para procesamiento de variables numéricas
 
-3. Identificación de observaciones anómalas y cappeo de variables según el IQR
+3.  Identificación de observaciones anómalas y cappeo de variables según el IQR
 
 ```{python}
 #| echo: true
@@ -630,8 +621,7 @@ preproc_categoricas = Pipeline(steps=[
 ])
 
 preproc_numericas = Pipeline(steps=[
-    ('imputar_nulos', SimpleImputer(strategy='median')),
-    ('scale', MinMaxScaler())
+    ('imputar_nulos', SimpleImputer(strategy='median'))
 ])
 
 feature_eng = ColumnTransformer([
@@ -652,14 +642,15 @@ features_preprocessing = Pipeline([
 
 ```{python}
 #| echo: false
+#| label: preproc-html
 preproc_html = features_preprocessing._repr_html_()
 with open("artifacts/preproc_display.html", "w") as f:
     f.write(preproc_html)
 ```
 
 <iframe src="artifacts/preproc_display.html" width="100%" height="600px" style="border: none;">
-</iframe>
 
+</iframe>
 :::
 
 ## Datos transformados
@@ -695,7 +686,7 @@ X_test_transformed = features_preprocessing.transform(X_test)
 
 ## Pipeline de modelado
 
-Se crea un nuevo Pipeline que incluye un primer paso de preprocesamiento y un segundo paso de modelado (un clasificador). 
+Se crea un nuevo Pipeline que incluye un primer paso de preprocesamiento y un segundo paso de modelado (un clasificador).
 
 ::: {style="font-size: 70%;"}
 ```{python}
@@ -721,6 +712,7 @@ pipe = Pipeline([
 ```{python}
 #| echo: false
 #| eval: true
+#| label: pipe-html
 pipe_html = pipe._repr_html_()
 with open("artifacts/pipe_display.html", "w") as f:
     f.write(pipe_html)
@@ -766,6 +758,7 @@ print(f"""
 ```{python}
 #| echo: false
 #| eval: false
+#| label: test-preds
 df_preds_test = pd.DataFrame({
     'y_true': y_test.reset_index(drop=True),
     'y_pred_class': pipe.predict(X_test),
@@ -787,7 +780,6 @@ Almacenar el modelo para luego utilizarlo (despliegue):
 with open('artifacts/pipe_model_fraud.pkl', 'wb') as file:
     pickle.dump(pipe, file)
 ```
-
 :::
 
 # Predicciones
@@ -833,6 +825,8 @@ nueva_trx = pd.DataFrame({
 
 ```{python}
 #| echo: false
+#| label: tbl-new-obs
+#| tbl-cap: "Nueva observación"
 (GT(nueva_trx.round(2))
     .fmt_currency(columns="amt")
     .tab_options(
@@ -850,7 +844,6 @@ Utilizar el modelo para estimar la `probabilidad` de que la nueva transacción s
 #| code-fold: true
 #| code-summary: "Predicción de probabilidad"
 #| label: new-prediction
-
 y_pred = pipe.predict_proba(nueva_trx)[:,1]
 ```
 
