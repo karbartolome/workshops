@@ -1,5 +1,5 @@
 ---
-title: "Del dato al modelo: piplines personalizados utilizando python"
+title: "Del dato al modelo: pipelines personalizados utilizando python"
 subtitle: "3er Encuentro Interdisciplinar: Gestión de datos en organizaciones"
 author: Karina A. Bartolomé
 institute: |
@@ -150,7 +150,7 @@ df = df[cols_selected]
 df = pd.read_parquet('data/df_fraud.parquet')
 ```
 
-Se cuenta con un dataset de `{python} df.shape[0]` transacciones (compras). Son `{python} df.shape[1]` variables generadas sintéticamente por lo que el foco está sobre cómo procesarl los datos y no sobre la performance del modelo [^1].
+Se cuenta con un dataset de `{python} df.shape[0]` transacciones (compras). Son `{python} df.shape[1]` variables generadas sintéticamente por lo que el foco está sobre cómo procesar los datos y no sobre la performance del modelo [^1].
 
 No se cuenta con valores faltantes, por lo que se genera "ruido" en el dataset, añadiendo valores faltantes en distintas variables para el ejemplo.
 
@@ -185,7 +185,7 @@ df = df.assign(
 ![Diagrama caso](images/diagrama_caso.png){#fig-caso width="30%" fig-align="center"}
 :::
 
-[^1]: @calibracion2024 es un workshop similar a este, enfocadao en la performance de modelos de clasificación binaria.
+[^1]: @calibracion2024 es un workshop similar a este, enfocado en la performance de modelos de clasificación binaria.
 
 ------------------------------------------------------------------------
 
@@ -568,7 +568,7 @@ class ColumnCapper(BaseEstimator, TransformerMixin):
         return X_
 ```
 
-@Devarakonda2023 propone un enfoque híbrido para la detección de fraude, combinando modelos supervisados y no supervisados (Issolation Forest). En este caso, se utilizará un score de cuán anómala es la transacción como variable explicativa del fraude. 
+@Devarakonda2023 propone un enfoque híbrido para la detección de fraude, combinando modelos supervisados y no supervisados (Issolation Forest). En este caso, se utilizará un score de cuán anómala es la transacción como variable explicativa del fraude.
 
 ```{python}
 #| echo: true
