@@ -100,7 +100,7 @@ Markdown(f"""
 """)
 ```
 
--   Todo el código se encuentra disponible en {{< fa brands github size=1x >}} <a href="https://github.com/karbartolome/workshops" target="_blank">Repositorio</a>
+-   Todo el código se encuentra disponible en {{< fa brands github size=1x >}} <a href="https://github.com/karbartolome/workshops" target="_blank">Repositorio</a> y en [Google Colab](https://drive.google.com/file/d/1LSxPtN9prP5aHnC_MNc7uWqeZI_mgd5d/view?usp=sharing)
 :::
 
 # Planteo del caso
