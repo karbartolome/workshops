@@ -50,28 +50,43 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from IPython.display import display, Markdown, Latex
+from great_tables import GT, from_column, style, loc
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import FunctionTransformer
 
 from sklearn.ensemble import HistGradientBoostingClassifier
+from catboost import CatBoostClassifier
 from sklearn.inspection import PartialDependenceDisplay
-from sklearn.model_selection import train_test_split
+
+
+import matplotlib
+from IPython.display import display, Markdown, Latex
 
 import sklearn
 ```
 
 ```{python}
 #| label: params
-#| eval: false
-color_verde = "#255255"
-color_verde_claro = "#BDCBCC"
-color_naranja = "#FF9933"
-color_azul = "#3399FF"
-target = "target"
+#| eval: true
+COLOR_GREEN = "#225522"
+COLOR_LIGHTGREEN = "#BDCBCC"
+COLOR_ORANGE = "#FF9933"
+COLOR_BLUE = "#3399FF"
+COLOR_TABLE_HEADER = "#9fa1a9"
+PATH_DATA = "../../data/GiveMeSomeCredit"
+TARGET = 'SeriousDlqin2yrs'
+
+sklearn.set_config(transform_output="pandas")
 ```
 
 ## Consideraciones previas
 
 ::: {style="font-size: 70%;"}
--   Este taller está orientado a `PUBLICO_OBJETIVO`. Se recomienda contar con conocimientos previos de `CONOCIMIENTOS_PREVIOS`.
+
+-  Se recomienda contar con conocimientos previos de modelos de aprendizaje automático y programación (python).
+
+-   Todo el código se encuentra disponible en {{< fa brands github size=1x >}} <a href="https://github.com/karbartolome/workshops" target="_blank">Repositorio</a>
 
 -   Durante el seminario se utilizarán los siguientes paquetes:
 
@@ -79,33 +94,33 @@ target = "target"
 #| echo: false
 #| eval: true
 #| label: libs-versions
-import matplotlib
-from IPython.display import display, Markdown, Latex
 Markdown(f"""
-**Environment**: `{"/".join(sys.executable.split('/')[-5:])}`\n
-**Python version**: `{sys.version}`\n
-📦 pandas={pd.__version__}\n
-📦 numpy={np.__version__}\n
-📦 scikit-learn={sklearn.__version__}\n
-📦 matplotlib={matplotlib.__version__}\n
-📦 seaborn={sns.__version__}\n
+📦&nbsp;&nbsp;`pandas` = {pd.__version__}  
+📦&nbsp;&nbsp;`numpy` = {np.__version__}  
+📦&nbsp;&nbsp;`scikit-learn` = {sklearn.__version__}  
+📦&nbsp;&nbsp;`matplotlib` = {matplotlib.__version__}  
+📦&nbsp;&nbsp;`seaborn` = {sns.__version__}
+
+**Environment**: `{"/".join(sys.executable.split('/')[-5:])}`  
+**Python version**: `{sys.version}`
 """)
 ```
 
--   Todo el código se encuentra disponible en {{< fa brands github size=1x >}} <a href="https://github.com/karbartolome/workshops" target="_blank">Repositorio</a>.
 :::
 
 # Introducción a modelos de Machine Learning
 
-# Modelos
+## Modelos
 
-El desarrollo de modelos predictivos implica encontrar una función de enlace entre N variables explicativas (X) y una variable objetivo (y).
+El desarrollo de modelos predictivos implica encontrar una relación entre N variables explicativas (X) y una variable objetivo (y).
 
 $$y = f(X)$$
 
 Esta relación es una función en modelos simples pero en modelos más complejos (ensambles, redes neuronales, etc.) no es tan claro el efecto de cada variable sobre la variable objetivo. 
 
 ## Actores involucrados
+
+::: {style="font-size: 70%;"}
 
 **Datos → Modelo → Predicción → Decisión → Impacto**
 
@@ -120,28 +135,76 @@ En el ciclo de vida de los modelos predictivos intervienen diversos actores [@mo
 
 → Cada actor puede necesitar una explicación diferente
 
+:::
 
-# Inerpretabilidad de modelos
+
+# Interpretabilidad de modelos
+
+## XAI: Explainable AI
+
+::: {style="font-size: 70%;"}
+
+La **Inteligencia Artificial Explicable (XAI)** reúne métodos y técnicas que permiten describir el comportamiento de un modelo y comunicar por qué produce una predicción determinada [@molnar2025].
+
+Una explicación debería ayudar a una persona a:
+
+- **Entender** qué variables influyen en el modelo y en qué dirección.
+- **Evaluar** si la predicción es razonable y consistente con el conocimiento de dominio.
+- **Detectar** errores, sesgos o comportamientos inesperados.
+- **Auditar** el sistema y justificar una decisión ante otras personas.
+
+:::
+
+## XAI: Explainable AI (Cont.)
+
+::: {style="font-size: 70%;"}
+
+**Dos niveles de explicación**
+
+- **Global**: describe el comportamiento general del modelo, por ejemplo, qué variables son importantes o cómo cambia la predicción en promedio.
+- **Local**: explica una predicción particular, por ejemplo, por qué una persona recibió una determinada estimación de riesgo.
+
+> Una explicación describe el comportamiento del modelo; no necesariamente representa una relación causal del mundo real.
+
+:::
 
 ## Interpretación de modelos de Machine Learning
 
-Existe un *trade off* entre complejidad y performance de modelos.
+Existe un *trade off* entre la interpretabilidad y poder predictivo (*performance*) de los modelos (@fig-interpretability-vs-performance).
 
-![Trade off complejidad vs rendimiento](images/interpretable_ml.jpg){#fig-iml width="30%" fig-align="center"}
+Quienes toman decisiones necesitan entender cómo funciona el modelo para poder confiar en él y tomar decisiones consistentes con su conocimiento de dominio.
 
-Muchos analistas deciden desarrollar modelos simples en vez de modelos de caja negra (*black box*) debido a que no logran convencer a quienes deben accionar para que utilicen modelos que no tienen un funcionamiento claro, incluso sabiendo que modelos más complejos obtienen mejores métricas.  
+```{python}
+#| echo: false
+#| eval: true
+#| label: fig-interpretability-vs-performance
+#| fig-cap: "Trade-off interpretabilidad vs. poder predictivo [@gunning2019darpa]."
+#| fig-align: "center"
+from utils import plot_interpretability_frontier
+models = [
+    "Deep Learning",
+    "Ensambles",
+    "SVM",
+    "KNN",
+    "Árboles de decisión",
+    "Regresión lineal / logística",
+    "Reglas",
+]
 
+plot_interpretability_frontier(models)
+```
 
 ## Explicabilidad de modelos
 
-Las **buenas explicaciones son consistentes con las creencias previas** del usuario del modelo [@molnar2025]. 
+::: {style="font-size: 70%;"}
 
-Al desarrollar modelos supervisados de Machine Learning, se suele contar con conocimiento de dominio (creencias previas). Una forma de incorporar esto en los modelos es mediante el uso de **restricciones monotónicas**. 
+Al desarrollar modelos supervisados de Machine Learning, se suele contar con conocimiento de dominio. Las **buenas explicaciones de modelos deben ser consistentes con las creencias previas** del usuario del modelo [@molnar2025]. Una forma de incorporar esto en los modelos es mediante el uso de **restricciones monotónicas**. 
 
-Ejemplos de conocimiento de dominio:
+> Ejemplos de conocimiento de dominio:
+> - **Predicción de precios de propiedades**: se espera que a mayor cantidad de $m^2$, mayor precio.
+> - **Predicción de riesgo de crédito**: se espera que a mayor edad, menor probabilidad de default.
 
-- Predicción de precios de propiedades: se espera que a mayor cantidad de $m2$, mayor precio
-
+:::
 
 # Restricciones monotónicas
 
@@ -187,53 +250,390 @@ ax.set(title="Ejemplo de monotonicidad decreciente", xlabel="x", ylabel="f(x) = 
 plt.show()
 ```
 
-# Planteo del caso
-
-## Titulo del caso
+## Modelo con restricciones monotónicas
 
 ::: {style="font-size: 70%;"}
+
 ```{python}
 #| echo: true
-#| eval: false
+#| eval: true
+#| code-fold: true
+#| code-summary: "Datos simulados"
+rng = np.random.default_rng(42)
+n_total = 1000
+monto = rng.integers(1000, 30001, size=n_total)
+
+base_prob = 1 / (1 + np.exp(-(monto - 12000) / 3500))
+ondulacion = 0.05 * np.sin(monto / 1800)
+ruido = rng.normal(0, 0.1, size=n_total)
+
+prob_default = np.clip(base_prob + ondulacion + ruido, 0.01, 0.99)
+target = rng.binomial(1, prob_default, size=n_total)
+
+df_full = pd.DataFrame({"monto": monto, "target": target})
+df = df_full.sample(n=100, random_state=42).sort_values("monto").reset_index(drop=True)
+
+X = df[["monto"]]
+y = df["target"]
+```
+
+Se utilizan datos simulados para ilustrar el efecto de imponer restricciones monotónicas en un modelo de clasificación binaria. El dataset contiene `{python} n_total` observaciones con la variable `monto` y la variable objetivo `target` (1 si hubo *default*, 0 en caso contrario).
+
+```{python}
+#| echo: false
+#| code-fold: false
+#| tbl-cap: "Datos simulados (muestra de 4 observaciones)"
+#| label: tbl-fraud-data
+def map_color(data):
+    return (data["target"] == 0).map(
+        {True: COLOR_LIGHTGREEN, False: 'white'}
+    )
+
+(
+GT(df.sample(4, random_state=42).round(2)
+        .set_index("target")
+        .reset_index()
+    )
+    .fmt_currency(columns="monto")
+    .tab_style(
+        style=style.fill(color=map_color), locations=loc.body(columns=df.columns.tolist()),
+    )
+    .tab_style(
+        style=style.text(color=COLOR_ORANGE, weight = "bold"), locations=loc.body("target"),
+    )
+    .tab_options(
+        column_labels_background_color=COLOR_TABLE_HEADER,
+        table_font_names="Times New Roman"
+    )
+)
+```
+
+Se espera que la probabilidad de *default* aumente ante un mayor monto del crédito otorgado. Se ajusta un modelo de clasificación binaria con y sin restricción sobre la variable `monto`.
+
+```{python}
+#| echo: true
+#| eval: true
+#| code-fold: true
+#| label: example-fit
+#| code-summary: "Modelos con y sin restricción monotónica"
+
+# Modelo sin represtricción monotónica
+modelo_sin_restriccion = HistGradientBoostingClassifier(
+    max_depth=4, max_iter=100, learning_rate=0.1, random_state=42
+)
+modelo_sin_restriccion.fit(X, y)
+
+# Con restricción monotónica creciente sobre la variable `monto` (índice 0)
+modelo_con_restriccion = HistGradientBoostingClassifier(
+    max_depth=4,
+    max_iter=100,
+    learning_rate=0.1,
+    monotonic_cst={"monto": 1},
+    random_state=42,
+)
+modelo_con_restriccion.fit(X, y)
+```
+
+:::
+
+## Modelo con restricciones monotónicas (Cont.)
+
+::: {style="font-size: 70%;"}
+
+En la @fig-example-1 se observan los datos simulados. En la @fig-example-2 se comparan las predicciones de los modelos con y sin restricción monotónica creciente sobre la variable `monto`.
+
+```{python}
+#| label: fig-example
+#| fig-height: 2
+#| fig-width: 8
+#| fig-align: "center"
+#| fig-cap: "Comparación de modelos con y sin restricción monotónica"
+#| fig-subcap:
+#|   - "Datos simulados"
+#|   - "Probabilidad estimada de default"
+#| layout-ncol: 2
+grid_monto = np.arange(df["monto"].min(), df["monto"].max() + 1)
+X_grid = pd.DataFrame({"monto": grid_monto})
+
+pred_sin_restriccion = modelo_sin_restriccion.predict_proba(X_grid)[:, 1]
+pred_con_restriccion = modelo_con_restriccion.predict_proba(X_grid)[:, 1]
+
+obs = (
+    df.assign(monto_bin=pd.cut(df["monto"], bins=8))
+    .groupby("monto_bin", observed=False)
+    .agg(monto_medio=("monto", "mean"), default_medio=("target", "mean"))
+    .dropna()
+)
+
+fig, ax = plt.subplots(figsize=(6, 3))
+ax.scatter(df["monto"], df["target"], alpha=0.45, s=35)
+ax.plot(
+    obs["monto_medio"],
+    obs["default_medio"],
+    marker="o",
+    linewidth=2,
+    color="black",
+)
+ax.set(
+    xlabel="Monto",
+    ylabel="Target (default)",
+)
+plt.show()
+
+
+fig, ax = plt.subplots(figsize=(6, 3))
+ax.plot(
+    grid_monto,
+    pred_sin_restriccion,
+    linewidth=2,
+    label="Sin restricción",
+)
+ax.plot(
+    grid_monto,
+    pred_con_restriccion,
+    linewidth=2,
+    label="Monotónica creciente",
+)
+ax.set(
+    xlabel="Monto",
+    ylabel="P(target = 1)",
+)
+ax.legend()
+plt.show()
+```
+
+- Modelo sin restricción: la probabilidad de *default* disminuye para ciertos rangos de `monto` (contraintuitivo).
+- Modelo con restricción: respeta la relación esperada entre `monto` y la probabilidad de *default*.
+
+:::
+
+# Caso: scoring crediticio
+
+## Datos
+
+*GiveMeSomeCredit* es un dataset de scoring crediticio con información financiera y demográfica de individuos. El objetivo es modelar el riesgo de incumplimiento (*default*) a partir de esas características.
+
+::: {style="font-size: 70%;"}
+
+```{python}
+#| echo: true
+#| eval: true
 #| code-fold: true
 #| code-summary: "Lectura de datos"
 #| label: data
+df = pd.read_csv(f"{PATH_DATA}/cs-training.csv").drop("Unnamed: 0", axis=1)
 
-df = pd.read_csv("data/dataset.csv")
+
+FEATURES = ["age", "DebtRatio"]
+
+X = df[FEATURES]
+y = df[TARGET]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y
+)
+
+N_OBSERVACIONES = df.shape[0]
+N_VARIABLES = df.shape[1]
+PERC_DEFAULT = y.mean()
+
+N_TRAIN = X_train.shape[0]
+N_TEST = X_test.shape[0]
 ```
 
-Se cuenta con un dataset de `N_OBSERVACIONES` observaciones y `N_VARIABLES` variables.
+Se cuenta con un dataset de `{python} N_OBSERVACIONES` observaciones y `{python} N_VARIABLES` variables, con `{python} N_TRAIN` observaciones en el dataset de entrenamiento y `{python} N_TEST` en el dataset de evaluación.
 
-> Pregunta guía del taller.
+> - ¿Cuál es la probabilidad de *default* de un individuo dadas ciertas características?
+> - ¿Cómo cambia esa probabilidad para un individuo si aumenta una variable, manteniendo el resto de las variables constantes?
+
 :::
 
-------------------------------------------------------------------------
-
-# Contenido
-
-## Primera sección
+## Análisis exploratorio de datos
 
 ::: {style="font-size: 75%;"}
--   Idea principal.
--   Concepto clave.
--   Ejemplo o resultado.
+
+```{python}
+#| echo: false
+#| eval: true
+#| label: fig-credit-eda
+#| fig-cap: "Distribución del riesgo de incumplimiento y de DebtRatio"
+fig, ax = plt.subplots(1, 2, figsize=(10, 3))
+
+df[TARGET].value_counts().sort_index().plot.bar(
+    ax=ax[0], color=[COLOR_LIGHTGREEN, COLOR_ORANGE]
+)
+ax[0].set(
+    title="Incumplimiento a dos años",
+    xlabel="SeriousDlqin2yrs",
+    ylabel="Cantidad",
+    xticklabels=["No", "Sí"],
+)
+
+sns.kdeplot(
+    data=df.sample(min(10000, len(df)), random_state=42),
+    x="DebtRatio",
+    hue=TARGET,
+    common_norm=False,
+    ax=ax[1],
+)
+ax[1].set(
+    title="Distribución de DebtRatio",
+    xlabel="DebtRatio",
+    ylabel="Densidad",
+    xlim=(0, 1),
+)
+plt.tight_layout()
+plt.show()
+```
+
+La variable `DebtRatio` mide la relación entre deuda e ingreso mensual. Para el modelo se acota al intervalo $[0, 1]$, evitando que valores extremos dominen la visualización.
+
 :::
 
-## Segunda sección
+## Modelo 
 
-::: {style="font-size: 75%;"}
-Texto, código o figura.
-:::
+Se seleccionan `Age` y `DebtRatio` para enfocar el análisis en relaciones que puedan expresarse como conocimiento de dominio.
 
-# Comentarios finales
+```{python}
+#| echo: true
+#| eval: true
+#| code-fold: true
+#| code-summary: "Preprocesamiento y ajuste"
+def clip_debt_ratio(data):
+    data = data.copy()
+    data["DebtRatio"] = data["DebtRatio"].clip(0, 1)
+    return data
 
-## Comentarios finales
+debt_ratio_preprocessor = FunctionTransformer(
+    clip_debt_ratio,
+    feature_names_out="one-to-one",
+)
 
-::: {style="font-size: 75%;"}
--   Mensaje principal.
--   Recomendación práctica.
--   Próximo paso.
-:::
+X_train = debt_ratio_preprocessor.fit_transform(X_train)
+X_test = debt_ratio_preprocessor.transform(X_test)
+
+modelo_sin_restriccion_credito = CatBoostClassifier(
+    iterations=100,
+    depth=8,
+    verbose=0,
+    random_seed=42,
+)
+modelo_sin_restriccion_credito.fit(X_train, y_train)
+```
+
+El primer modelo no incorpora restricciones. Su flexibilidad permite capturar relaciones complejas, pero también puede producir cambios contraintuitivos en regiones con pocos datos.
+
+## Modelo (Cont.)
+
+### Dependencia parcial
+
+La dependencia parcial muestra cómo cambia, en promedio, la predicción cuando se modifica una variable y se mantienen las demás distribuciones observadas.
+
+```{python}
+#| echo: false
+#| eval: true
+#| label: fig-credit-pdp-unconstrained
+#| fig-cap: "Dependencia parcial de DebtRatio para el modelo sin restricción"
+fig, ax = plt.subplots(figsize=(8, 3))
+PartialDependenceDisplay.from_estimator(
+    modelo_sin_restriccion_credito,
+    X_train,
+    features=["DebtRatio"],
+    ax=ax,
+)
+ax.set_title("Modelo sin restricción")
+plt.tight_layout()
+plt.show()
+```
+
+## Modelo con restricciones monotónicas
+
+Se espera que un mayor endeudamiento no reduzca el riesgo de incumplimiento. Por eso se impone una restricción monotónica creciente sobre `DebtRatio`.
+
+```{python}
+#| echo: true
+#| eval: true
+#| code-fold: true
+#| code-summary: "Ajuste con restricción monotónica"
+restricciones = {"DebtRatio": 1}
+
+modelo_con_restriccion_credito = CatBoostClassifier(
+    iterations=100,
+    depth=8,
+    monotone_constraints=restricciones,
+    verbose=0,
+    random_seed=42,
+)
+modelo_con_restriccion_credito.fit(X_train, y_train)
+```
+
+La restricción no obliga a que todos los individuos tengan el mismo riesgo. Obliga a que, manteniendo las demás variables constantes, el riesgo estimado no disminuya cuando aumenta `DebtRatio`.
+
+## Comparación de modelos
+
+```{python}
+#| echo: false
+#| eval: true
+#| label: fig-credit-pdp-comparison
+#| fig-cap: "Dependencia parcial de DebtRatio con y sin restricción monotónica"
+fig, ax = plt.subplots(1, 2, figsize=(10, 3))
+
+PartialDependenceDisplay.from_estimator(
+    modelo_sin_restriccion_credito,
+    X_train,
+    features=["DebtRatio"],
+    ax=ax[0],
+)
+ax[0].set_title("Sin restricción")
+
+PartialDependenceDisplay.from_estimator(
+    modelo_con_restriccion_credito,
+    X_train,
+    features=["DebtRatio"],
+    ax=ax[1],
+)
+ax[1].set_title("Con restricción creciente")
+
+plt.tight_layout()
+plt.show()
+```
+
+Para observar el efecto en una decisión concreta, se simula una persona de 30 años y se aumenta su `DebtRatio` de 0.75 a 0.85.
+
+```{python}
+#| echo: false
+#| eval: true
+persona = pd.DataFrame({"age": [30], "DebtRatio": [0.75]})
+persona_mayor_deuda = persona.assign(DebtRatio=0.85)
+
+comparacion = pd.DataFrame(
+    {
+        "Modelo": ["Sin restricción", "Con restricción"],
+        "P(default), DebtRatio = 0.75": [
+            modelo_sin_restriccion_credito.predict_proba(persona)[:, 1][0],
+            modelo_con_restriccion_credito.predict_proba(persona)[:, 1][0],
+        ],
+        "P(default), DebtRatio = 0.85": [
+            modelo_sin_restriccion_credito.predict_proba(persona_mayor_deuda)[:, 1][0],
+            modelo_con_restriccion_credito.predict_proba(persona_mayor_deuda)[:, 1][0],
+        ],
+    }
+)
+comparacion["Cambio"] = (
+    comparacion["P(default), DebtRatio = 0.85"]
+    - comparacion["P(default), DebtRatio = 0.75"]
+)
+comparacion.style.format(
+    {
+        "P(default), DebtRatio = 0.75": "{:.1%}",
+        "P(default), DebtRatio = 0.85": "{:.1%}",
+        "Cambio": "{:+.1%}",
+    }
+)
+```
+
+El modelo restringido mantiene el sentido esperado del cambio: un aumento en `DebtRatio` no puede producir una reducción de la probabilidad estimada de incumplimiento.
+
 
 ## Referencias / Recursos
 
