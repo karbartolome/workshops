@@ -9,9 +9,9 @@ nocite: |
 format: pptx
 jupyter: 
   kernelspec:
-    name: "quarto-env"
+    name: "ds_model_1_0"
     language: "python"
-    display_name: "quarto-env"
+    display_name: "Python (ds_model_1_0)"
 execute:
   echo: false
   warning: false
@@ -260,7 +260,7 @@ for i in models_dict.keys():
         preds['y_true'], preds['y_pred'], preds['y_pred_prob'], 
         name=i
     ).reset_index().rename({'index':'Modelo'},axis=1)
-    metrics_df = pd.concat([metrics_df, m], axis=0)
+    metrics_df = pd.concat([metrics_df, m], axis=0, ignore_index=True)
 ```
 
 ```{python}
@@ -613,17 +613,18 @@ for i in models_dict.keys():
         preds['y_obs'], preds['pred_class_sigmoid'], preds['pred_sigmoid'], 
         name=i
     ).reset_index().rename({'index':'Modelo'},axis=1)
-    metrics_df_sigmoid = pd.concat([metrics_df_sigmoid, m], axis=0)
+    metrics_df_sigmoid = pd.concat([metrics_df_sigmoid, m], axis=0, ignore_index=True)
 
     m = calculate_clf_metrics(
         preds['y_obs'], preds['pred_class_sigmoid'], preds['pred_isotonic'], 
         name=i
     ).reset_index().rename({'index':'Modelo'},axis=1)
-    metrics_df_isotonic = pd.concat([metrics_df_isotonic, m], axis=0)
+    metrics_df_isotonic = pd.concat([metrics_df_isotonic, m], axis=0, ignore_index=True)
 ```
 
 ::: {.nav-pills}
 ::: {.panel-tabset}
+
 ```{python}
 # | output: asis
 metrics_dfs = {
