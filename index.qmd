@@ -79,8 +79,8 @@ format:
   font-size: 0.75rem;
   padding: 2px 9px;
   border-radius: 999px;
-  background: #107895;
-  color: #fff;
+  background: var(--tag-bg, #107895);
+  color: var(--tag-fg, #fff);
 }
 .filter-bar {
   display: flex;
@@ -109,17 +109,17 @@ format:
   font-size: 0.8rem;
   padding: 4px 12px;
   border-radius: 999px;
-  border: 1px solid #107895;
+  border: 1px solid var(--tag-bg, #107895);
   background: #fff;
-  color: #107895;
+  color: var(--tag-bg, #107895);
   cursor: pointer;
 }
 .tag-filter:hover {
-  background: #e6f3f6;
+  background: rgba(17, 24, 39, 0.04);
 }
 .tag-filter.active {
-  background: #107895;
-  color: #fff;
+  background: var(--tag-bg, #107895);
+  color: var(--tag-fg, #fff);
 }
 .clear-filters {
   font-size: 0.8rem;
@@ -141,44 +141,44 @@ format:
 
 <div class="filter-bar">
   <input type="text" id="tag-search" placeholder="Buscar tags..." />
-  <div class="tag-filter-list" id="tag-filter-list"><button class="tag-filter" data-tag="calibración">calibración</button><button class="tag-filter" data-tag="clasificación">clasificación</button><button class="tag-filter" data-tag="modelos">modelos</button><button class="tag-filter" data-tag="pipelines">pipelines</button><button class="tag-filter" data-tag="preprocesamiento">preprocesamiento</button><button class="tag-filter" data-tag="probabilidades">probabilidades</button><button class="tag-filter" data-tag="restricciones monotónicas">restricciones monotónicas</button><button class="tag-filter" data-tag="xai">xai</button></div>
+  <div class="tag-filter-list" id="tag-filter-list"><button class="tag-filter tag-filter-evaluation" data-tag="calibration" style="--tag-bg: #f4a261; --tag-fg: #fff;">Calibration</button><button class="tag-filter tag-filter-general" data-tag="classification" style="--tag-bg: #107895; --tag-fg: #fff;">Classification</button><button class="tag-filter tag-filter-explainable_ai" data-tag="explainable ai" style="--tag-bg: #d62828; --tag-fg: #fff;">Explainable AI</button><button class="tag-filter tag-filter-modelling" data-tag="gradient boosting" style="--tag-bg: #107895; --tag-fg: #fff;">Gradient Boosting</button><button class="tag-filter tag-filter-general" data-tag="model" style="--tag-bg: #107895; --tag-fg: #fff;">Model</button><button class="tag-filter tag-filter-general" data-tag="models" style="--tag-bg: #107895; --tag-fg: #fff;">Models</button><button class="tag-filter tag-filter-modelling" data-tag="monotonic constraints" style="--tag-bg: #107895; --tag-fg: #fff;">Monotonic constraints</button><button class="tag-filter tag-filter-general" data-tag="pipeline" style="--tag-bg: #107895; --tag-fg: #fff;">Pipeline</button><button class="tag-filter tag-filter-general" data-tag="preprocessing" style="--tag-bg: #107895; --tag-fg: #fff;">Preprocessing</button><button class="tag-filter tag-filter-general" data-tag="probability" style="--tag-bg: #107895; --tag-fg: #fff;">Probability</button></div>
   <button class="clear-filters" id="clear-filters">Limpiar filtros</button>
 </div>
 <div class="grid">
 
-<a class="card" href="20260903-uba-monotonicconstraints/slides/slides.html" target="_blank" rel="noopener" data-tags="modelos|clasificación|restricciones monotónicas|xai">
+<a class="card" href="slides/20260903-uba-monotonicconstraints/slides/slides.html" target="_blank" rel="noopener" data-tags="models|classification|monotonic constraints|gradient boosting|explainable ai">
   <div class="thumb-wrapper">
-    <iframe class="thumb-iframe" src="20260903-uba-monotonicconstraints/slides/slides.html" scrolling="no" tabindex="-1"></iframe>
+    <iframe class="thumb-iframe" src="slides/20260903-uba-monotonicconstraints/slides/slides.html" scrolling="no" tabindex="-1"></iframe>
   </div>
   <div class="card-body">
-    <h3>20260903-uba-monotonicconstraints</h3>
+    <h3>Restricciones monotónicas en modelos de clasificación</h3>
     <p class="date">2026-09-03</p>
     <p class="desc"></p>
-    <div class="tags"><span class="tag">modelos</span><span class="tag">clasificación</span><span class="tag">restricciones monotónicas</span><span class="tag">xai</span></div>
+    <div class="tags"><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Models</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Classification</span><span class="tag tag-modelling" style="--tag-bg: #107895; --tag-fg: #fff;">Monotonic constraints</span><span class="tag tag-modelling" style="--tag-bg: #107895; --tag-fg: #fff;">Gradient Boosting</span><span class="tag tag-explainable_ai" style="--tag-bg: #d62828; --tag-fg: #fff;">Explainable AI</span></div>
   </div>
 </a>
 
-<a class="card" href="20250905-uba-pipelines/slides.html" target="_blank" rel="noopener" data-tags="pipelines|modelos|preprocesamiento|clasificación">
+<a class="card" href="slides/20250905-uba-pipelines/slides.html" target="_blank" rel="noopener" data-tags="pipeline|model|preprocessing|classification">
   <div class="thumb-wrapper">
-    <iframe class="thumb-iframe" src="20250905-uba-pipelines/slides.html" scrolling="no" tabindex="-1"></iframe>
+    <iframe class="thumb-iframe" src="slides/20250905-uba-pipelines/slides.html" scrolling="no" tabindex="-1"></iframe>
   </div>
   <div class="card-body">
     <h3>Del dato al modelo</h3>
     <p class="date">2025-09-05</p>
     <p class="desc"></p>
-    <div class="tags"><span class="tag">pipelines</span><span class="tag">modelos</span><span class="tag">preprocesamiento</span><span class="tag">clasificación</span></div>
+    <div class="tags"><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Pipeline</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Model</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Preprocessing</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Classification</span></div>
   </div>
 </a>
 
-<a class="card" href="20240513-uba-calibracion/slides.html" target="_blank" rel="noopener" data-tags="calibración|probabilidades|clasificación|modelos">
+<a class="card" href="slides/20240513-uba-calibracion/slides.html" target="_blank" rel="noopener" data-tags="calibration|probability|classification">
   <div class="thumb-wrapper">
-    <iframe class="thumb-iframe" src="20240513-uba-calibracion/slides.html" scrolling="no" tabindex="-1"></iframe>
+    <iframe class="thumb-iframe" src="slides/20240513-uba-calibracion/slides.html" scrolling="no" tabindex="-1"></iframe>
   </div>
   <div class="card-body">
-    <h3>Calibración de probabilidades (extendida)</h3>
+    <h3>Calibración de probabilidades</h3>
     <p class="date">2024-05-13</p>
     <p class="desc"></p>
-    <div class="tags"><span class="tag">calibración</span><span class="tag">probabilidades</span><span class="tag">clasificación</span><span class="tag">modelos</span></div>
+    <div class="tags"><span class="tag tag-evaluation" style="--tag-bg: #f4a261; --tag-fg: #fff;">Calibration</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Probability</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Classification</span></div>
   </div>
 </a>
 </div>

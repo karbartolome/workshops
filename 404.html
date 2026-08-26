@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><script>
+(() => {
+  const legacy = {"20240513-uba-calibracion": "slides.html", "20240910-uba-calibracion": "slides_short.html", "20250905-uba-pipelines": "slides.html"};
+  const path = window.location.pathname;
+  for (const [slug, file] of Object.entries(legacy)) {
+    const idx = path.indexOf("/" + slug);
+    if (idx !== -1) {
+      const prefix = path.slice(0, idx);
+      const target = `${prefix}/slides/${slug}/${file}`;
+      window.location.replace(target + window.location.search + window.location.hash);
+      break;
+    }
+  }
+})();
+</script></head><body></body></html>

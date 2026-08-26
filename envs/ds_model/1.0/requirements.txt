@@ -3,6 +3,7 @@ numpy==1.26.4
 pandas==2.2.3
 scipy==1.13.1
 pyarrow==16.1.0
+rich==15.0.0
 
 # --- Machine Learning & Modeling ---
 scikit-learn==1.5.2
@@ -26,3 +27,9 @@ tqdm==4.66.5
 
 # --- Kaggle datasets ---
 kagglehub==1.0.2
+
+
+
+
+
+

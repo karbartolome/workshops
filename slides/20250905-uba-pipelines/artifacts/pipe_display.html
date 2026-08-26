@@ -1,0 +1,533 @@
+<style>#sk-container-id-6 {
+  /* Definition of color scheme common for light and dark mode */
+  --sklearn-color-text: black;
+  --sklearn-color-line: gray;
+  /* Definition of color scheme for unfitted estimators */
+  --sklearn-color-unfitted-level-0: #fff5e6;
+  --sklearn-color-unfitted-level-1: #f6e4d2;
+  --sklearn-color-unfitted-level-2: #ffe0b3;
+  --sklearn-color-unfitted-level-3: chocolate;
+  /* Definition of color scheme for fitted estimators */
+  --sklearn-color-fitted-level-0: #f0f8ff;
+  --sklearn-color-fitted-level-1: #d4ebff;
+  --sklearn-color-fitted-level-2: #b3dbfd;
+  --sklearn-color-fitted-level-3: cornflowerblue;
+
+  /* Specific color for light theme */
+  --sklearn-color-text-on-default-background: var(--sg-text-color, var(--theme-code-foreground, var(--jp-content-font-color1, black)));
+  --sklearn-color-background: var(--sg-background-color, var(--theme-background, var(--jp-layout-color0, white)));
+  --sklearn-color-border-box: var(--sg-text-color, var(--theme-code-foreground, var(--jp-content-font-color1, black)));
+  --sklearn-color-icon: #696969;
+
+  @media (prefers-color-scheme: dark) {
+    /* Redefinition of color scheme for dark theme */
+    --sklearn-color-text-on-default-background: var(--sg-text-color, var(--theme-code-foreground, var(--jp-content-font-color1, white)));
+    --sklearn-color-background: var(--sg-background-color, var(--theme-background, var(--jp-layout-color0, #111)));
+    --sklearn-color-border-box: var(--sg-text-color, var(--theme-code-foreground, var(--jp-content-font-color1, white)));
+    --sklearn-color-icon: #878787;
+  }
+}
+
+#sk-container-id-6 {
+  color: var(--sklearn-color-text);
+}
+
+#sk-container-id-6 pre {
+  padding: 0;
+}
+
+#sk-container-id-6 input.sk-hidden--visually {
+  border: 0;
+  clip: rect(1px 1px 1px 1px);
+  clip: rect(1px, 1px, 1px, 1px);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+#sk-container-id-6 div.sk-dashed-wrapped {
+  border: 1px dashed var(--sklearn-color-line);
+  margin: 0 0.4em 0.5em 0.4em;
+  box-sizing: border-box;
+  padding-bottom: 0.4em;
+  background-color: var(--sklearn-color-background);
+}
+
+#sk-container-id-6 div.sk-container {
+  /* jupyter's `normalize.less` sets `[hidden] { display: none; }`
+     but bootstrap.min.css set `[hidden] { display: none !important; }`
+     so we also need the `!important` here to be able to override the
+     default hidden behavior on the sphinx rendered scikit-learn.org.
+     See: https://github.com/scikit-learn/scikit-learn/issues/21755 */
+  display: inline-block !important;
+  position: relative;
+}
+
+#sk-container-id-6 div.sk-text-repr-fallback {
+  display: none;
+}
+
+div.sk-parallel-item,
+div.sk-serial,
+div.sk-item {
+  /* draw centered vertical line to link estimators */
+  background-image: linear-gradient(var(--sklearn-color-text-on-default-background), var(--sklearn-color-text-on-default-background));
+  background-size: 2px 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+/* Parallel-specific style estimator block */
+
+#sk-container-id-6 div.sk-parallel-item::after {
+  content: "";
+  width: 100%;
+  border-bottom: 2px solid var(--sklearn-color-text-on-default-background);
+  flex-grow: 1;
+}
+
+#sk-container-id-6 div.sk-parallel {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background-color: var(--sklearn-color-background);
+  position: relative;
+}
+
+#sk-container-id-6 div.sk-parallel-item {
+  display: flex;
+  flex-direction: column;
+}
+
+#sk-container-id-6 div.sk-parallel-item:first-child::after {
+  align-self: flex-end;
+  width: 50%;
+}
+
+#sk-container-id-6 div.sk-parallel-item:last-child::after {
+  align-self: flex-start;
+  width: 50%;
+}
+
+#sk-container-id-6 div.sk-parallel-item:only-child::after {
+  width: 0;
+}
+
+/* Serial-specific style estimator block */
+
+#sk-container-id-6 div.sk-serial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--sklearn-color-background);
+  padding-right: 1em;
+  padding-left: 1em;
+}
+
+
+/* Toggleable style: style used for estimator/Pipeline/ColumnTransformer box that is
+clickable and can be expanded/collapsed.
+- Pipeline and ColumnTransformer use this feature and define the default style
+- Estimators will overwrite some part of the style using the `sk-estimator` class
+*/
+
+/* Pipeline and ColumnTransformer style (default) */
+
+#sk-container-id-6 div.sk-toggleable {
+  /* Default theme specific background. It is overwritten whether we have a
+  specific estimator or a Pipeline/ColumnTransformer */
+  background-color: var(--sklearn-color-background);
+}
+
+/* Toggleable label */
+#sk-container-id-6 label.sk-toggleable__label {
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  margin-bottom: 0;
+  padding: 0.5em;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+#sk-container-id-6 label.sk-toggleable__label-arrow:before {
+  /* Arrow on the left of the label */
+  content: "▸";
+  float: left;
+  margin-right: 0.25em;
+  color: var(--sklearn-color-icon);
+}
+
+#sk-container-id-6 label.sk-toggleable__label-arrow:hover:before {
+  color: var(--sklearn-color-text);
+}
+
+/* Toggleable content - dropdown */
+
+#sk-container-id-6 div.sk-toggleable__content {
+  max-height: 0;
+  max-width: 0;
+  overflow: hidden;
+  text-align: left;
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+#sk-container-id-6 div.sk-toggleable__content.fitted {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+#sk-container-id-6 div.sk-toggleable__content pre {
+  margin: 0.2em;
+  border-radius: 0.25em;
+  color: var(--sklearn-color-text);
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+#sk-container-id-6 div.sk-toggleable__content.fitted pre {
+  /* unfitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+#sk-container-id-6 input.sk-toggleable__control:checked~div.sk-toggleable__content {
+  /* Expand drop-down */
+  max-height: 200px;
+  max-width: 100%;
+  overflow: auto;
+}
+
+#sk-container-id-6 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {
+  content: "▾";
+}
+
+/* Pipeline/ColumnTransformer-specific style */
+
+#sk-container-id-6 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+#sk-container-id-6 div.sk-label.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Estimator-specific style */
+
+/* Colorize estimator box */
+#sk-container-id-6 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+#sk-container-id-6 div.sk-estimator.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+#sk-container-id-6 div.sk-label label.sk-toggleable__label,
+#sk-container-id-6 div.sk-label label {
+  /* The background is the default theme color */
+  color: var(--sklearn-color-text-on-default-background);
+}
+
+/* On hover, darken the color of the background */
+#sk-container-id-6 div.sk-label:hover label.sk-toggleable__label {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+/* Label box, darken color on hover, fitted */
+#sk-container-id-6 div.sk-label.fitted:hover label.sk-toggleable__label.fitted {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Estimator label */
+
+#sk-container-id-6 div.sk-label label {
+  font-family: monospace;
+  font-weight: bold;
+  display: inline-block;
+  line-height: 1.2em;
+}
+
+#sk-container-id-6 div.sk-label-container {
+  text-align: center;
+}
+
+/* Estimator-specific */
+#sk-container-id-6 div.sk-estimator {
+  font-family: monospace;
+  border: 1px dotted var(--sklearn-color-border-box);
+  border-radius: 0.25em;
+  box-sizing: border-box;
+  margin-bottom: 0.5em;
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+#sk-container-id-6 div.sk-estimator.fitted {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+/* on hover */
+#sk-container-id-6 div.sk-estimator:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+#sk-container-id-6 div.sk-estimator.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Specification for estimator info (e.g. "i" and "?") */
+
+/* Common style for "i" and "?" */
+
+.sk-estimator-doc-link,
+a:link.sk-estimator-doc-link,
+a:visited.sk-estimator-doc-link {
+  float: right;
+  font-size: smaller;
+  line-height: 1em;
+  font-family: monospace;
+  background-color: var(--sklearn-color-background);
+  border-radius: 1em;
+  height: 1em;
+  width: 1em;
+  text-decoration: none !important;
+  margin-left: 1ex;
+  /* unfitted */
+  border: var(--sklearn-color-unfitted-level-1) 1pt solid;
+  color: var(--sklearn-color-unfitted-level-1);
+}
+
+.sk-estimator-doc-link.fitted,
+a:link.sk-estimator-doc-link.fitted,
+a:visited.sk-estimator-doc-link.fitted {
+  /* fitted */
+  border: var(--sklearn-color-fitted-level-1) 1pt solid;
+  color: var(--sklearn-color-fitted-level-1);
+}
+
+/* On hover */
+div.sk-estimator:hover .sk-estimator-doc-link:hover,
+.sk-estimator-doc-link:hover,
+div.sk-label-container:hover .sk-estimator-doc-link:hover,
+.sk-estimator-doc-link:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-3);
+  color: var(--sklearn-color-background);
+  text-decoration: none;
+}
+
+div.sk-estimator.fitted:hover .sk-estimator-doc-link.fitted:hover,
+.sk-estimator-doc-link.fitted:hover,
+div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
+.sk-estimator-doc-link.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-3);
+  color: var(--sklearn-color-background);
+  text-decoration: none;
+}
+
+/* Span, style for the box shown on hovering the info icon */
+.sk-estimator-doc-link span {
+  display: none;
+  z-index: 9999;
+  position: relative;
+  font-weight: normal;
+  right: .2ex;
+  padding: .5ex;
+  margin: .5ex;
+  width: min-content;
+  min-width: 20ex;
+  max-width: 50ex;
+  color: var(--sklearn-color-text);
+  box-shadow: 2pt 2pt 4pt #999;
+  /* unfitted */
+  background: var(--sklearn-color-unfitted-level-0);
+  border: .5pt solid var(--sklearn-color-unfitted-level-3);
+}
+
+.sk-estimator-doc-link.fitted span {
+  /* fitted */
+  background: var(--sklearn-color-fitted-level-0);
+  border: var(--sklearn-color-fitted-level-3);
+}
+
+.sk-estimator-doc-link:hover span {
+  display: block;
+}
+
+/* "?"-specific style due to the `<a>` HTML tag */
+
+#sk-container-id-6 a.estimator_doc_link {
+  float: right;
+  font-size: 1rem;
+  line-height: 1em;
+  font-family: monospace;
+  background-color: var(--sklearn-color-background);
+  border-radius: 1rem;
+  height: 1rem;
+  width: 1rem;
+  text-decoration: none;
+  /* unfitted */
+  color: var(--sklearn-color-unfitted-level-1);
+  border: var(--sklearn-color-unfitted-level-1) 1pt solid;
+}
+
+#sk-container-id-6 a.estimator_doc_link.fitted {
+  /* fitted */
+  border: var(--sklearn-color-fitted-level-1) 1pt solid;
+  color: var(--sklearn-color-fitted-level-1);
+}
+
+/* On hover */
+#sk-container-id-6 a.estimator_doc_link:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-3);
+  color: var(--sklearn-color-background);
+  text-decoration: none;
+}
+
+#sk-container-id-6 a.estimator_doc_link.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-3);
+}
+</style><div id="sk-container-id-6" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>Pipeline(steps=[(&#x27;preproc&#x27;,
+                 Pipeline(steps=[(&#x27;data_cleaning&#x27;, TransformacionesIniciales()),
+                                 (&#x27;feature_eng&#x27;,
+                                  ColumnTransformer(transformers=[(&#x27;cat&#x27;,
+                                                                   Pipeline(steps=[(&#x27;rare_labels&#x27;,
+                                                                                    RareCategoryGrouper(min_freq=0.01)),
+                                                                                   (&#x27;imputar_nulos&#x27;,
+                                                                                    SimpleImputer(strategy=&#x27;most_frequent&#x27;)),
+                                                                                   (&#x27;mean_encoder&#x27;,
+                                                                                    MeanEncoder())]),
+                                                                   &lt;sklearn.compose._column_transformer.make_column_...
+                                                                                                 &#x27;category&#x27;,
+                                                                                                 &#x27;job&#x27;,
+                                                                                                 &#x27;trans_date__partofday&#x27;,
+                                                                                                 &#x27;amt&#x27;,
+                                                                                                 &#x27;city_pop&#x27;,
+                                                                                                 &#x27;lat&#x27;,
+                                                                                                 &#x27;long&#x27;,
+                                                                                                 &#x27;merch_lat&#x27;,
+                                                                                                 &#x27;merch_long&#x27;,
+                                                                                                 &#x27;age&#x27;,
+                                                                                                 &#x27;trans_date__year&#x27;,
+                                                                                                 &#x27;trans_date__month&#x27;,
+                                                                                                 &#x27;trans_date__day&#x27;,
+                                                                                                 &#x27;trans_date__dow&#x27;,
+                                                                                                 &#x27;trans_date__hour&#x27;,
+                                                                                                 &#x27;distance_to_merch&#x27;])),
+                                                                 (&#x27;anomaly&#x27;,
+                                                                  IsolationForestTransformer())]))],
+                          verbose=True)),
+                (&#x27;model&#x27;,
+                 &lt;catboost.core.CatBoostClassifier object at 0x15090f6e0&gt;)],
+         verbose=True)</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-65" type="checkbox" ><label for="sk-estimator-id-65" class="sk-toggleable__label  sk-toggleable__label-arrow ">&nbsp;&nbsp;Pipeline<a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.5/modules/generated/sklearn.pipeline.Pipeline.html">?<span>Documentation for Pipeline</span></a><span class="sk-estimator-doc-link ">i<span>Not fitted</span></span></label><div class="sk-toggleable__content "><pre>Pipeline(steps=[(&#x27;preproc&#x27;,
+                 Pipeline(steps=[(&#x27;data_cleaning&#x27;, TransformacionesIniciales()),
+                                 (&#x27;feature_eng&#x27;,
+                                  ColumnTransformer(transformers=[(&#x27;cat&#x27;,
+                                                                   Pipeline(steps=[(&#x27;rare_labels&#x27;,
+                                                                                    RareCategoryGrouper(min_freq=0.01)),
+                                                                                   (&#x27;imputar_nulos&#x27;,
+                                                                                    SimpleImputer(strategy=&#x27;most_frequent&#x27;)),
+                                                                                   (&#x27;mean_encoder&#x27;,
+                                                                                    MeanEncoder())]),
+                                                                   &lt;sklearn.compose._column_transformer.make_column_...
+                                                                                                 &#x27;category&#x27;,
+                                                                                                 &#x27;job&#x27;,
+                                                                                                 &#x27;trans_date__partofday&#x27;,
+                                                                                                 &#x27;amt&#x27;,
+                                                                                                 &#x27;city_pop&#x27;,
+                                                                                                 &#x27;lat&#x27;,
+                                                                                                 &#x27;long&#x27;,
+                                                                                                 &#x27;merch_lat&#x27;,
+                                                                                                 &#x27;merch_long&#x27;,
+                                                                                                 &#x27;age&#x27;,
+                                                                                                 &#x27;trans_date__year&#x27;,
+                                                                                                 &#x27;trans_date__month&#x27;,
+                                                                                                 &#x27;trans_date__day&#x27;,
+                                                                                                 &#x27;trans_date__dow&#x27;,
+                                                                                                 &#x27;trans_date__hour&#x27;,
+                                                                                                 &#x27;distance_to_merch&#x27;])),
+                                                                 (&#x27;anomaly&#x27;,
+                                                                  IsolationForestTransformer())]))],
+                          verbose=True)),
+                (&#x27;model&#x27;,
+                 &lt;catboost.core.CatBoostClassifier object at 0x15090f6e0&gt;)],
+         verbose=True)</pre></div> </div></div><div class="sk-serial"><div class="sk-item"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-66" type="checkbox" ><label for="sk-estimator-id-66" class="sk-toggleable__label  sk-toggleable__label-arrow ">&nbsp;preproc: Pipeline<a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.5/modules/generated/sklearn.pipeline.Pipeline.html">?<span>Documentation for preproc: Pipeline</span></a></label><div class="sk-toggleable__content "><pre>Pipeline(steps=[(&#x27;data_cleaning&#x27;, TransformacionesIniciales()),
+                (&#x27;feature_eng&#x27;,
+                 ColumnTransformer(transformers=[(&#x27;cat&#x27;,
+                                                  Pipeline(steps=[(&#x27;rare_labels&#x27;,
+                                                                   RareCategoryGrouper(min_freq=0.01)),
+                                                                  (&#x27;imputar_nulos&#x27;,
+                                                                   SimpleImputer(strategy=&#x27;most_frequent&#x27;)),
+                                                                  (&#x27;mean_encoder&#x27;,
+                                                                   MeanEncoder())]),
+                                                  &lt;sklearn.compose._column_transformer.make_column_selector object at 0x15300b740...
+                 FeatureUnion(transformer_list=[(&#x27;outliers&#x27;,
+                                                 ColumnCapper(numeric_features=[&#x27;merchant&#x27;,
+                                                                                &#x27;category&#x27;,
+                                                                                &#x27;job&#x27;,
+                                                                                &#x27;trans_date__partofday&#x27;,
+                                                                                &#x27;amt&#x27;,
+                                                                                &#x27;city_pop&#x27;,
+                                                                                &#x27;lat&#x27;,
+                                                                                &#x27;long&#x27;,
+                                                                                &#x27;merch_lat&#x27;,
+                                                                                &#x27;merch_long&#x27;,
+                                                                                &#x27;age&#x27;,
+                                                                                &#x27;trans_date__year&#x27;,
+                                                                                &#x27;trans_date__month&#x27;,
+                                                                                &#x27;trans_date__day&#x27;,
+                                                                                &#x27;trans_date__dow&#x27;,
+                                                                                &#x27;trans_date__hour&#x27;,
+                                                                                &#x27;distance_to_merch&#x27;])),
+                                                (&#x27;anomaly&#x27;,
+                                                 IsolationForestTransformer())]))],
+         verbose=True)</pre></div> </div></div><div class="sk-serial"><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-67" type="checkbox" ><label for="sk-estimator-id-67" class="sk-toggleable__label  sk-toggleable__label-arrow ">TransformacionesIniciales</label><div class="sk-toggleable__content "><pre>TransformacionesIniciales()</pre></div> </div></div><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-68" type="checkbox" ><label for="sk-estimator-id-68" class="sk-toggleable__label  sk-toggleable__label-arrow ">&nbsp;feature_eng: ColumnTransformer<a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.5/modules/generated/sklearn.compose.ColumnTransformer.html">?<span>Documentation for feature_eng: ColumnTransformer</span></a></label><div class="sk-toggleable__content "><pre>ColumnTransformer(transformers=[(&#x27;cat&#x27;,
+                                 Pipeline(steps=[(&#x27;rare_labels&#x27;,
+                                                  RareCategoryGrouper(min_freq=0.01)),
+                                                 (&#x27;imputar_nulos&#x27;,
+                                                  SimpleImputer(strategy=&#x27;most_frequent&#x27;)),
+                                                 (&#x27;mean_encoder&#x27;,
+                                                  MeanEncoder())]),
+                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x15300b740&gt;),
+                                (&#x27;num&#x27;,
+                                 Pipeline(steps=[(&#x27;imputar_nulos&#x27;,
+                                                  SimpleImputer(strategy=&#x27;median&#x27;))]),
+                                 &lt;sklearn.compose._column_transformer.make_column_selector object at 0x15300a270&gt;)],
+                  verbose=True, verbose_feature_names_out=False)</pre></div> </div></div><div class="sk-parallel"><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-69" type="checkbox" ><label for="sk-estimator-id-69" class="sk-toggleable__label  sk-toggleable__label-arrow ">cat</label><div class="sk-toggleable__content "><pre>&lt;sklearn.compose._column_transformer.make_column_selector object at 0x15300b740&gt;</pre></div> </div></div><div class="sk-serial"><div class="sk-item"><div class="sk-serial"><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-70" type="checkbox" ><label for="sk-estimator-id-70" class="sk-toggleable__label  sk-toggleable__label-arrow ">RareCategoryGrouper</label><div class="sk-toggleable__content "><pre>RareCategoryGrouper(min_freq=0.01)</pre></div> </div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-71" type="checkbox" ><label for="sk-estimator-id-71" class="sk-toggleable__label  sk-toggleable__label-arrow ">&nbsp;SimpleImputer<a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.5/modules/generated/sklearn.impute.SimpleImputer.html">?<span>Documentation for SimpleImputer</span></a></label><div class="sk-toggleable__content "><pre>SimpleImputer(strategy=&#x27;most_frequent&#x27;)</pre></div> </div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-72" type="checkbox" ><label for="sk-estimator-id-72" class="sk-toggleable__label  sk-toggleable__label-arrow ">MeanEncoder</label><div class="sk-toggleable__content "><pre>MeanEncoder()</pre></div> </div></div></div></div></div></div></div><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-73" type="checkbox" ><label for="sk-estimator-id-73" class="sk-toggleable__label  sk-toggleable__label-arrow ">num</label><div class="sk-toggleable__content "><pre>&lt;sklearn.compose._column_transformer.make_column_selector object at 0x15300a270&gt;</pre></div> </div></div><div class="sk-serial"><div class="sk-item"><div class="sk-serial"><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-74" type="checkbox" ><label for="sk-estimator-id-74" class="sk-toggleable__label  sk-toggleable__label-arrow ">&nbsp;SimpleImputer<a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.5/modules/generated/sklearn.impute.SimpleImputer.html">?<span>Documentation for SimpleImputer</span></a></label><div class="sk-toggleable__content "><pre>SimpleImputer(strategy=&#x27;median&#x27;)</pre></div> </div></div></div></div></div></div></div></div></div><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-75" type="checkbox" ><label for="sk-estimator-id-75" class="sk-toggleable__label  sk-toggleable__label-arrow ">&nbsp;anomalies: FeatureUnion<a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.5/modules/generated/sklearn.pipeline.FeatureUnion.html">?<span>Documentation for anomalies: FeatureUnion</span></a></label><div class="sk-toggleable__content "><pre>FeatureUnion(transformer_list=[(&#x27;outliers&#x27;,
+                                ColumnCapper(numeric_features=[&#x27;merchant&#x27;,
+                                                               &#x27;category&#x27;,
+                                                               &#x27;job&#x27;,
+                                                               &#x27;trans_date__partofday&#x27;,
+                                                               &#x27;amt&#x27;,
+                                                               &#x27;city_pop&#x27;,
+                                                               &#x27;lat&#x27;, &#x27;long&#x27;,
+                                                               &#x27;merch_lat&#x27;,
+                                                               &#x27;merch_long&#x27;,
+                                                               &#x27;age&#x27;,
+                                                               &#x27;trans_date__year&#x27;,
+                                                               &#x27;trans_date__month&#x27;,
+                                                               &#x27;trans_date__day&#x27;,
+                                                               &#x27;trans_date__dow&#x27;,
+                                                               &#x27;trans_date__hour&#x27;,
+                                                               &#x27;distance_to_merch&#x27;])),
+                               (&#x27;anomaly&#x27;, IsolationForestTransformer())])</pre></div> </div></div><div class="sk-parallel"><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><label>outliers</label></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-76" type="checkbox" ><label for="sk-estimator-id-76" class="sk-toggleable__label  sk-toggleable__label-arrow ">ColumnCapper</label><div class="sk-toggleable__content "><pre>ColumnCapper(numeric_features=[&#x27;merchant&#x27;, &#x27;category&#x27;, &#x27;job&#x27;,
+                               &#x27;trans_date__partofday&#x27;, &#x27;amt&#x27;, &#x27;city_pop&#x27;,
+                               &#x27;lat&#x27;, &#x27;long&#x27;, &#x27;merch_lat&#x27;, &#x27;merch_long&#x27;, &#x27;age&#x27;,
+                               &#x27;trans_date__year&#x27;, &#x27;trans_date__month&#x27;,
+                               &#x27;trans_date__day&#x27;, &#x27;trans_date__dow&#x27;,
+                               &#x27;trans_date__hour&#x27;, &#x27;distance_to_merch&#x27;])</pre></div> </div></div></div></div></div><div class="sk-parallel-item"><div class="sk-item"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><label>anomaly</label></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-77" type="checkbox" ><label for="sk-estimator-id-77" class="sk-toggleable__label  sk-toggleable__label-arrow ">IsolationForestTransformer</label><div class="sk-toggleable__content "><pre>IsolationForestTransformer()</pre></div> </div></div></div></div></div></div></div></div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-78" type="checkbox" ><label for="sk-estimator-id-78" class="sk-toggleable__label  sk-toggleable__label-arrow ">CatBoostClassifier</label><div class="sk-toggleable__content "><pre>&lt;catboost.core.CatBoostClassifier object at 0x15090f6e0&gt;</pre></div> </div></div></div></div></div></div>

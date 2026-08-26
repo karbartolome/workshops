@@ -1,0 +1,45 @@
+{
+    "modelling": {
+        "color": "#107895",
+        "tags": [
+            "Logistic Regression",
+            "Random Forest",
+            "Gradient Boosting",
+            "XGBoost",
+            "LightGBM",
+            "CatBoost",
+            "Neural Network",
+            "Monotonic constraints"
+        ]
+    },
+    "preprocessing": {
+        "color": "#2a9d8f",
+        "tags": [
+            "Standardization",
+            "Normalization",
+            "One-Hot Encoding",
+            "Label Encoding",
+            "Imputation"
+        ]
+    },
+    "evaluation": {
+        "color": "#f4a261",
+        "tags": [
+            "calibration"
+        ]
+    },
+    "hyperparameter_tuning": {
+        "color": "#7a5cff",
+        "tags": [
+            "Grid Search"
+        ]
+    },
+    "explainable_ai": {
+        "color": "#d62828",
+        "tags": [
+            "SHAP",
+            "LIME",
+            "Explainable AI"
+        ]
+    }
+}

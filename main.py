@@ -3,56 +3,84 @@
 Usage:
     python main.py [--no-render]
 
-It scans the repo for rendered slide decks (``slides*.html``), merges them with
-metadata from ``slides_descriptions.json`` (adding skeleton entries for decks
-that aren't described yet), generates ``index.qmd`` with a card grid preview
-of each deck, and renders it to ``index.html`` with the Quarto CLI.
+It scans the ``slides/`` folder for rendered slide decks (``slides*.html``),
+merges them with metadata from ``slides_descriptions.json`` (adding skeleton
+entries for decks that aren't described yet), generates ``index.qmd`` with a
+card grid preview of each deck, renders it to ``index.html`` with the Quarto
+CLI, and (re)writes ``404.html`` so that old pre-migration URLs (when every
+workshop folder lived at the repo root) keep redirecting to their new home
+under ``slides/``.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-DESCRIPTIONS_PATH = ROOT / "slides_descriptions.json"
+SLIDES_DIR = ROOT / "slides"
+DESCRIPTIONS_PATH = ROOT / "metadata" / "slides_descriptions.json"
 INDEX_QMD_PATH = ROOT / "index.qmd"
+TAGS_CATEGORIES_PATH = ROOT / "metadata" / "tags_categories.json"
+NOT_FOUND_PATH = ROOT / "404.html"
 
-# Top-level folders that never contain a workshop slide deck.
-EXCLUDED_DIRS = {
-    "data",
-    "envs",
-    "testing",
-    "slides_template",
-    "_extensions",
-    "node_modules",
+# Workshop folders that used to live at the repo root (before they moved into
+# slides/) mapped to their rendered deck filename. Used to build redirects so
+# old links keep working.
+LEGACY_SLUGS = {
+    "20240513-uba-calibracion": "slides.html",
+    "20250905-uba-pipelines": "slides.html",
 }
+DEFAULT_TAG_COLORS = [
+    "#107895",
+    "#7a5cff",
+    "#2a9d8f",
+    "#f4a261",
+    "#e76f51",
+    "#6c5ce7",
+    "#16a085",
+    "#d35400",
+    "#e84393",
+    "#00b894",
+]
+
 # Subfolder names to skip while looking for a rendered deck inside a workshop folder.
 EXCLUDED_SUBDIRS = {"_extensions", "artifacts", "catboost_info", "notebooks", ".quarto"}
 
 
 def find_slide_html(folder: Path) -> Path | None:
-    """Return the most likely rendered slide deck (slides*.html) inside a folder."""
+    """Return the most likely rendered slide deck inside a folder."""
     candidates = [
         p
-        for p in folder.rglob("slides*.html")
-        if not EXCLUDED_SUBDIRS.intersection(p.relative_to(folder).parts[:-1])
+        for p in folder.rglob("*.html")
+    if (
+      (
+        p.name.lower() == "slides.html"
+        or (p.name.lower().startswith("slides") and "short" not in p.name.lower())
+        or p.name.lower() == "index.html"
+      )
+      and not EXCLUDED_SUBDIRS.intersection(p.relative_to(folder).parts[:-1])
+    )
     ]
     if not candidates:
         return None
-    # Prefer a top-level "slides.html" if present, otherwise the shortest path.
-    candidates.sort(key=lambda p: (len(p.relative_to(folder).parts), p.name != "slides.html"))
+    preferred = ("slides.html", "index.html")
+    candidates.sort(key=lambda p: (preferred.index(p.name) if p.name in preferred else len(preferred), len(p.relative_to(folder).parts), p.name))
     return candidates[0]
 
 
 def discover_decks() -> dict[str, Path]:
     """Map workshop folder name -> rendered slide html path (relative to ROOT)."""
     decks = {}
-    for folder in sorted(ROOT.iterdir()):
-        if not folder.is_dir() or folder.name.startswith(".") or folder.name in EXCLUDED_DIRS:
+    if not SLIDES_DIR.exists():
+        return decks
+
+    for folder in sorted(SLIDES_DIR.iterdir()):
+        if not folder.is_dir() or folder.name.startswith("."):
             continue
         html_path = find_slide_html(folder)
         if html_path is not None:
@@ -86,16 +114,60 @@ def sync_descriptions(descriptions: dict, decks: dict[str, Path]) -> dict:
     return descriptions
 
 
-def tag_pills(tags: list[str]) -> str:
-    return "".join(f'<span class="tag">{tag}</span>' for tag in tags)
+def sanitize_css_token(value: str) -> str:
+    return re.sub(r"[^a-z0-9_-]+", "-", value.lower()).strip("-") or "tag"
 
 
-def render_card(name: str, meta: dict, href: str) -> str:
+def load_tag_categories() -> tuple[dict[str, str], dict[str, str]]:
+    tag_to_category: dict[str, str] = {}
+    category_colors: dict[str, str] = {}
+
+    if not TAGS_CATEGORIES_PATH.exists():
+        return tag_to_category, category_colors
+
+    try:
+        raw = json.loads(TAGS_CATEGORIES_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return tag_to_category, category_colors
+
+    for idx, (category, payload) in enumerate(raw.items()):
+        if isinstance(payload, dict):
+            tags = payload.get("tags", [])
+            color = payload.get("color") or DEFAULT_TAG_COLORS[idx % len(DEFAULT_TAG_COLORS)]
+        else:
+            tags = payload if isinstance(payload, list) else []
+            color = DEFAULT_TAG_COLORS[idx % len(DEFAULT_TAG_COLORS)]
+
+        category_colors[category] = color
+        for tag in tags:
+            tag_to_category[tag.lower()] = category
+    return tag_to_category, category_colors
+
+
+def tag_pills(tags: list[str], tag_to_category: dict[str, str], category_colors: dict[str, str]) -> str:
+    pills = []
+    for tag in tags:
+        category = tag_to_category.get(tag.lower(), "general")
+        color = category_colors.get(category, DEFAULT_TAG_COLORS[0])
+        pills.append(
+            f'<span class="tag tag-{sanitize_css_token(category)}" '
+            f'style="--tag-bg: {color}; --tag-fg: #fff;">{tag}</span>'
+        )
+    return "".join(pills)
+
+
+def render_card(
+    name: str,
+    meta: dict,
+    href: str,
+    tag_to_category: dict[str, str],
+    category_colors: dict[str, str],
+) -> str:
     title = meta.get("name") or name
     date = meta.get("date", "")
     description = meta.get("description", "")
     tags = meta.get("tags", [])
-    tags_html = tag_pills(tags)
+    tags_html = tag_pills(tags, tag_to_category, category_colors)
     data_tags = "|".join(t.lower() for t in tags)
     return f"""
 <a class="card" href="{href}" target="_blank" rel="noopener" data-tags="{data_tags}">
@@ -111,18 +183,23 @@ def render_card(name: str, meta: dict, href: str) -> str:
 </a>"""
 
 
-def render_filter_bar(decks: dict, descriptions: dict) -> str:
+def render_filter_bar(decks: dict, descriptions: dict, tag_to_category: dict[str, str], category_colors: dict[str, str]) -> str:
     all_tags = sorted(
         {tag for name in decks for tag in descriptions.get(name, {}).get("tags", [])},
         key=str.lower,
     )
-    buttons = "".join(
-        f'<button class="tag-filter" data-tag="{tag.lower()}">{tag}</button>' for tag in all_tags
-    )
+    buttons = []
+    for tag in all_tags:
+        category = tag_to_category.get(tag.lower(), "general")
+        color = category_colors.get(category, DEFAULT_TAG_COLORS[0])
+        buttons.append(
+            f'<button class="tag-filter tag-filter-{sanitize_css_token(category)}" '
+            f'data-tag="{tag.lower()}" style="--tag-bg: {color}; --tag-fg: #fff;">{tag}</button>'
+        )
     return f"""
 <div class="filter-bar">
   <input type="text" id="tag-search" placeholder="Buscar tags..." />
-  <div class="tag-filter-list" id="tag-filter-list">{buttons}</div>
+  <div class="tag-filter-list" id="tag-filter-list">{''.join(buttons)}</div>
   <button class="clear-filters" id="clear-filters">Limpiar filtros</button>
 </div>"""
 
@@ -241,8 +318,8 @@ CARD_CSS = """
   font-size: 0.75rem;
   padding: 2px 9px;
   border-radius: 999px;
-  background: #107895;
-  color: #fff;
+  background: var(--tag-bg, #107895);
+  color: var(--tag-fg, #fff);
 }
 .filter-bar {
   display: flex;
@@ -271,17 +348,17 @@ CARD_CSS = """
   font-size: 0.8rem;
   padding: 4px 12px;
   border-radius: 999px;
-  border: 1px solid #107895;
+  border: 1px solid var(--tag-bg, #107895);
   background: #fff;
-  color: #107895;
+  color: var(--tag-bg, #107895);
   cursor: pointer;
 }
 .tag-filter:hover {
-  background: #e6f3f6;
+  background: rgba(17, 24, 39, 0.04);
 }
 .tag-filter.active {
-  background: #107895;
-  color: #fff;
+  background: var(--tag-bg, #107895);
+  color: var(--tag-fg, #fff);
 }
 .clear-filters {
   font-size: 0.8rem;
@@ -298,15 +375,48 @@ CARD_CSS = """
 """
 
 
+def write_not_found_page() -> None:
+    """Write 404.html so pre-migration URLs redirect to their new slides/ location.
+
+    Matching is done on the workshop slug anywhere in the URL path (instead of
+    a fixed prefix), so the redirect works whether the site is served from a
+    custom domain or from a GitHub Pages project path like /workshops/.
+    """
+    legacy_json = json.dumps(LEGACY_SLUGS)
+    redirect_script = f"""
+<script>
+(() => {{
+  const legacy = {legacy_json};
+  const path = window.location.pathname;
+  for (const [slug, file] of Object.entries(legacy)) {{
+    const idx = path.indexOf("/" + slug);
+    if (idx !== -1) {{
+      const prefix = path.slice(0, idx);
+      const target = `${{prefix}}/slides/${{slug}}/${{file}}`;
+      window.location.replace(target + window.location.search + window.location.hash);
+      break;
+    }}
+  }}
+}})();
+</script>
+""".strip()
+    NOT_FOUND_PATH.write_text(
+        "<!doctype html><html><head><meta charset=\"utf-8\">"
+        + redirect_script + "</head><body></body></html>",
+        encoding="utf-8",
+    )
+
+
 def build_qmd(decks: dict[str, Path], descriptions: dict) -> str:
     def sort_key(name: str):
         return descriptions.get(name, {}).get("date", "") or "0000-00-00"
 
+    tag_to_category, category_colors = load_tag_categories()
     cards = "\n".join(
-        render_card(name, descriptions.get(name, {}), decks[name].as_posix())
+        render_card(name, descriptions.get(name, {}), decks[name].as_posix(), tag_to_category, category_colors)
         for name in sorted(decks, key=sort_key, reverse=True)
     )
-    filter_bar = render_filter_bar(decks, descriptions)
+    filter_bar = render_filter_bar(decks, descriptions, tag_to_category, category_colors)
 
     return f"""---
 title: "Workshops"
@@ -349,6 +459,7 @@ def main() -> None:
         sys.exit(1)
 
     descriptions = sync_descriptions(load_descriptions(), decks)
+    write_not_found_page()
     INDEX_QMD_PATH.write_text(build_qmd(decks, descriptions), encoding="utf-8")
     print(f"Wrote {INDEX_QMD_PATH.name} with {len(decks)} deck(s).")
 
