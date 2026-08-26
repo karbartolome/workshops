@@ -146,9 +146,9 @@ format:
 </div>
 <div class="grid">
 
-<a class="card" href="slides/20260903-uba-monotonicconstraints/slides/slides.html" target="_blank" rel="noopener" data-tags="models|classification|monotonic constraints|gradient boosting|explainable ai">
+<a class="card" href="slides/20260903-uba-monotonicconstraints/slides.html" target="_blank" rel="noopener" data-tags="models|classification|monotonic constraints|gradient boosting|explainable ai">
   <div class="thumb-wrapper">
-    <iframe class="thumb-iframe" src="slides/20260903-uba-monotonicconstraints/slides/slides.html" scrolling="no" tabindex="-1"></iframe>
+    <iframe class="thumb-iframe" src="slides/20260903-uba-monotonicconstraints/slides.html" scrolling="no" tabindex="-1"></iframe>
   </div>
   <div class="card-body">
     <h3>Restricciones monotónicas en modelos de clasificación</h3>
