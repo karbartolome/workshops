@@ -35,6 +35,7 @@ LEGACY_SLUGS = {
     "20240513-uba-calibracion": "slides.html",
     "20250905-uba-pipelines": "slides.html",
 }
+
 DEFAULT_TAG_COLORS = [
     "#107895",
     "#7a5cff",
@@ -144,9 +145,23 @@ def load_tag_categories() -> tuple[dict[str, str], dict[str, str]]:
     return tag_to_category, category_colors
 
 
+def tag_sort_key(tag: str, tag_to_category: dict[str, str], category_order: list[str]):
+    """Sort tags by category order (per tags_categories.json), then alphabetically."""
+    category = tag_to_category.get(tag.lower(), "general")
+    category_index = category_order.index(category) if category in category_order else len(category_order)
+    return (category_index, tag.lower())
+
+
+def group_tags_by_category(
+    tags: list[str], tag_to_category: dict[str, str], category_colors: dict[str, str]
+) -> list[str]:
+    category_order = list(category_colors.keys())
+    return sorted(tags, key=lambda t: tag_sort_key(t, tag_to_category, category_order))
+
+
 def tag_pills(tags: list[str], tag_to_category: dict[str, str], category_colors: dict[str, str]) -> str:
     pills = []
-    for tag in tags:
+    for tag in group_tags_by_category(tags, tag_to_category, category_colors):
         category = tag_to_category.get(tag.lower(), "general")
         color = category_colors.get(category, DEFAULT_TAG_COLORS[0])
         pills.append(
@@ -183,23 +198,40 @@ def render_card(
 </a>"""
 
 
+def format_category_label(category: str) -> str:
+    """Turn a category key like 'ia_explicable' into a readable label 'Ia Explicable'."""
+    words = category.replace("_", " ").split()
+    return " ".join(word.upper() if word.lower() in ("ai", "ia") else word.capitalize() for word in words)
+
+
 def render_filter_bar(decks: dict, descriptions: dict, tag_to_category: dict[str, str], category_colors: dict[str, str]) -> str:
-    all_tags = sorted(
-        {tag for name in decks for tag in descriptions.get(name, {}).get("tags", [])},
-        key=str.lower,
-    )
-    buttons = []
-    for tag in all_tags:
+    all_tags = {tag for name in decks for tag in descriptions.get(name, {}).get("tags", [])}
+    sorted_tags = group_tags_by_category(sorted(all_tags, key=str.lower), tag_to_category, category_colors)
+
+    groups: dict[str, list[str]] = {}
+    for tag in sorted_tags:
         category = tag_to_category.get(tag.lower(), "general")
+        groups.setdefault(category, []).append(tag)
+
+    group_html = []
+    for category, tags in groups.items():
         color = category_colors.get(category, DEFAULT_TAG_COLORS[0])
-        buttons.append(
+        buttons = "".join(
             f'<button class="tag-filter tag-filter-{sanitize_css_token(category)}" '
             f'data-tag="{tag.lower()}" style="--tag-bg: {color}; --tag-fg: #fff;">{tag}</button>'
+            for tag in tags
         )
+        group_html.append(
+            f'<div class="tag-group">'
+            f'<span class="tag-group-label" style="--tag-bg: {color};">{format_category_label(category)}</span>'
+            f'<div class="tag-group-buttons">{buttons}</div>'
+            f"</div>"
+        )
+
     return f"""
 <div class="filter-bar">
   <input type="text" id="tag-search" placeholder="Buscar tags..." />
-  <div class="tag-filter-list" id="tag-filter-list">{''.join(buttons)}</div>
+  <div class="tag-filter-list" id="tag-filter-list">{''.join(group_html)}</div>
   <button class="clear-filters" id="clear-filters">Limpiar filtros</button>
 </div>"""
 
@@ -239,6 +271,12 @@ FILTER_JS = """
     const query = searchInput.value.trim().toLowerCase();
     tagButtons.forEach((btn) => {
       btn.style.display = btn.dataset.tag.includes(query) ? '' : 'none';
+    });
+    document.querySelectorAll('.tag-group').forEach((group) => {
+      const hasVisibleButton = Array.from(group.querySelectorAll('.tag-filter')).some(
+        (btn) => btn.style.display !== 'none'
+      );
+      group.style.display = hasVisibleButton ? '' : 'none';
     });
   });
 
@@ -341,8 +379,29 @@ CARD_CSS = """
 .tag-filter-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 14px;
   flex: 1;
+}
+.tag-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tag-group-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--tag-bg, #107895);
+  padding-right: 4px;
+  border-right: 1px solid #d8d8d8;
+  margin-right: 2px;
+}
+.tag-group-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 .tag-filter {
   font-size: 0.8rem;

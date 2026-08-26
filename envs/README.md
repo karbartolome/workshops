@@ -1,111 +1,111 @@
-# Environments
+# Entornos
 
-This folder contains reusable environment definitions for workshops.
-Each environment version lives in its own folder and includes:
+Esta carpeta contiene definiciones de entornos reutilizables para los talleres.
+Cada versión de un entorno vive en su propia carpeta e incluye:
 
-- `env_creation.sh`: script used to create the virtual environment.
-- `requirements.txt`: pinned Python packages installed by the script.
+- `env_creation.sh`: script usado para crear el entorno virtual.
+- `requirements.txt`: paquetes de Python fijados (pinned) que instala el script.
 
-## Available Environments
+## Entornos disponibles
 
-| env_name | version | path | description |
+| env_name | version | path | descripción |
 | --- | --- | --- | --- |
-| `ds_model` | `1.0` | `envs/ds_model/1.0` | Standard libraries for data science modelling. |
+| `ds_model` | `1.0` | `envs/ds_model/1.0` | Librerías estándar para modelado de ciencia de datos. |
 
-## Requirements
+## Requisitos
 
-The current environment scripts use `uv` to create virtual environments and install packages.
+Los scripts de entornos actuales usan `uv` para crear entornos virtuales e instalar paquetes.
 
-Install `uv` before running any environment script:
+Instalá `uv` antes de ejecutar cualquier script de entorno:
 
 ```
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-After installing, restart the terminal or make sure `uv` is available in your `PATH`:
+Después de instalarlo, reiniciá la terminal o asegurate de que `uv` esté disponible en tu `PATH`:
 
 ```
 uv --version
 ```
 
-## Create An Environment
+## Crear un entorno
 
-Move into the folder for the environment version you want to create:
+Ubicate en la carpeta de la versión del entorno que querés crear:
 
 ```
 cd envs/ds_model/1.0
 ```
 
-Make the script executable if needed:
+Si hace falta, dale permisos de ejecución al script:
 
 ```
 chmod +x env_creation.sh
 ```
 
-Review `requirements.txt` and `env_creation.sh` before running the script.
+Revisá `requirements.txt` y `env_creation.sh` antes de ejecutar el script.
 
-Run the script from inside the environment folder:
+Ejecutá el script desde dentro de la carpeta del entorno:
 
 ```
 ./env_creation.sh
 ```
 
-By default, the script:
+Por defecto, el script:
 
-- Installs Python `3.12` using `uv`.
-- Creates a local virtual environment in `.venv`.
-- Installs pinned packages from `requirements.txt`.
-- Registers a Jupyter kernel named `ds_model_1_0`.
+- Instala Python `3.12` usando `uv`.
+- Crea un entorno virtual local en `.venv`.
+- Instala los paquetes fijados en `requirements.txt`.
+- Registra un kernel de Jupyter llamado `ds_model_1_0`.
 
-Activate the environment:
+Activá el entorno:
 
 ```
 source .venv/bin/activate
 ```
 
-## Optional Overrides
+## Overrides opcionales
 
-The script supports environment variables so you can customize the setup without editing the file.
+El script admite variables de entorno para personalizar la instalación sin editar el archivo.
 
-Use a different Python version:
+Usar una versión distinta de Python:
 
 ```
 PYTHON_VERSION=3.13 ./env_creation.sh
 ```
 
-Use a different virtual environment directory:
+Usar un directorio distinto para el entorno virtual:
 
 ```
 VENV_DIR=.venv_ds_model ./env_creation.sh
 ```
 
-Use a different Jupyter kernel name:
+Usar un nombre distinto para el kernel de Jupyter:
 
 ```
 ENV_NAME=my_ds_env ./env_creation.sh
 ```
 
-Use a different requirements file:
+Usar un archivo de requisitos distinto:
 
 ```
 REQUIREMENTS_FILE=requirements-dev.txt ./env_creation.sh
 ```
 
-## Data Science Modelling Environment
+## Entorno de Modelado de Ciencia de Datos
 
-The `ds_model/1.0` environment includes pinned packages for common modelling workflows:
+El entorno `ds_model/1.0` incluye paquetes fijados para flujos de trabajo de modelado habituales:
 
-- Core data work: `numpy`, `pandas`, `scipy`, `pyarrow`.
-- Modelling: `scikit-learn`, `statsmodels`, `imbalanced-learn`.
-- Boosting models: `xgboost`, `lightgbm`, `catboost`.
-- Experimentation and explainability: `optuna`, `shap`.
-- Visualization and reporting: `matplotlib`, `seaborn`, `plotly`, `great-tables`.
-- Notebook support: `jupyterlab`, `notebook`, `ipykernel`.
-- Utility and IO: `openpyxl`, `xlrd`, `SQLAlchemy`, `requests`, `python-dotenv`, `tqdm`, `joblib`.
+- Trabajo con datos: `numpy`, `pandas`, `scipy`, `pyarrow`.
+- Modelado: `scikit-learn`, `statsmodels`, `imbalanced-learn`.
+- Modelos de boosting: `xgboost`, `lightgbm`, `catboost`.
+- Experimentación e interpretabilidad: `optuna`, `shap`.
+- Visualización y reportes: `matplotlib`, `seaborn`, `plotly`, `great-tables`.
+- Soporte de notebooks: `jupyterlab`, `notebook`, `ipykernel`.
+- Utilidades e I/O: `openpyxl`, `xlrd`, `SQLAlchemy`, `requests`, `python-dotenv`, `tqdm`, `joblib`.
 
-## Folder Structure
+## Estructura de carpetas
 
-Use this structure when adding a new environment:
+Usá esta estructura al agregar un nuevo entorno:
 
 ```
 envs/
@@ -115,7 +115,7 @@ envs/
       requirements.txt
 ```
 
-Example:
+Ejemplo:
 
 ```
 envs/
@@ -125,4 +125,4 @@ envs/
       requirements.txt
 ```
 
-Keep package versions pinned in `requirements.txt` so environment changes are explicit and reviewable.
+Mantené las versiones de los paquetes fijadas en `requirements.txt` para que los cambios de entorno sean explícitos y fáciles de revisar.

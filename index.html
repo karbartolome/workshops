@@ -154,8 +154,29 @@ ul.task-list li input[type="checkbox"] {
 .tag-filter-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 14px;
   flex: 1;
+}
+.tag-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tag-group-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--tag-bg, #107895);
+  padding-right: 4px;
+  border-right: 1px solid #d8d8d8;
+  margin-right: 2px;
+}
+.tag-group-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 .tag-filter {
   font-size: 0.8rem;
@@ -190,12 +211,12 @@ ul.task-list li input[type="checkbox"] {
 
 <div class="filter-bar">
   <input type="text" id="tag-search" placeholder="Buscar tags...">
-  <div class="tag-filter-list" id="tag-filter-list"><button class="tag-filter tag-filter-evaluation" data-tag="calibration" style="--tag-bg: #f4a261; --tag-fg: #fff;">Calibration</button><button class="tag-filter tag-filter-general" data-tag="classification" style="--tag-bg: #107895; --tag-fg: #fff;">Classification</button><button class="tag-filter tag-filter-explainable_ai" data-tag="explainable ai" style="--tag-bg: #d62828; --tag-fg: #fff;">Explainable AI</button><button class="tag-filter tag-filter-modelling" data-tag="gradient boosting" style="--tag-bg: #107895; --tag-fg: #fff;">Gradient Boosting</button><button class="tag-filter tag-filter-general" data-tag="model" style="--tag-bg: #107895; --tag-fg: #fff;">Model</button><button class="tag-filter tag-filter-general" data-tag="models" style="--tag-bg: #107895; --tag-fg: #fff;">Models</button><button class="tag-filter tag-filter-modelling" data-tag="monotonic constraints" style="--tag-bg: #107895; --tag-fg: #fff;">Monotonic constraints</button><button class="tag-filter tag-filter-general" data-tag="pipeline" style="--tag-bg: #107895; --tag-fg: #fff;">Pipeline</button><button class="tag-filter tag-filter-general" data-tag="preprocessing" style="--tag-bg: #107895; --tag-fg: #fff;">Preprocessing</button><button class="tag-filter tag-filter-general" data-tag="probability" style="--tag-bg: #107895; --tag-fg: #fff;">Probability</button></div>
+  <div class="tag-filter-list" id="tag-filter-list"><div class="tag-group"><span class="tag-group-label" style="--tag-bg: #107895;">Modelado</span><div class="tag-group-buttons"><button class="tag-filter tag-filter-modelado" data-tag="clasificación" style="--tag-bg: #107895; --tag-fg: #fff;">Clasificación</button><button class="tag-filter tag-filter-modelado" data-tag="gradient boosting" style="--tag-bg: #107895; --tag-fg: #fff;">Gradient Boosting</button><button class="tag-filter tag-filter-modelado" data-tag="restricciones monotónicas" style="--tag-bg: #107895; --tag-fg: #fff;">Restricciones Monotónicas</button></div></div><div class="tag-group"><span class="tag-group-label" style="--tag-bg: #2a9d8f;">Preprocesamiento</span><div class="tag-group-buttons"><button class="tag-filter tag-filter-preprocesamiento" data-tag="feature engineering" style="--tag-bg: #2a9d8f; --tag-fg: #fff;">Feature engineering</button></div></div><div class="tag-group"><span class="tag-group-label" style="--tag-bg: #f4a261;">Evaluación</span><div class="tag-group-buttons"><button class="tag-filter tag-filter-evaluaci-n" data-tag="calibración" style="--tag-bg: #f4a261; --tag-fg: #fff;">Calibración</button><button class="tag-filter tag-filter-evaluaci-n" data-tag="gain table" style="--tag-bg: #f4a261; --tag-fg: #fff;">Gain table</button><button class="tag-filter tag-filter-evaluaci-n" data-tag="probabilidad" style="--tag-bg: #f4a261; --tag-fg: #fff;">Probabilidad</button></div></div><div class="tag-group"><span class="tag-group-label" style="--tag-bg: #6a994e;">Mlops</span><div class="tag-group-buttons"><button class="tag-filter tag-filter-mlops" data-tag="pipeline" style="--tag-bg: #6a994e; --tag-fg: #fff;">Pipeline</button></div></div><div class="tag-group"><span class="tag-group-label" style="--tag-bg: #d62828;">IA Explicable</span><div class="tag-group-buttons"><button class="tag-filter tag-filter-ia_explicable" data-tag="xai" style="--tag-bg: #d62828; --tag-fg: #fff;">XAI</button></div></div><div class="tag-group"><span class="tag-group-label" style="--tag-bg: #107895;">General</span><div class="tag-group-buttons"><button class="tag-filter tag-filter-general" data-tag="deploy " style="--tag-bg: #107895; --tag-fg: #fff;">Deploy </button></div></div></div>
   <button class="clear-filters" id="clear-filters">Limpiar filtros</button>
 </div>
 <div class="grid">
 
-<a class="card" href="slides/20260903-uba-monotonicconstraints/slides.html" target="_blank" rel="noopener" data-tags="models|classification|monotonic constraints|gradient boosting|explainable ai">
+<a class="card" href="slides/20260903-uba-monotonicconstraints/slides.html" target="_blank" rel="noopener" data-tags="clasificación|restricciones monotónicas|gradient boosting|xai">
   <div class="thumb-wrapper">
     <iframe class="thumb-iframe" src="slides/20260903-uba-monotonicconstraints/slides.html" scrolling="no" tabindex="-1"></iframe>
   </div>
@@ -203,11 +224,11 @@ ul.task-list li input[type="checkbox"] {
     <h3 class="anchored">Restricciones monotónicas en modelos de clasificación</h3>
     <p class="date">2026-09-03</p>
     <p class="desc"></p>
-    <div class="tags"><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Models</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Classification</span><span class="tag tag-modelling" style="--tag-bg: #107895; --tag-fg: #fff;">Monotonic constraints</span><span class="tag tag-modelling" style="--tag-bg: #107895; --tag-fg: #fff;">Gradient Boosting</span><span class="tag tag-explainable_ai" style="--tag-bg: #d62828; --tag-fg: #fff;">Explainable AI</span></div>
+    <div class="tags"><span class="tag tag-modelado" style="--tag-bg: #107895; --tag-fg: #fff;">Clasificación</span><span class="tag tag-modelado" style="--tag-bg: #107895; --tag-fg: #fff;">Gradient Boosting</span><span class="tag tag-modelado" style="--tag-bg: #107895; --tag-fg: #fff;">Restricciones Monotónicas</span><span class="tag tag-ia_explicable" style="--tag-bg: #d62828; --tag-fg: #fff;">XAI</span></div>
   </div>
 </a>
 
-<a class="card" href="slides/20250905-uba-pipelines/slides.html" target="_blank" rel="noopener" data-tags="pipeline|model|preprocessing|classification">
+<a class="card" href="slides/20250905-uba-pipelines/slides.html" target="_blank" rel="noopener" data-tags="pipeline|feature engineering|clasificación|deploy ">
   <div class="thumb-wrapper">
     <iframe class="thumb-iframe" src="slides/20250905-uba-pipelines/slides.html" scrolling="no" tabindex="-1"></iframe>
   </div>
@@ -215,11 +236,11 @@ ul.task-list li input[type="checkbox"] {
     <h3 class="anchored">Del dato al modelo</h3>
     <p class="date">2025-09-05</p>
     <p class="desc"></p>
-    <div class="tags"><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Pipeline</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Model</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Preprocessing</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Classification</span></div>
+    <div class="tags"><span class="tag tag-modelado" style="--tag-bg: #107895; --tag-fg: #fff;">Clasificación</span><span class="tag tag-preprocesamiento" style="--tag-bg: #2a9d8f; --tag-fg: #fff;">Feature engineering</span><span class="tag tag-mlops" style="--tag-bg: #6a994e; --tag-fg: #fff;">Pipeline</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Deploy </span></div>
   </div>
 </a>
 
-<a class="card" href="slides/20240513-uba-calibracion/slides.html" target="_blank" rel="noopener" data-tags="calibration|probability|classification">
+<a class="card" href="slides/20240513-uba-calibracion/slides.html" target="_blank" rel="noopener" data-tags="calibración|probabilidad|clasificación|gain table">
   <div class="thumb-wrapper">
     <iframe class="thumb-iframe" src="slides/20240513-uba-calibracion/slides.html" scrolling="no" tabindex="-1"></iframe>
   </div>
@@ -227,7 +248,7 @@ ul.task-list li input[type="checkbox"] {
     <h3 class="anchored">Calibración de probabilidades</h3>
     <p class="date">2024-05-13</p>
     <p class="desc"></p>
-    <div class="tags"><span class="tag tag-evaluation" style="--tag-bg: #f4a261; --tag-fg: #fff;">Calibration</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Probability</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Classification</span></div>
+    <div class="tags"><span class="tag tag-modelado" style="--tag-bg: #107895; --tag-fg: #fff;">Clasificación</span><span class="tag tag-evaluaci-n" style="--tag-bg: #f4a261; --tag-fg: #fff;">Calibración</span><span class="tag tag-evaluaci-n" style="--tag-bg: #f4a261; --tag-fg: #fff;">Gain table</span><span class="tag tag-evaluaci-n" style="--tag-bg: #f4a261; --tag-fg: #fff;">Probabilidad</span></div>
   </div>
 </a>
 </div>
@@ -266,6 +287,12 @@ ul.task-list li input[type="checkbox"] {
     const query = searchInput.value.trim().toLowerCase();
     tagButtons.forEach((btn) => {
       btn.style.display = btn.dataset.tag.includes(query) ? '' : 'none';
+    });
+    document.querySelectorAll('.tag-group').forEach((group) => {
+      const hasVisibleButton = Array.from(group.querySelectorAll('.tag-filter')).some(
+        (btn) => btn.style.display !== 'none'
+      );
+      group.style.display = hasVisibleButton ? '' : 'none';
     });
   });
 

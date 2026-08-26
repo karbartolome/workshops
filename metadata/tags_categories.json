@@ -1,45 +1,62 @@
 {
-    "modelling": {
+    "modelado": {
         "color": "#107895",
         "tags": [
-            "Logistic Regression",
+            "Clasificación",
+            "Clasificación Binaria",
+            "Clasificación Multiclase",
+            "Regresión Logística",
             "Random Forest",
             "Gradient Boosting",
             "XGBoost",
             "LightGBM",
             "CatBoost",
-            "Neural Network",
-            "Monotonic constraints"
+            "Red Neuronal",
+            "Restricciones Monotónicas"
         ]
     },
-    "preprocessing": {
+    "preprocesamiento": {
         "color": "#2a9d8f",
         "tags": [
-            "Standardization",
-            "Normalization",
-            "One-Hot Encoding",
-            "Label Encoding",
-            "Imputation"
+            "Feature engineering",
+            "Estandarización",
+            "Normalización",
+            "One hot encoding",
+            "Imputación"
         ]
     },
-    "evaluation": {
+    "evaluación": {
         "color": "#f4a261",
         "tags": [
-            "calibration"
+            "Calibración",
+            "Probabilidad",
+            "ROC/AUC",
+            "Precisión-Recall",
+            "PSI",
+            "Gain table"
         ]
     },
-    "hyperparameter_tuning": {
+    "mlops": {
+        "color": "#6a994e",
+        "tags": [
+            "Pipeline",
+            "Deploy",
+            "Monitoreo"
+        ]
+    },
+    "ajuste_hiperparametros": {
         "color": "#7a5cff",
         "tags": [
-            "Grid Search"
+            "Random search",
+            "Grid search"
         ]
     },
-    "explainable_ai": {
+    "ia_explicable": {
         "color": "#d62828",
         "tags": [
             "SHAP",
             "LIME",
-            "Explainable AI"
+            "XAI"
         ]
     }
 }
