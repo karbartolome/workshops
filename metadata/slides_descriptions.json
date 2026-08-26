@@ -4,9 +4,10 @@
         "date": "2024-05-13",
         "description": "",
         "tags": [
-            "Calibration",
-            "Probability",
-            "Classification"
+            "Calibración",
+            "Probabilidad",
+            "Clasificación",
+            "Gain table"
         ]
     },
     "20250905-uba-pipelines": {
@@ -15,9 +16,9 @@
         "description": "",
         "tags": [
             "Pipeline",
-            "Model",
-            "Preprocessing",
-            "Classification"
+            "Feature engineering",
+            "Clasificación",
+            "Deploy "
         ]
     },
     "20260903-uba-monotonicconstraints": {
@@ -25,11 +26,10 @@
         "date": "2026-09-03",
         "description": "",
         "tags": [
-            "Models",
-            "Classification",
-            "Monotonic constraints",
+            "Clasificación",
+            "Restricciones Monotónicas",
             "Gradient Boosting",
-            "Explainable AI"
+            "XAI"
         ]
     }
 }
