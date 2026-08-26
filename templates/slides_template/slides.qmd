@@ -1,0 +1,155 @@
+---
+title: "Titulo del taller"
+subtitle: "Subtitulo o evento"
+author: Karina A. Bartolomé
+institute: |
+  Especialista en Métodos Cuantitativos para la Gestión y Análisis de Datos en Organizaciones (FCE, UBA). Lic. en Economía (FCE, UNLP). Líder técnica de Ciencia de Datos (Ualá).
+date: YYYY-MM-DD
+bibliography: bib.bib
+nocite: |
+  @*
+format: 
+    revealjs:
+        theme: [default, custom.scss]
+        logo: images/logo-uba.png
+        footer: |
+            <body>
+            Cimbage - IADCOM | Facultad de Ciencias Económicas - UBA
+            </body>
+        self-contained: true
+        embed-resources: true
+        slide-number: true
+        toc: true
+        toc-depth: 1
+        number-sections: true
+        number-depth: 2
+        title-slide-attributes:
+            data-background-size: contain  
+        fontawesome: true
+        code-overflow: scroll
+# format: beamer
+jupyter: 
+  kernelspec:
+    name: "python3"
+    language: "python"
+    display_name: "Python 3"
+execute:
+  echo: false
+  warning: false
+  code-fold: false
+  layout-align: center
+lang: es
+---
+
+```{python}
+#| label: libs
+#| eval: false
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from IPython.display import display, Markdown, Latex
+
+import sklearn
+```
+
+```{python}
+#| label: params
+#| eval: false
+color_verde = "#255255"
+color_verde_claro = "#BDCBCC"
+color_naranja = "#FF9933"
+color_azul = "#3399FF"
+target = "target"
+```
+
+## Consideraciones previas
+
+::: {style="font-size: 70%;"}
+
+-   Este taller está orientado a `PUBLICO_OBJETIVO`. Se recomienda contar con conocimientos previos de `CONOCIMIENTOS_PREVIOS`.
+
+-   Durante el seminario se utilizarán los siguientes paquetes (**python**):
+
+```{python}
+#| echo: false
+#| eval: false
+#| label: libs-versions
+import matplotlib
+from IPython.display import display, Markdown, Latex
+Markdown(f"""
+📦 pandas=={pd.__version__}\n
+📦 numpy=={np.__version__}\n
+📦 scikit-learn=={sklearn.__version__}\n
+📦 matplotlib=={matplotlib.__version__}\n
+📦 seaborn=={sns.__version__}\n
+""")
+```
+
+-   Todo el código se encuentra disponible en {{< fa brands github size=1x >}} <a href="https://github.com/karbartolome/workshops" target="_blank">Repositorio</a>.
+
+:::
+
+# Planteo del caso
+
+## Titulo del caso
+
+::: {style="font-size: 70%;"}
+```{python}
+#| echo: true
+#| eval: false
+#| code-fold: true
+#| code-summary: "Lectura de datos"
+#| label: data
+
+df = pd.read_csv("data/dataset.csv")
+```
+
+Se cuenta con un dataset de `N_OBSERVACIONES` observaciones y `N_VARIABLES` variables.
+
+> Pregunta guía del taller.
+
+:::
+
+------------------------------------------------------------------------
+
+# Contenido
+
+## Primera sección
+
+::: {style="font-size: 75%;"}
+-   Idea principal.
+-   Concepto clave.
+-   Ejemplo o resultado.
+:::
+
+## Segunda sección
+
+::: {style="font-size: 75%;"}
+Texto, código o figura.
+:::
+
+# Comentarios finales
+
+## Comentarios finales
+
+::: {style="font-size: 75%;"}
+-   Mensaje principal.
+-   Recomendación práctica.
+-   Próximo paso.
+:::
+
+## Referencias / Recursos
+
+::: {#refs}
+:::
+
+## Contacto
+
+{{< fa brands linkedin size=1x >}} [karinabartolome](https://www.linkedin.com/in/karinabartolome/)
+
+{{< fa brands twitter size=1x >}} [karbartolome](https://twitter.com/karbartolome)
+
+{{< fa brands github size=1x >}} [karbartolome](http://github.com/karbartolome)
+
+{{< fa link >}} [Blog](https://karbartolome-blog.netlify.app/)

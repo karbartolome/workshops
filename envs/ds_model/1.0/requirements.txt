@@ -1,0 +1,35 @@
+# --- Core Math & Data Manipulation ---
+numpy==1.26.4
+pandas==2.2.3
+scipy==1.13.1
+pyarrow==16.1.0
+rich==15.0.0
+
+# --- Machine Learning & Modeling ---
+scikit-learn==1.5.2
+statsmodels==0.14.4
+catboost==1.2.7
+shap==0.46.0
+optuna==3.6.1
+joblib==1.4.2
+
+# --- Visualization & Reporting ---
+matplotlib==3.9.2
+seaborn==0.13.2
+great-tables==0.10.0
+
+# --- Interactive Environment & Execution ---
+jupyterlab==4.2.5
+ipykernel==6.29.5
+ipywidgets==8.1.8
+notebook==7.2.2
+tqdm==4.66.5
+
+# --- Kaggle datasets ---
+kagglehub==1.0.2
+
+
+
+
+
+

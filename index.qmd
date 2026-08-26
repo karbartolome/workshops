@@ -1,0 +1,230 @@
+---
+title: "Workshops"
+subtitle: "Karina Bartolomé"
+format:
+  html:
+    page-layout: full
+    css: []
+    theme: cosmo
+    grid:
+      body-width: 1100px
+---
+
+```{=html}
+<style>
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 28px;
+  margin-top: 1.5em;
+}
+.card {
+  display: block;
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
+  overflow: hidden;
+  text-decoration: none;
+  color: #131516;
+  background: #fff;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+.thumb-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 */
+  overflow: hidden;
+  background: #131516;
+  border-bottom: 1px solid #e2e2e2;
+}
+.thumb-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 400%;
+  height: 400%;
+  transform: scale(0.25);
+  transform-origin: top left;
+  border: none;
+  pointer-events: none;
+}
+.card-body {
+  padding: 14px 16px 18px;
+}
+.card-body h3 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  color: #131516;
+}
+.card-body .date {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: #6b6b6b;
+}
+.card-body .desc {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  color: #333;
+}
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tag {
+  font-size: 0.75rem;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--tag-bg, #107895);
+  color: var(--tag-fg, #fff);
+}
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
+  background: #f7f7f7;
+}
+#tag-search {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  min-width: 180px;
+}
+.tag-filter-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+.tag-filter {
+  font-size: 0.8rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--tag-bg, #107895);
+  background: #fff;
+  color: var(--tag-bg, #107895);
+  cursor: pointer;
+}
+.tag-filter:hover {
+  background: rgba(17, 24, 39, 0.04);
+}
+.tag-filter.active {
+  background: var(--tag-bg, #107895);
+  color: var(--tag-fg, #fff);
+}
+.clear-filters {
+  font-size: 0.8rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid #9a2515;
+  background: #fff;
+  color: #9a2515;
+  cursor: pointer;
+}
+.clear-filters:hover {
+  background: #fbeae7;
+}
+
+</style>
+```
+
+```{=html}
+
+<div class="filter-bar">
+  <input type="text" id="tag-search" placeholder="Buscar tags..." />
+  <div class="tag-filter-list" id="tag-filter-list"><button class="tag-filter tag-filter-evaluation" data-tag="calibration" style="--tag-bg: #f4a261; --tag-fg: #fff;">Calibration</button><button class="tag-filter tag-filter-general" data-tag="classification" style="--tag-bg: #107895; --tag-fg: #fff;">Classification</button><button class="tag-filter tag-filter-explainable_ai" data-tag="explainable ai" style="--tag-bg: #d62828; --tag-fg: #fff;">Explainable AI</button><button class="tag-filter tag-filter-modelling" data-tag="gradient boosting" style="--tag-bg: #107895; --tag-fg: #fff;">Gradient Boosting</button><button class="tag-filter tag-filter-general" data-tag="model" style="--tag-bg: #107895; --tag-fg: #fff;">Model</button><button class="tag-filter tag-filter-general" data-tag="models" style="--tag-bg: #107895; --tag-fg: #fff;">Models</button><button class="tag-filter tag-filter-modelling" data-tag="monotonic constraints" style="--tag-bg: #107895; --tag-fg: #fff;">Monotonic constraints</button><button class="tag-filter tag-filter-general" data-tag="pipeline" style="--tag-bg: #107895; --tag-fg: #fff;">Pipeline</button><button class="tag-filter tag-filter-general" data-tag="preprocessing" style="--tag-bg: #107895; --tag-fg: #fff;">Preprocessing</button><button class="tag-filter tag-filter-general" data-tag="probability" style="--tag-bg: #107895; --tag-fg: #fff;">Probability</button></div>
+  <button class="clear-filters" id="clear-filters">Limpiar filtros</button>
+</div>
+<div class="grid">
+
+<a class="card" href="slides/20260903-uba-monotonicconstraints/slides.html" target="_blank" rel="noopener" data-tags="models|classification|monotonic constraints|gradient boosting|explainable ai">
+  <div class="thumb-wrapper">
+    <iframe class="thumb-iframe" src="slides/20260903-uba-monotonicconstraints/slides.html" scrolling="no" tabindex="-1"></iframe>
+  </div>
+  <div class="card-body">
+    <h3>Restricciones monotónicas en modelos de clasificación</h3>
+    <p class="date">2026-09-03</p>
+    <p class="desc"></p>
+    <div class="tags"><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Models</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Classification</span><span class="tag tag-modelling" style="--tag-bg: #107895; --tag-fg: #fff;">Monotonic constraints</span><span class="tag tag-modelling" style="--tag-bg: #107895; --tag-fg: #fff;">Gradient Boosting</span><span class="tag tag-explainable_ai" style="--tag-bg: #d62828; --tag-fg: #fff;">Explainable AI</span></div>
+  </div>
+</a>
+
+<a class="card" href="slides/20250905-uba-pipelines/slides.html" target="_blank" rel="noopener" data-tags="pipeline|model|preprocessing|classification">
+  <div class="thumb-wrapper">
+    <iframe class="thumb-iframe" src="slides/20250905-uba-pipelines/slides.html" scrolling="no" tabindex="-1"></iframe>
+  </div>
+  <div class="card-body">
+    <h3>Del dato al modelo</h3>
+    <p class="date">2025-09-05</p>
+    <p class="desc"></p>
+    <div class="tags"><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Pipeline</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Model</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Preprocessing</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Classification</span></div>
+  </div>
+</a>
+
+<a class="card" href="slides/20240513-uba-calibracion/slides.html" target="_blank" rel="noopener" data-tags="calibration|probability|classification">
+  <div class="thumb-wrapper">
+    <iframe class="thumb-iframe" src="slides/20240513-uba-calibracion/slides.html" scrolling="no" tabindex="-1"></iframe>
+  </div>
+  <div class="card-body">
+    <h3>Calibración de probabilidades</h3>
+    <p class="date">2024-05-13</p>
+    <p class="desc"></p>
+    <div class="tags"><span class="tag tag-evaluation" style="--tag-bg: #f4a261; --tag-fg: #fff;">Calibration</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Probability</span><span class="tag tag-general" style="--tag-bg: #107895; --tag-fg: #fff;">Classification</span></div>
+  </div>
+</a>
+</div>
+
+<script>
+(function () {
+  const searchInput = document.getElementById('tag-search');
+  const tagButtons = Array.from(document.querySelectorAll('.tag-filter'));
+  const clearBtn = document.getElementById('clear-filters');
+  const cards = Array.from(document.querySelectorAll('.card'));
+  const activeTags = new Set();
+
+  function applyFilter() {
+    cards.forEach((card) => {
+      const cardTags = (card.dataset.tags || '').split('|').filter(Boolean);
+      const visible = activeTags.size === 0 || Array.from(activeTags).every((t) => cardTags.includes(t));
+      card.style.display = visible ? '' : 'none';
+    });
+  }
+
+  tagButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tag = btn.dataset.tag;
+      if (activeTags.has(tag)) {
+        activeTags.delete(tag);
+        btn.classList.remove('active');
+      } else {
+        activeTags.add(tag);
+        btn.classList.add('active');
+      }
+      applyFilter();
+    });
+  });
+
+  searchInput.addEventListener('input', () => {
+    const query = searchInput.value.trim().toLowerCase();
+    tagButtons.forEach((btn) => {
+      btn.style.display = btn.dataset.tag.includes(query) ? '' : 'none';
+    });
+  });
+
+  clearBtn.addEventListener('click', () => {
+    activeTags.clear();
+    tagButtons.forEach((btn) => btn.classList.remove('active'));
+    applyFilter();
+  });
+})();
+</script>
+```

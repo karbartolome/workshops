@@ -1,0 +1,35 @@
+{
+    "20240513-uba-calibracion": {
+        "name": "Calibración de probabilidades",
+        "date": "2024-05-13",
+        "description": "",
+        "tags": [
+            "Calibration",
+            "Probability",
+            "Classification"
+        ]
+    },
+    "20250905-uba-pipelines": {
+        "name": "Del dato al modelo",
+        "date": "2025-09-05",
+        "description": "",
+        "tags": [
+            "Pipeline",
+            "Model",
+            "Preprocessing",
+            "Classification"
+        ]
+    },
+    "20260903-uba-monotonicconstraints": {
+        "name": "Restricciones monotónicas en modelos de clasificación",
+        "date": "2026-09-03",
+        "description": "",
+        "tags": [
+            "Models",
+            "Classification",
+            "Monotonic constraints",
+            "Gradient Boosting",
+            "Explainable AI"
+        ]
+    }
+}

@@ -1,0 +1,738 @@
+---
+title: "Calibración de probabilidades"
+subtitle: "Estimación de riesgo crediticio mediante modelos de machine learning"
+author: Karina A. Bartolomé
+date: 2024-05-13
+bibliography: bib.bib
+nocite: |
+  @*
+format: 
+    revealjs:
+        theme: [default, ../../templates/slides_template/custom.scss]
+        logo: ../../templates/slides_template/images/logo-uba.png
+        footer: |
+            <body>
+            Cimbage - IADCOM | Facultad de Ciencias Económicas - UBA | bit.ly/calibracion-uba
+            </body>
+        self-contained: true
+        embed-resources: true
+        slide-number: true
+        toc: true
+        toc-depth: 1
+        number-sections: true
+        number-depth: 2
+        title-slide-attributes:
+            data-background-size: contain  
+jupyter: 
+  kernelspec:
+    name: "ds_model_1_0"
+    language: "python"
+    display_name: "Python (ds_model_1_0)"
+execute:
+  echo: false
+  warning: false
+  code-fold: false
+  layout-align: center
+lang: es
+---
+
+```{r}
+reticulate::use_condaenv('quarto-env', required=TRUE)
+```
+
+
+```{python}
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap, to_rgb
+from great_tables import GT, from_column, style, loc
+from collections import Counter
+
+# from sklearn import datasets
+# Modelado
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.compose import make_column_selector
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
+from sklearn.svm import SVC, LinearSVC
+from sklearn.calibration import calibration_curve, CalibratedClassifierCV
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score, f1_score,
+    roc_auc_score,
+    roc_curve,
+    RocCurveDisplay,
+    log_loss,
+    recall_score,
+    brier_score_loss,
+    confusion_matrix,
+    ConfusionMatrixDisplay,
+)
+from IPython.display import display, Markdown
+
+# Funciones adicionales: 
+from functions import (
+    plot_distribution,
+    plot_calibration_models,
+    plot_calibration,
+    calibrate_model,
+    calibration_table,
+    calculate_clf_metrics,
+)
+
+import sklearn
+sklearn.set_config(transform_output="pandas")
+```
+
+```{python}
+import matplotlib
+import great_tables
+from IPython.display import display, Markdown, Latex
+```
+
+```{python}
+color_verde = "#255255"
+color_verde_claro = "#BDCBCC"
+```
+
+# Modelo de clasificación binaria
+
+## Datos
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Código"
+PATH_DATA = 'https://raw.githubusercontent.com/karbartolome/workshops/main/20240513-uba-calibracion/df_german_credit.csv'
+TARGET = "Risk"
+df = (pd.read_csv(PATH_DATA)
+  .drop('Unnamed: 0', axis=1)
+  .assign(Risk = lambda x: np.where(x['Risk']=='good',0,1))
+)
+```
+
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Código"
+#| tbl-cap: "Datos de German Credit (muestra de 6 observaciones)"
+#| label: tbl-credit-data
+def map_color(data):
+    return (data[TARGET] == 1).map(
+        {True: color_verde_claro, False: 'white'}
+    )
+
+(GT(df.sample(6, random_state=123)
+        .set_index(TARGET)
+        .reset_index()
+    )
+    .fmt_currency(columns="Credit amount")
+    .tab_style(
+        style=style.fill(color=map_color), locations=loc.body(columns=df.columns.tolist()),
+    )
+    .tab_style(
+        style=style.text(color='red', weight = "bold"), locations=loc.body(TARGET),
+    )
+    .tab_options(
+        column_labels_background_color=color_verde,
+        table_font_names="Times New Roman"
+    )
+)
+```
+
+## Particiones
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Generación de particiones"
+#| label: particiones
+#| results: 'asis'
+y = df[TARGET]
+X = df.drop([TARGET], axis=1)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.5, shuffle=True, stratify=y, random_state=42
+)
+
+# Lo ideal es utilizar la partición de validación para calibración
+X_valid, X_test, y_valid, y_test = train_test_split(
+    X_test, y_test, test_size=0.5, shuffle=True, stratify=y_test, random_state=42
+)
+
+display(Markdown(f"N observaciones en entrenamiento: {X_train.shape[0]}"))
+display(Markdown(f"N observaciones en validación: {X_valid.shape[0]}"))
+display(Markdown(f"N observaciones en evaluación: {X_test.shape[0]}"))
+```
+
+
+## Preprocesamiento
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Preprocesador"
+numeric_transformer = Pipeline([
+    ('impute', SimpleImputer(strategy='median')),
+    ('scaler', MinMaxScaler())
+])
+
+categorical_transformer = Pipeline([
+    ('ohe',OneHotEncoder(
+        min_frequency=0.05,
+        drop='if_binary',
+        handle_unknown='infrequent_if_exist',
+        sparse_output=False)
+    )
+])
+
+preproc = ColumnTransformer([
+    ('num', numeric_transformer,
+      make_column_selector(dtype_include=['float','int'])),
+    ('cat', categorical_transformer,
+      make_column_selector(dtype_include=['object','category']))
+], verbose_feature_names_out=False)
+```
+
+```{python}
+display(GT(preproc.fit_transform(X_train).sample(2).round(2))
+    .tab_options(
+        column_labels_background_color=color_verde,
+        table_font_names="Times New Roman"
+    )
+)
+```
+
+## Modelado
+
+Se ajustan distintos tipos de modelos reutilizando el mismo `pipeline` de preprocesamiento de datos:
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Generador de pipelines"
+def gen_pipe(model):
+    pipe = Pipeline([
+        ('preproc', preproc),
+        ('model',model)
+    ])
+    return pipe
+```
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Especificación de modelos"
+pipe_hist = gen_pipe(
+    model = HistGradientBoostingClassifier(
+        max_depth=4, learning_rate=0.1, max_iter=1000,
+        random_state=42,
+    )
+)
+pipe_hist_balanced = gen_pipe(
+    model = HistGradientBoostingClassifier(
+        max_depth=4, learning_rate=0.1, max_iter=1000, class_weight='balanced',
+        random_state=42, 
+    )
+)
+pipe_tree = gen_pipe(model = DecisionTreeClassifier(random_state=42))
+pipe_reglog = gen_pipe(model = LogisticRegression(random_state=42))
+pipe_reglog_balanced = gen_pipe(model = LogisticRegression(random_state=42, class_weight='balanced'))
+pipe_svc = gen_pipe(model = SVC(random_state=42, probability=True))
+```
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Diccionario de modelos"
+models_dict = {
+    'Regresión logística': pipe_reglog,
+    'Hist gradient boosting': pipe_hist,
+    'Hist gradient boosting (balanceado)': pipe_hist_balanced
+}
+```
+
+## Comparación de modelos
+
+```{python}
+#| output: False
+for i in models_dict.keys():
+    models_dict.get(i).fit(X_train, y_train)
+```
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Cálculo de métricas de evaluación"
+metrics_df = pd.DataFrame()
+for i in models_dict.keys():
+    pipe = models_dict.get(i)
+    preds = pd.DataFrame({
+        'y_true': y_test,
+        'y_pred': pipe.predict(X_test),
+        'y_pred_prob': pipe.predict_proba(X_test)[:,1],
+    })
+    m = calculate_clf_metrics(
+        preds['y_true'], preds['y_pred'], preds['y_pred_prob'], 
+        name=i
+    ).reset_index().rename({'index':'Modelo'},axis=1)
+    metrics_df = pd.concat([metrics_df, m], axis=0, ignore_index=True)
+```
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Display de métricas"
+#| tbl-cap: "Métricas de los modelos en la partición de evaluación"
+#| label: tbl-metrics-uncalibrated
+(GT(metrics_df.round(2))
+    .data_color(
+        columns=['Accuracy','Precision','Recall','F1','ROC AUC'],
+        palette=[color_verde_claro, color_verde]
+    )
+    .data_color(
+        columns=['Log Loss','Brier Loss'], palette=['white', 'red']
+    )
+    .tab_spanner(
+        label="Clasificación",
+        columns=["Accuracy","Recall","Precision","F1"]
+    )
+    .tab_spanner(
+        label="Ordenamiento",
+        columns=["ROC AUC"]
+    )
+    .tab_spanner(
+        label="Probabilidad",
+        columns=["Log Loss", "Brier Loss"]
+    )
+)
+```
+
+
+## Problema organizacional
+::: {style="font-size: 60%;"}
+
+> ¿Cuán útiles son las predicciones de probabilidad del modelo?
+
+Se utiliza el modelo para generar predicciones sobre las observaciones de test (@tbl-pred), agrupando las predicciones en 5 intervalos de probabilidad. La @tbl-pred-bins contiene la cantidad de observaciones por bin y el promedio de y_obs e y_pred. En la @fig-reliability se visualiza la probabilidad promedio por bin en el eje x y la fracción de clase positiva observada en el eje y.
+
+::: columns
+::: {.column width="30%" .add-space}
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Preds"
+#| tbl-cap: "Predicciones"
+#| label: tbl-pred
+preds_df = (pd.DataFrame({
+        'y_obs':y_test,
+        'y_pred':pipe_hist.predict_proba(X_test)[:,1]
+    })
+    .assign(bin=lambda x: pd.qcut(x['y_pred'],q=5, precision=5))
+)
+preds_df['bin'] = pd.IntervalIndex(preds_df['bin']).map(lambda x: pd.Interval(round(x.left, 2), round(x.right, 2)))
+(GT(preds_df
+    .sample(3, random_state=123).round(4))
+    .tab_options(
+        column_labels_background_color=color_verde,
+        table_font_names="Times New Roman"
+    )
+)
+```
+
+:::
+::: {.column width="30%" .add-space}
+```{python}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Bins"
+#| tbl-cap: "Bins de las predicciones"
+#| label: tbl-pred-bins
+(GT(preds_df.groupby('bin')
+    .agg(
+        N = ('y_obs','count'), 
+        frac_positive=('y_obs','mean'),
+        avg_pred = ('y_pred','mean')
+    ).round(2).reset_index()
+    )
+    .tab_options(
+        column_labels_background_color=color_verde,
+        table_font_names="Times New Roman"
+    )
+)
+```
+:::
+::: {.column width="30%"}
+
+```{python}
+# | echo: true
+# | eval: true
+# | code-fold: true
+# | code-summary: "Calibración"
+# | label: fig-reliability
+# | fig-cap: "Gráfico de calibración (Reliability diagram)"
+from sklearn.calibration import calibration_curve
+prob_true, prob_pred = calibration_curve(
+    y_test, pipe_hist.predict_proba(X_test)[:,1], 
+    n_bins=5,
+    strategy='uniform'
+)
+plt.figure(figsize=(3,3))
+sns.lineplot(x=prob_pred, y=prob_true, color='red', label='Modelo')
+sns.scatterplot(x=prob_pred, y=prob_true, color='red')
+plt.axline([0, 0], [1, 1], c=color_verde)
+plt.legend()
+plt.xlabel("Probabilidad predicha")
+plt.ylabel("Fracción de positivos");
+```
+:::
+:::
+:::
+
+# Calibración de probabilidades
+
+## Calibración de probabilidades
+**Objetivo:** 
+
+Se busca encontrar una función que ajuste la relación entre los scores predichos por el modelo (predict_proba) y las probabilidades reales
+
+> $P(y_i=1)= f(z_i)$
+>
+> Siendo: $P(y_{i}=1)$ la probabilidad calibrada para el individuo $i$ y $z_{i}$ el output del modelo no calibrado (score)
+
+Un clasificador binario bien calibrado debería clasificar de forma tal que para las observaciones que predice un score (predict_proba) = 0.8, se espera que un 80% de las observaciones correspondan a la clase positiva (1).
+
+**Referencias:**
+
+- [Calibración de probabilidades en {scikit-learn} 📦 ](https://scikit-learn.org/stable/modules/calibration.html)
+
+
+## Calibración de probabilidades (Cont.)
+
+::: {.fragment .fade-in}
+**Métodos de calibración**
+
+::: {.fragment .highlight-red}
+ Calibración Sigmoide (Platt scaling)
+
+ Calibración Isotónica
+:::
+
+ Calibración Beta (Nuevo)
+
+ Calibración Spline (Nuevo)
+:::
+
+## Calibración sigmoide (Platt scaling)
+Este método [@platt2000] asume una relación logística entre los scores (z) y la probabilidad real (p):
+
+> $log(\frac{p}{1-p})=\alpha+\beta(z_{i})$ 
+>
+>
+> $P(y_{i}=1) = \frac{1}{1+(e^{-(α+β(z_{i}))})}$
+>
+>
+> Siendo: $y_{i}$ el valor observado para el individuo $i$ y $z_{i}$ el output del modelo no calibrado
+
+<br>
+Se estiman 2 parámetros ($\alpha$ y $\beta$), como en una regresión logística. 
+
+- Requiere pocos datos
+
+- Es útil cuando el modelo no calibrado tiene errores similares en predicción de valores bajos y altos 
+
+
+
+## Calibración sigmoide (Platt scaling) (Cont.)
+::: {style="font-size: 50%;"}
+```{python}
+# | echo: true
+# | eval: false
+# | code-fold: true
+# | code-summary: "Ver código"
+pipe_sigmoid_hist, _, preds_hist = calibrate_model(
+    pipe=pipe_hist,
+    X_valid=X_valid, y_valid=y_valid, 
+    X_test=X_test, y_test=y_test,
+    cal_sigmoid=True,
+    cal_isotonic=False,
+    model_name=''
+)
+plot_calibration(
+    preds=preds_hist,
+    y_pred_prob_calibrated='pred_sigmoid',
+    model_name=''
+)
+```
+
+::: {.nav-pills}
+::: {.panel-tabset}
+```{python}
+# | output: asis
+for i in models_dict.keys():
+    display(Markdown(f"## {i}"))
+
+    # Curvas de calibración
+    pipe_sigmoid, _, preds = calibrate_model(
+        pipe=models_dict.get(i), 
+        X_valid=X_valid, y_valid=y_valid, 
+        X_test=X_test, y_test=y_test,
+        cal_sigmoid=True,
+        cal_isotonic=False,
+        model_name=i
+    )
+    plt.show()
+
+    # Calibración 
+    plot_calibration(
+        preds=preds,
+        y_pred_prob_calibrated='pred_sigmoid',
+        model_name=i
+    )
+    plt.title('Calibración')
+    plt.show()
+
+    display(Markdown(f" "))
+```
+:::
+:::
+
+```{python}
+#| eval: false
+from scipy.special import expit
+pipe_hist_cal = CalibratedClassifierCV(pipe_hist, method='sigmoid', cv='prefit')
+pipe_hist_cal.fit(X_valid, y_valid)
+A = pipe_hist_cal.calibrated_classifiers_[0].calibrators[0].a_
+B = pipe_hist_cal.calibrated_classifiers_[0].calibrators[0].b_
+print(f"Intercept={B:.2}, Beta={A:.2}")
+
+df_preds = pd.DataFrame({
+    "y_valid": y_valid,
+    "y_valid_uncal": pipe_hist.predict_proba(X_valid)[:, 1],
+    "y_valid_platt_sklearn":pipe_hist_cal.predict_proba(X_valid)[:,1]
+}).assign(
+     y_valid_platt_manual=lambda x: 1 / (1 + np.exp(-(A * x['y_valid_uncal'] + B)))
+)
+
+plot_calibration(
+    preds=df_preds,
+    y_obs='y_valid',
+    y_pred_prob_calibrated='y_valid_platt_manual',
+    y_pred_prob = 'y_valid_uncal',
+    model_name='Modelo'
+)
+
+clf_log = LogisticRegression(random_state=42, C=1, fit_intercept=True)
+# clf_log.fit(X=df_preds[['y_valid_uncal']], y=df_preds['y_valid'])
+# beta = clf_log.coef_[0,0]
+# intercepto=clf_log.intercept_[0]
+# print(f"Intercepto={intercepto:.2}, Beta={beta:.2}")
+
+# df_preds["y_valid_cal"] = clf_log.predict_proba(df_preds[["y_valid_uncal"]])[:, 1]
+# plot_calibration(
+#     preds=df_preds,
+#     y_obs='y_valid',
+#     y_pred_prob_calibrated='y_valid_cal',
+#     y_pred_prob = 'y_valid_uncal',
+#     model_name='Modelo'
+# )
+
+platt_lr = LogisticRegression(solver='lbfgs')
+platt_lr.fit(pipe_hist.predict_proba(X_valid)[:, 1].reshape(-1, 1), y_valid)
+beta = platt_lr.coef_[0,0]
+intercepto=platt_lr.intercept_[0]
+print(f"Intercepto={intercepto:.2}, Beta={beta:.2}")
+# Calibrate the probabilities
+y_valid_platt_manual = platt_lr.predict_proba(pipe_hist.predict_proba(X_valid)[:, 1].reshape(-1, 1))[:, 1]
+
+# Compare with original and calibrated probabilities
+df_preds = pd.DataFrame({
+    "y_valid": y_valid,
+    "y_valid_uncal": pipe_hist.predict_proba(X_valid)[:, 1],
+    "y_valid_platt_sklearn": pipe_hist_cal.predict_proba(X_valid)[:, 1],
+    "y_valid_platt_manual": y_valid_platt_manual
+})
+```
+:::
+
+## Calibración isotónica
+
+@Zadrozny2002 proponen un método alternativo al propuesto por @platt2000: calibrar probabilidades mediante el uso de un método de regresión no paramétrico (**regresión isotónica**). 
+
+Si se asume que el modelo ordena bien, el mappeo de `scores` a probabilidades es `no decreciente`. 
+
+
+> Se busca minimizar el error cuadrático mediante una función escalonada no decreciente (monotónica creciente):
+>
+> $\text{Min}\sum_{i=1}^{n}(y_i - \hat{f_i})^2$
+> 
+> Sujeto a $\hat{f_i}$ >= $\hat{f_j}$ siempre que $f_i$ > $f_j$ 
+
+$y_i$: valor observado en la obseravción $i$
+
+$\hat{f_i}$ probabilidad calibrada para la observación $i$
+
+::: {style="font-size: 50%;"}
+
+- Tiende a sobreajustar con pocos datos [@kull2017]. En general performa mejor que el método sigmoide cuando hay más de 1000 observaciones [@Niculescu2005]
+
+:::
+
+## Calibración isotónica (Cont.)
+::: {style="font-size: 50%;"}
+::: {.nav-pills}
+::: {.panel-tabset}
+```{python}
+# | output: asis
+for i in models_dict.keys():
+    display(Markdown(f"## {i}"))
+
+    pipe_sigmoid, pipe_isotonic, preds = calibrate_model(
+        pipe=models_dict.get(i), 
+        X_valid=X_valid, y_valid=y_valid, 
+        X_test=X_test, y_test=y_test,
+        cal_sigmoid=True,
+        cal_isotonic=True,
+        model_name=i
+    )
+    plt.show()
+
+    plot_calibration(preds=preds, y_pred_prob_calibrated='pred_isotonic', model_name=i)
+    plt.show()
+
+    display(Markdown(f" "))
+```
+:::
+:::
+:::
+
+## Comparativa de métricas
+::: {style="font-size: 70%;"}
+```{python}
+metrics_df_sigmoid = pd.DataFrame()
+metrics_df_isotonic = pd.DataFrame()
+preds_dict = {}
+for i in models_dict.keys():
+    pipe = models_dict.get(i)
+    _, _, preds = calibrate_model(
+        pipe=models_dict.get(i), 
+        X_valid=X_valid, y_valid=y_valid, 
+        X_test=X_test, y_test=y_test,
+        cal_sigmoid=True,
+        cal_isotonic=True,
+        model_name=i,
+        plot_cal=False
+    )
+   
+    m = calculate_clf_metrics(
+        preds['y_obs'], preds['pred_class_sigmoid'], preds['pred_sigmoid'], 
+        name=i
+    ).reset_index().rename({'index':'Modelo'},axis=1)
+    metrics_df_sigmoid = pd.concat([metrics_df_sigmoid, m], axis=0, ignore_index=True)
+
+    m = calculate_clf_metrics(
+        preds['y_obs'], preds['pred_class_sigmoid'], preds['pred_isotonic'], 
+        name=i
+    ).reset_index().rename({'index':'Modelo'},axis=1)
+    metrics_df_isotonic = pd.concat([metrics_df_isotonic, m], axis=0, ignore_index=True)
+```
+
+::: {.nav-pills}
+::: {.panel-tabset}
+
+```{python}
+# | output: asis
+metrics_dfs = {
+    'Modelo no calibrado': metrics_df,
+    'Calibración sigmoide': metrics_df_sigmoid,
+    'Calibración isotónica': metrics_df_isotonic
+}
+for i in metrics_dfs.keys():
+    display(Markdown(f"## {i}"))
+    display(GT(metrics_dfs.get(i).round(2))
+        .data_color(
+            columns=['Accuracy','Precision','Recall','F1','ROC AUC'],
+            palette=[color_verde_claro, color_verde]
+        )
+        .data_color(
+            columns=['Log Loss','Brier Loss'], palette=['white', 'red']
+        )
+        .tab_spanner(
+            label="Clasificación",
+            columns=["Accuracy","Recall","Precision","F1"]
+        )
+        .tab_spanner(
+            label="Ordenamiento",
+            columns=["ROC AUC"]
+        )
+        .tab_spanner(
+            label="Probabilidad",
+            columns=["Log Loss", "Brier Loss"]
+        )
+    )
+    display(Markdown(f" "))
+```
+:::
+:::
+:::
+
+## Tabla de calibración
+::: {.nav-pills}
+::: {.panel-tabset}
+```{python}
+# | output: asis
+for i in models_dict.keys():
+    display(Markdown(f"## {i}"))
+    _, _, preds = calibrate_model(
+        pipe=models_dict.get(i), 
+        X_valid=X_valid, y_valid=y_valid, 
+        X_test=X_test, y_test=y_test,
+        cal_sigmoid=True,
+        cal_isotonic=True,
+        model_name=i,
+        plot_cal=False
+    )
+    display(Markdown('Modelo no calibrado'))
+    calibration_table(preds=preds, bins=5, title='Modelo no calibrado')
+    display(Markdown('Modelo calibrado (sigmoide)'))
+    calibration_table(preds=preds, pred_column='pred_sigmoid', bins=5, title='Modelo calibrado (sigmoide)')
+    display(Markdown(f" "))
+```
+:::
+:::
+
+# Comentarios finales
+## Comentarios finales
+- En ciertos casos de modelos de clasificación podría no importar la calibración de probabilidades
+
+- Algunos modelos tienden a estar más calibrados por defecto (regresión logística)
+
+- Un modelo bien calibrado permite establecer puntos de corte diferenciales en función de la probabilidad predicha
+
+<a href="https://drive.google.com/file/d/1n5ltjBMJ62QCXvHN43DIcQ-mgz_RYICe/view?usp=sharing" target="_blank" style="display: inline-block; text-decoration: none;">
+    <img src="https://colab.research.google.com/img/colab_favicon_256px.png" alt="Google Colab" style="width: 50px; height: 50px;">
+    <span style="vertical-align: middle;">Ejemplo en Google Colab</span>
+</a>
+
+## Referencias / Recursos
+::: {#refs}
+:::
+
+## Contacto
+
+{{< fa brands linkedin size=1x >}} [karinabartolome](https://www.linkedin.com/in/karinabartolome/)
+
+{{< fa brands twitter size=1x >}} [karbartolome](https://twitter.com/karbartolome)
+
+{{< fa brands github size=1x >}} [karbartolome](http://github.com/karbartolome)
+
+{{< fa link >}} [Blog](https://karbartolome-blog.netlify.app/)
+
