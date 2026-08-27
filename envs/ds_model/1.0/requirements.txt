@@ -19,7 +19,6 @@ seaborn==0.13.2
 great-tables==0.10.0
 
 # --- Interactive Environment & Execution ---
-jupyterlab==4.2.5
 ipykernel==6.29.5
 ipywidgets==8.1.8
 notebook==7.2.2
