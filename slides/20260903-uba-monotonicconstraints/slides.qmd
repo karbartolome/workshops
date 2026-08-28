@@ -27,7 +27,6 @@ format:
             data-background-size: contain  
         fontawesome: true
         code-overflow: scroll
-# format: beamer
 jupyter: 
   kernelspec:
     name: "ds_model_1_0"
@@ -82,8 +81,6 @@ sklearn.set_config(transform_output="pandas")
 
 ## Consideraciones previas
 
-::: {style="font-size: 70%;"}
-
 -  Se recomienda contar con conocimientos previos de modelos de aprendizaje automático y programación (python).
 
 -   Todo el código se encuentra disponible en {{< fa brands github size=1x >}} <a href="https://github.com/karbartolome/workshops" target="_blank">Repositorio</a>
@@ -106,21 +103,28 @@ Markdown(f"""
 """)
 ```
 
-:::
-
 # Introducción a modelos de Machine Learning
 
-## Modelos
+## Modelos predictivos
 
-El desarrollo de modelos predictivos implica encontrar una relación entre N variables explicativas (X) y una variable objetivo (y).
+Un modelo de *machine learning* busca aprender una relación entre un conjunto de variables explicativas y una variable objetivo:
 
-$$y = f(X)$$
+$$
+y = f(X_1, X_2, \ldots, X_p)
+$$
 
-Esta relación es una función en modelos simples pero en modelos más complejos (ensambles, redes neuronales, etc.) no es tan claro el efecto de cada variable sobre la variable objetivo. 
+La diferencia entre los modelos está, principalmente, en la **flexibilidad de la función** $f$.
+
+| Modelo               | Relación entre $X$ e $y$          |
+| -------------------- | --------------------------------- |
+| Regresión lineal     | Simple y explícita                |
+| Árbol de decisión    | No lineal, basada en reglas       |
+| Ensambles y boosting | Compleja y altamente flexible     |
+| Redes neuronales     | Muy compleja y altamente flexible |
+
+A medida que aumenta la flexibilidad del modelo, puede mejorar su capacidad predictiva, pero resulta más difícil **controlar o interpretar cómo cada variable afecta la predicción**.
 
 ## Actores involucrados
-
-::: {style="font-size: 70%;"}
 
 **Datos → Modelo → Predicción → Decisión → Impacto**
 
@@ -135,14 +139,48 @@ En el ciclo de vida de los modelos predictivos intervienen diversos actores [@mo
 
 → Cada actor puede necesitar una explicación diferente
 
-:::
+## Modelos basados en árboles
 
+Los árboles de decisión pueden utilizarse individualmente o combinarse para construir modelos más potentes.
+
+```{mermaid}
+%%| fig-cap: "Principales tipos de modelos basados en árboles"
+%%| label: fig-ml-trees
+
+%%{init: {'flowchart': {'curve': 'linear'}}}%%
+
+graph LR
+
+    trees[Modelos basados<br/>en árboles]
+
+    single[Árbol individual<br/><i>Decision Tree</i>]
+
+    ensembles[Ensambles]
+
+    bagging[Bagging<br/><i>Random Forest</i>]
+
+    boosting[Boosting]:::focus
+
+    models[XGBoost<br/>LightGBM<br/>CatBoost<br/>HistGradientBoosting]:::focus
+
+    trees --> single
+    trees --> ensembles
+
+    ensembles --> bagging
+    ensembles --> boosting
+
+    boosting --> models
+
+    classDef focus fill:#BDCBCC,stroke:#333,stroke-width:3px,color:black;
+```
+
+Los modelos de boosting construyen un modelo combinando **múltiples árboles secuencialmente**, donde cada nuevo árbol busca mejorar los errores de los anteriores.
+
+**Las restricciones monotónicas se aplican principalmente en esta familia de modelos.**
 
 # Interpretabilidad de modelos
 
 ## XAI: Explainable AI
-
-::: {style="font-size: 70%;"}
 
 La **Inteligencia Artificial Explicable (XAI)** reúne métodos y técnicas que permiten describir el comportamiento de un modelo y comunicar por qué produce una predicción determinada [@molnar2025].
 
@@ -153,11 +191,7 @@ Una explicación debería ayudar a una persona a:
 - **Detectar** errores, sesgos o comportamientos inesperados.
 - **Auditar** el sistema y justificar una decisión ante otras personas.
 
-:::
-
 ## XAI: Explainable AI (Cont.)
-
-::: {style="font-size: 70%;"}
 
 **Dos niveles de explicación**
 
@@ -165,8 +199,6 @@ Una explicación debería ayudar a una persona a:
 - **Local**: explica una predicción particular, por ejemplo, por qué una persona recibió una determinada estimación de riesgo.
 
 > Una explicación describe el comportamiento del modelo; no necesariamente representa una relación causal del mundo real.
-
-:::
 
 ## Interpretación de modelos de Machine Learning
 
@@ -196,15 +228,11 @@ plot_interpretability_frontier(models)
 
 ## Explicabilidad de modelos
 
-::: {style="font-size: 70%;"}
-
 Al desarrollar modelos supervisados de Machine Learning, se suele contar con conocimiento de dominio. Las **buenas explicaciones de modelos deben ser consistentes con las creencias previas** del usuario del modelo [@molnar2025]. Una forma de incorporar esto en los modelos es mediante el uso de **restricciones monotónicas**. 
 
 > Ejemplos de conocimiento de dominio:
 > - **Predicción de precios de propiedades**: se espera que a mayor cantidad de $m^2$, mayor precio.
 > - **Predicción de riesgo de crédito**: se espera que a mayor edad, menor probabilidad de default.
-
-:::
 
 # Restricciones monotónicas
 
@@ -251,8 +279,6 @@ plt.show()
 ```
 
 ## Modelo con restricciones monotónicas
-
-::: {style="font-size: 70%;"}
 
 ```{python}
 #| echo: true
@@ -334,11 +360,7 @@ modelo_con_restriccion = HistGradientBoostingClassifier(
 modelo_con_restriccion.fit(X, y)
 ```
 
-:::
-
 ## Modelo con restricciones monotónicas (Cont.)
-
-::: {style="font-size: 70%;"}
 
 En la @fig-example-1 se observan los datos simulados. En la @fig-example-2 se comparan las predicciones de los modelos con y sin restricción monotónica creciente sobre la variable `monto`.
 
@@ -405,15 +427,11 @@ plt.show()
 - Modelo sin restricción: la probabilidad de *default* disminuye para ciertos rangos de `monto` (contraintuitivo).
 - Modelo con restricción: respeta la relación esperada entre `monto` y la probabilidad de *default*.
 
-:::
-
 # Caso: scoring crediticio
 
 ## Datos
 
 *GiveMeSomeCredit* es un dataset de scoring crediticio con información financiera y demográfica de individuos. El objetivo es modelar el riesgo de incumplimiento (*default*) a partir de esas características.
-
-::: {style="font-size: 70%;"}
 
 ```{python}
 #| echo: true
@@ -446,11 +464,7 @@ Se cuenta con un dataset de `{python} N_OBSERVACIONES` observaciones y `{python}
 > - ¿Cuál es la probabilidad de *default* de un individuo dadas ciertas características?
 > - ¿Cómo cambia esa probabilidad para un individuo si aumenta una variable, manteniendo el resto de las variables constantes?
 
-:::
-
 ## Análisis exploratorio de datos
-
-::: {style="font-size: 75%;"}
 
 ```{python}
 #| echo: false
@@ -487,8 +501,6 @@ plt.show()
 ```
 
 La variable `DebtRatio` mide la relación entre deuda e ingreso mensual. Para el modelo se acota al intervalo $[0, 1]$, evitando que valores extremos dominen la visualización.
-
-:::
 
 ## Modelo 
 
