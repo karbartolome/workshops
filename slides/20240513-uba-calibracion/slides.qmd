@@ -20,7 +20,7 @@ nocite: |
 format: 
     revealjs:
         theme: [default, ../../templates/slides_template/custom.scss]
-        logo: ../../templates/slides_template/logo-uba.png
+        logo: ../../templates/slides_template/images/logo-uba.png
         footer: |
             <body>
             Cimbage - IADCOM | Facultad de Ciencias Económicas - UBA | bit.ly/calibracion-uba
@@ -34,12 +34,13 @@ format:
         number-depth: 2
         title-slide-attributes:
             data-background-size: contain  
-# format: beamer
+shortcodes:
+  - ../../templates/slides_template/_extensions/quarto-ext/fontawesome/fontawesome.lua
 jupyter: 
   kernelspec:
-    name: "quarto-env"
+    name: "ds_model_1_0"
     language: "python"
-    display_name: "quarto-env"
+    display_name: "Python (ds_model_1_0)"
 execute:
   echo: false
   warning: false
@@ -65,7 +66,7 @@ lang: es
 
 - Durante el seminario se utilizarán los siguientes paquetes (**python**), con sus respectivas versiones.
 
-::: {style="font-size: 50%;"}
+::: {style="font-size: 70%;"}
 ```{python}
 #| echo: true
 #| code-fold: true
@@ -145,7 +146,7 @@ color_verde_claro = "#BDCBCC"
 # Introducción al aprendizaje automático
 
 ## Aprendizaje automático (*machine learning*)
-::: {style="font-size: 50%;"}
+::: {style="font-size: 70%;"}
 En general al hablar de **aprendizaje automático** se hace referencia a diversos tipos de modelos. En la @fig-ml-types se muestra una clasificaicón comunmente utilizada^[Para una introducción a este tipo de modelos, ver @james2023introduction]. En esta presentación se analizará el caso particular de los [modelos de clasificación]{style="color: blue"}, haciendo énfasis en la [estimación de probabilidad]{style="color: blue"}. 
 ```{mermaid}
 %%| fig-cap: "Tipos de modelos de aprendizaje automático"
@@ -217,8 +218,6 @@ Se busca [predecir la ocurrencia de un evento]{style="color: blue"} a partir de 
 
 ## Datos
 
-::: {style="font-size: 70%;"}
-
 ```{python}
 #| echo: true
 #| code-fold: true
@@ -264,10 +263,7 @@ def map_color(data):
 
 La variable objetivo (target) es Risk, donde el porcentaje de observaciones de clase 1 (riesgosos) es `{python} f"{df['Risk'].sum()/df.shape[0]:.1%}"`
 
-:::
-
 ## Particiones
-::: {style="font-size: 75%;"}
 
 Partición en dataset de entrenamiento, validación y evaluación.
 
@@ -297,10 +293,11 @@ display(Markdown(f"N observaciones en entrenamiento: {X_train.shape[0]}"))
 display(Markdown(f"N observaciones en validación: {X_valid.shape[0]}"))
 display(Markdown(f"N observaciones en evaluación: {X_test.shape[0]}"))
 ```
-::: 
 
 ## Modelo de clasificación simple
+
 ::: {style="font-size: 70%;"}
+
 Se consideran 2 variables para ajustar un modelo de arbol de decisión con máxima profundidad=2
 
 $$
@@ -369,7 +366,11 @@ arbol = plot_tree(
     class_names=labels,
     fontsize=8
 )
-for i, impurity, value in zip(arbol, clf.tree_.impurity, clf.tree_.value):
+plt.gcf().canvas.draw()  # force render so annotation bbox patches exist (newer matplotlib)
+# plot_tree also returns "True"/"False" edge-label annotations (no bbox) near the
+# root, which throws off a plain zip() with tree_.impurity/value; keep only node boxes
+nodos = [a for a in arbol if a.get_bbox_patch() is not None]
+for i, impurity, value in zip(nodos, clf.tree_.impurity, clf.tree_.value):
     # let the max value decide the color; whiten the color depending on impurity (gini)
     r, g, b = to_rgb(colors[np.argmax(value)])
     f = impurity * 2 # for N colors: f = impurity * N/(N-1) if N>1 else 0
@@ -383,7 +384,7 @@ plt.show()
 :::
 
 ## Evaluación de un modelo de clasificación
-::: {style="font-size: 50%;"}
+::: {style="font-size: 70%;"}
 Dados los datos de evaluación, se utiliza el modelo para predecir el valor de la variable objetivo. Mediante `predict()` se obtienen las predicciones de clase. Con `predict_proba()`el clasificador devuelve un score (valor entre 0 y 1). 
 
 ```{python}
@@ -516,7 +517,7 @@ flowchart LR
 :::
 
 ## Evaluación de un modelo de clasificación (Cont.)
-::: {style="font-size: 50%;"}
+::: {style="font-size: 70%;"}
 Siendo $N$ la cantidad de observaciones, $y_i$ el valor observado para la obseravción $i$ y $\hat{y_i}$ el valor predicho para la observación $i$, se definen las funciones de pérdida:
 
 ::: {.nav-pills .panel-tabset}
@@ -573,7 +574,8 @@ $$
 :::
 :::
 # Comparación de modelos de ML
-::: {style="font-size: 50%;"}
+
+::: {style="font-size: 70%;"}
 ## Preprocesamiento
 Muchos modelos de aprendizaje automático requieren que los datos sean numéricos. Para ello, se construye un pipeline de preprocesamiento de variables, diferenciando el procesamiento según tipo de variables: categóricas y numéricas.
 
@@ -612,6 +614,9 @@ preproc = ColumnTransformer([
 preproc
 ```
 
+<br>
+<br>
+
 En la @tbl-credit-data-preproc se visualizan los datos luego del preprocesamiento. Esta es la matriz que será utilizada para ajustar múltiples modelos de clasificación.
 ```{python}
 #| echo: true
@@ -629,7 +634,7 @@ display(GT(preproc.fit_transform(X_train).sample(2).round(2))
 :::
 
 ## Modelado
-::: {style="font-size: 50%;"}
+::: {style="font-size: 70%;"}
 Se ajustan distintos tipos de modelos reutilizando el mismo `pipeline` de preprocesamiento de datos:
 
 ```{python}
@@ -694,7 +699,7 @@ for i in models_dict.keys():
 :::
 
 ## Evaluación
-::: {style="font-size: 50%;"}
+::: {style="font-size: 70%;"}
 Se calculan las métricas de cada uno de los modelos:
 
 ```{python}
@@ -713,7 +718,7 @@ for i in models_dict.keys():
         preds['y_true'], preds['y_pred'], preds['y_pred_prob'], 
         name=i
     ).reset_index().rename({'index':'Modelo'},axis=1)
-    metrics_df = pd.concat([metrics_df, m], axis=0)
+    metrics_df = pd.concat([metrics_df, m], axis=0, ignore_index=True)
 ```
 
 
@@ -748,7 +753,7 @@ for i in models_dict.keys():
 :::
 
 ## Problema organizacional
-::: {style="font-size: 60%;"}
+::: {style="font-size: 70%;"}
 
 > ¿Cuán útiles son las predicciones de probabilidad del modelo?
 
@@ -883,7 +888,7 @@ Se estiman 2 parámetros ($\alpha$ y $\beta$), como en una regresión logística
 
 
 ## Calibración sigmoide (Platt scaling) (Cont.)
-::: {style="font-size: 50%;"}
+::: {style="font-size: 70%;"}
 ```{python}
 # | echo: true
 # | eval: false
@@ -1011,14 +1016,14 @@ $y_i$: valor observado en la obseravción $i$
 
 $\hat{f_i}$ probabilidad calibrada para la observación $i$
 
-::: {style="font-size: 50%;"}
+::: {style="font-size: 70%;"}
 
 - Tiende a sobreajustar con pocos datos [@kull2017]. En general performa mejor que el método sigmoide cuando hay más de 1000 observaciones [@Niculescu2005]
 
 :::
 
 ## Calibración isotónica (Cont.)
-::: {style="font-size: 50%;"}
+::: {style="font-size: 70%;"}
 ::: {.nav-pills}
 ::: {.panel-tabset}
 ```{python}
@@ -1046,7 +1051,7 @@ for i in models_dict.keys():
 :::
 
 ## Comparativa de métricas
-::: {style="font-size: 70%;"}
+
 ```{python}
 metrics_df_sigmoid = pd.DataFrame()
 metrics_df_isotonic = pd.DataFrame()
@@ -1067,13 +1072,13 @@ for i in models_dict.keys():
         preds['y_obs'], preds['pred_class_sigmoid'], preds['pred_sigmoid'], 
         name=i
     ).reset_index().rename({'index':'Modelo'},axis=1)
-    metrics_df_sigmoid = pd.concat([metrics_df_sigmoid, m], axis=0)
+    metrics_df_sigmoid = pd.concat([metrics_df_sigmoid, m], axis=0, ignore_index=True)
 
     m = calculate_clf_metrics(
         preds['y_obs'], preds['pred_class_sigmoid'], preds['pred_isotonic'], 
         name=i
     ).reset_index().rename({'index':'Modelo'},axis=1)
-    metrics_df_isotonic = pd.concat([metrics_df_isotonic, m], axis=0)
+    metrics_df_isotonic = pd.concat([metrics_df_isotonic, m], axis=0, ignore_index=True)
 ```
 
 ::: {.nav-pills}
@@ -1112,9 +1117,8 @@ for i in metrics_dfs.keys():
 ```
 :::
 :::
-:::
 
-::: {style="font-size: 50%;"}
+::: {style="font-size: 70%;"}
 ## Tabla de calibración
 ::: {.nav-pills}
 ::: {.panel-tabset}
@@ -1155,10 +1159,10 @@ for i in models_dict.keys():
 </a>
 
 ## Referencias / Recursos
-::: {style="font-size: 70%;"}
+
 ::: {#refs}
 :::
-:::
+
 
 ## Contacto
 

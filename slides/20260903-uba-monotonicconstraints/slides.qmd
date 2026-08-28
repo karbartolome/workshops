@@ -27,6 +27,8 @@ format:
             data-background-size: contain  
         fontawesome: true
         code-overflow: scroll
+shortcodes:
+  - ../../templates/slides_template/_extensions/quarto-ext/fontawesome/fontawesome.lua
 jupyter: 
   kernelspec:
     name: "ds_model_1_0"
@@ -212,7 +214,8 @@ Quienes toman decisiones necesitan entender cómo funciona el modelo para poder 
 #| label: fig-interpretability-vs-performance
 #| fig-cap: "Trade-off interpretabilidad vs. poder predictivo [@gunning2019darpa]."
 #| fig-align: "center"
-from utils import plot_interpretability_frontier
+from utils.intro import plot_interpretability_frontier
+
 models = [
     "Deep Learning",
     "Ensambles",
@@ -524,11 +527,11 @@ debt_ratio_preprocessor = FunctionTransformer(
 X_train = debt_ratio_preprocessor.fit_transform(X_train)
 X_test = debt_ratio_preprocessor.transform(X_test)
 
-modelo_sin_restriccion_credito = CatBoostClassifier(
-    iterations=100,
-    depth=8,
+modelo_sin_restriccion_credito = HistGradientBoostingClassifier(
+    max_iter=100,
+    max_depth=8,
     verbose=0,
-    random_seed=42,
+    random_state=42,
 )
 modelo_sin_restriccion_credito.fit(X_train, y_train)
 ```
@@ -569,12 +572,12 @@ Se espera que un mayor endeudamiento no reduzca el riesgo de incumplimiento. Por
 #| code-summary: "Ajuste con restricción monotónica"
 restricciones = {"DebtRatio": 1}
 
-modelo_con_restriccion_credito = CatBoostClassifier(
-    iterations=100,
-    depth=8,
-    monotone_constraints=restricciones,
+modelo_con_restriccion_credito = HistGradientBoostingClassifier(
+    max_iter=100,
+    max_depth=8,
+    monotonic_cst=restricciones,
     verbose=0,
-    random_seed=42,
+    random_state=42,
 )
 modelo_con_restriccion_credito.fit(X_train, y_train)
 ```
