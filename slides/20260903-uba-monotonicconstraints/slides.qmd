@@ -74,7 +74,7 @@ COLOR_GREEN = "#225522"
 COLOR_LIGHTGREEN = "#BDCBCC"
 COLOR_ORANGE = "#FF9933"
 COLOR_BLUE = "#3399FF"
-COLOR_TABLE_HEADER = "#9fa1a9"
+COLOR_TABLE_HEADER = "#d3d4d6"
 PATH_DATA = "../../data/GiveMeSomeCredit"
 TARGET = 'SeriousDlqin2yrs'
 
@@ -109,20 +109,44 @@ Markdown(f"""
 
 ## Modelos predictivos
 
-Un modelo de *machine learning* busca aprender una relación entre un conjunto de variables explicativas y una variable objetivo:
+Un modelo de *machine learning* busca aprender una relación entre un conjunto de [variables explicativas (X)]{style="color: blue"} y una [variable objetivo (y)]{style="color: red"} para predecir el valor de [y]{style="color: red"}  a partir de [X]{style="color: blue"} . 
 
 $$
-y = f(X_1, X_2, \ldots, X_p)
+\color{red}{y} = \color{black}{f}\left(\color{blue}{\mathbf{X}}\right)
 $$
 
-La diferencia entre los modelos está, principalmente, en la **flexibilidad de la función** $f$.
+$$
+\mathbf{X} = (X_1, X_2, \ldots, X_p)
+$$
 
-| Modelo               | Relación entre $X$ e $y$          |
-| -------------------- | --------------------------------- |
-| Regresión lineal     | Simple y explícita                |
-| Árbol de decisión    | No lineal, basada en reglas       |
-| Ensambles y boosting | Compleja y altamente flexible     |
-| Redes neuronales     | Muy compleja y altamente flexible |
+La diferencia entre los modelos está, principalmente, en la **flexibilidad de la función** $f$ [@hastie2009elements].
+
+```{python}
+#| echo: false
+#| eval: true
+#| tbl-cap: "Comparación de la forma de la función de predicción según el modelo"
+#| label: tbl-model-functions
+
+df = pd.DataFrame({
+    "Modelo": [
+        "Regresión lineal",
+        "Árbol de decisión",
+        "Ensambles y boosting",
+        "Redes neuronales"
+    ],
+    "Función de predicción (f)": [
+        "Lineal, poco flexible",
+        "No lineal, por partes",
+        "No lineal, flexible",
+        "No lineal, altamente flexible"
+    ]
+})
+
+GT(df).tab_options(
+        column_labels_background_color=COLOR_TABLE_HEADER,
+        table_font_names="Times New Roman"
+    )
+```
 
 A medida que aumenta la flexibilidad del modelo, puede mejorar su capacidad predictiva, pero resulta más difícil **controlar o interpretar cómo cada variable afecta la predicción**.
 
@@ -281,7 +305,7 @@ ax.set(title="Ejemplo de monotonicidad decreciente", xlabel="x", ylabel="f(x) = 
 plt.show()
 ```
 
-## Modelo con restricciones monotónicas
+## Ejemplo simple
 
 ```{python}
 #| echo: true
@@ -289,24 +313,22 @@ plt.show()
 #| code-fold: true
 #| code-summary: "Datos simulados"
 rng = np.random.default_rng(42)
-n_total = 1000
-monto = rng.integers(1000, 30001, size=n_total)
+n = 1_000
 
-base_prob = 1 / (1 + np.exp(-(monto - 12000) / 3500))
-ondulacion = 0.05 * np.sin(monto / 1800)
-ruido = rng.normal(0, 0.1, size=n_total)
+age = rng.integers(18, 86, size=n)
+individual_noise = rng.normal(0, 0.75, size=n)
+local_wiggle = 0.45 * np.sin((age - 18) / 6)
 
-prob_default = np.clip(base_prob + ondulacion + ruido, 0.01, 0.99)
-target = rng.binomial(1, prob_default, size=n_total)
+logit = 2.3 - 0.055 * age + local_wiggle + individual_noise
+prob_target = 1 / (1 + np.exp(-logit))
+target = rng.binomial(1, prob_target, size=n)
 
-df_full = pd.DataFrame({"monto": monto, "target": target})
-df = df_full.sample(n=100, random_state=42).sort_values("monto").reset_index(drop=True)
-
-X = df[["monto"]]
+df = pd.DataFrame({"age": age, "target": target, "prob_target": prob_target})
+X = df[["age"]]
 y = df["target"]
 ```
 
-Se utilizan datos simulados para ilustrar el efecto de imponer restricciones monotónicas en un modelo de clasificación binaria. El dataset contiene `{python} n_total` observaciones con la variable `monto` y la variable objetivo `target` (1 si hubo *default*, 0 en caso contrario).
+Se utilizan datos simulados para ilustrar el efecto de imponer restricciones monotónicas en un modelo de clasificación binaria. El dataset contiene `{python} n_total` observaciones con la variable `age` y la variable objetivo `target` (1 si hubo *default*, 0 en caso contrario).
 
 ```{python}
 #| echo: false
@@ -323,7 +345,7 @@ GT(df.sample(4, random_state=42).round(2)
         .set_index("target")
         .reset_index()
     )
-    .fmt_currency(columns="monto")
+    .fmt_currency(columns="age")
     .tab_style(
         style=style.fill(color=map_color), locations=loc.body(columns=df.columns.tolist()),
     )
@@ -337,7 +359,9 @@ GT(df.sample(4, random_state=42).round(2)
 )
 ```
 
-Se espera que la probabilidad de *default* aumente ante un mayor monto del crédito otorgado. Se ajusta un modelo de clasificación binaria con y sin restricción sobre la variable `monto`.
+Se espera que la probabilidad de *default* aumente ante un mayor age del crédito otorgado. Se ajusta un modelo de clasificación binaria con y sin restricción sobre la variable `age`.
+
+## Modelo con restricciones monotónicas
 
 ```{python}
 #| echo: true
@@ -345,19 +369,18 @@ Se espera que la probabilidad de *default* aumente ante un mayor monto del créd
 #| code-fold: true
 #| label: example-fit
 #| code-summary: "Modelos con y sin restricción monotónica"
-
 # Modelo sin represtricción monotónica
 modelo_sin_restriccion = HistGradientBoostingClassifier(
-    max_depth=4, max_iter=100, learning_rate=0.1, random_state=42
+    max_depth=3, max_iter=2, learning_rate=0.7, random_state=42
 )
 modelo_sin_restriccion.fit(X, y)
 
-# Con restricción monotónica creciente sobre la variable `monto` (índice 0)
+# Con restricción monotónica creciente sobre la variable `age` (índice 0)
 modelo_con_restriccion = HistGradientBoostingClassifier(
-    max_depth=4,
-    max_iter=100,
-    learning_rate=0.1,
-    monotonic_cst={"monto": 1},
+    max_depth=3,
+    max_iter=2,
+    learning_rate=0.7,
+    monotonic_cst={"age": -1},
     random_state=42,
 )
 modelo_con_restriccion.fit(X, y)
@@ -365,7 +388,61 @@ modelo_con_restriccion.fit(X, y)
 
 ## Modelo con restricciones monotónicas (Cont.)
 
-En la @fig-example-1 se observan los datos simulados. En la @fig-example-2 se comparan las predicciones de los modelos con y sin restricción monotónica creciente sobre la variable `monto`.
+::: {.panel-tabset}
+
+### Sin restricción
+
+```{python}
+#| echo: true
+#| eval: true
+#| code-fold: true
+#| label: fig-example-trees1
+#| code-summary: "Árboles del modelo sin restricción monotónica"
+#| out-width: "100%"
+from utils.plot_trees import plot_hist_gradient_boosting_tree
+
+fig, axes = plt.subplots(1, modelo_sin_restriccion.max_iter, figsize=(16, 4))
+for iteration, ax in enumerate(np.atleast_1d(axes)):
+    plot_hist_gradient_boosting_tree(
+        modelo_sin_restriccion,
+        iteration,
+        feature_names=["age"],
+        X_reference=X,
+        ax=ax,
+    )
+fig.suptitle("Árboles del modelo sin restricción", y=1.02)
+plt.tight_layout()
+plt.show()
+```
+
+### Con restricción
+
+```{python}
+#| echo: true
+#| eval: true
+#| code-fold: true
+#| label: fig-example-trees2
+#| code-summary: "Árboles del modelo con restricción monotónica"
+#| out-width: "100%"
+fig, axes = plt.subplots(1, modelo_con_restriccion.max_iter, figsize=(16, 4))
+for iteration, ax in enumerate(np.atleast_1d(axes)):
+    plot_hist_gradient_boosting_tree(
+        modelo_con_restriccion,
+        iteration,
+        feature_names=["age"],
+        X_reference=X,
+        ax=ax,
+    )
+fig.suptitle("Árboles del modelo con restricción", y=1.02)
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+## Modelo con restricciones monotónicas (Cont.)
+
+En la @fig-example-1 se observan los datos simulados. En la @fig-example-2 se comparan las predicciones de los modelos con y sin restricción monotónica creciente sobre la variable `age`.
 
 ```{python}
 #| label: fig-example
@@ -377,30 +454,30 @@ En la @fig-example-1 se observan los datos simulados. En la @fig-example-2 se co
 #|   - "Datos simulados"
 #|   - "Probabilidad estimada de default"
 #| layout-ncol: 2
-grid_monto = np.arange(df["monto"].min(), df["monto"].max() + 1)
-X_grid = pd.DataFrame({"monto": grid_monto})
+grid_age = np.arange(df["age"].min(), df["age"].max() + 1)
+X_grid = pd.DataFrame({"age": grid_age})
 
 pred_sin_restriccion = modelo_sin_restriccion.predict_proba(X_grid)[:, 1]
 pred_con_restriccion = modelo_con_restriccion.predict_proba(X_grid)[:, 1]
 
 obs = (
-    df.assign(monto_bin=pd.cut(df["monto"], bins=8))
-    .groupby("monto_bin", observed=False)
-    .agg(monto_medio=("monto", "mean"), default_medio=("target", "mean"))
+    df.assign(age_bin=pd.cut(df["age"], bins=8))
+    .groupby("age_bin", observed=False)
+    .agg(age_medio=("age", "mean"), default_medio=("target", "mean"))
     .dropna()
 )
 
 fig, ax = plt.subplots(figsize=(6, 3))
-ax.scatter(df["monto"], df["target"], alpha=0.45, s=35)
+ax.scatter(df["age"], df["target"], alpha=0.45, s=35)
 ax.plot(
-    obs["monto_medio"],
+    obs["age_medio"],
     obs["default_medio"],
     marker="o",
     linewidth=2,
     color="black",
 )
 ax.set(
-    xlabel="Monto",
+    xlabel="age",
     ylabel="Target (default)",
 )
 plt.show()
@@ -408,27 +485,27 @@ plt.show()
 
 fig, ax = plt.subplots(figsize=(6, 3))
 ax.plot(
-    grid_monto,
+    grid_age,
     pred_sin_restriccion,
     linewidth=2,
     label="Sin restricción",
 )
 ax.plot(
-    grid_monto,
+    grid_age,
     pred_con_restriccion,
     linewidth=2,
-    label="Monotónica creciente",
+    label="Con restricción",
 )
 ax.set(
-    xlabel="Monto",
+    xlabel="age",
     ylabel="P(target = 1)",
 )
 ax.legend()
 plt.show()
 ```
 
-- Modelo sin restricción: la probabilidad de *default* disminuye para ciertos rangos de `monto` (contraintuitivo).
-- Modelo con restricción: respeta la relación esperada entre `monto` y la probabilidad de *default*.
+- Modelo sin restricción: la probabilidad de *default* disminuye para ciertos rangos de `age` (contraintuitivo).
+- Modelo con restricción: respeta la relación esperada entre `age` y la probabilidad de *default*.
 
 # Caso: scoring crediticio
 
@@ -439,9 +516,9 @@ plt.show()
 ```{python}
 #| echo: true
 #| eval: true
+#| label: case-data
 #| code-fold: true
 #| code-summary: "Lectura de datos"
-#| label: data
 df = pd.read_csv(f"{PATH_DATA}/cs-training.csv").drop("Unnamed: 0", axis=1)
 
 
@@ -472,7 +549,7 @@ Se cuenta con un dataset de `{python} N_OBSERVACIONES` observaciones y `{python}
 ```{python}
 #| echo: false
 #| eval: true
-#| label: fig-credit-eda
+#| label: fig-case-eda
 #| fig-cap: "Distribución del riesgo de incumplimiento y de DebtRatio"
 fig, ax = plt.subplots(1, 2, figsize=(10, 3))
 
@@ -512,6 +589,7 @@ Se seleccionan `Age` y `DebtRatio` para enfocar el análisis en relaciones que p
 ```{python}
 #| echo: true
 #| eval: true
+#| label: case-model-preprocessing
 #| code-fold: true
 #| code-summary: "Preprocesamiento y ajuste"
 def clip_debt_ratio(data):
@@ -547,7 +625,7 @@ La dependencia parcial muestra cómo cambia, en promedio, la predicción cuando 
 ```{python}
 #| echo: false
 #| eval: true
-#| label: fig-credit-pdp-unconstrained
+#| label: case-model-unconstrained
 #| fig-cap: "Dependencia parcial de DebtRatio para el modelo sin restricción"
 fig, ax = plt.subplots(figsize=(8, 3))
 PartialDependenceDisplay.from_estimator(
@@ -568,6 +646,7 @@ Se espera que un mayor endeudamiento no reduzca el riesgo de incumplimiento. Por
 ```{python}
 #| echo: true
 #| eval: true
+#| label: case-model-constrained
 #| code-fold: true
 #| code-summary: "Ajuste con restricción monotónica"
 restricciones = {"DebtRatio": 1}
@@ -586,10 +665,12 @@ La restricción no obliga a que todos los individuos tengan el mismo riesgo. Obl
 
 ## Comparación de modelos
 
+En la @fig-case-partial-dependence se compara la dependencia parcial de `DebtRatio` para los modelos con y sin restricción monotónica.
+
 ```{python}
 #| echo: false
 #| eval: true
-#| label: fig-credit-pdp-comparison
+#| label: fig-case-partial-dependence
 #| fig-cap: "Dependencia parcial de DebtRatio con y sin restricción monotónica"
 fig, ax = plt.subplots(1, 2, figsize=(10, 3))
 
@@ -613,42 +694,70 @@ plt.tight_layout()
 plt.show()
 ```
 
-Para observar el efecto en una decisión concreta, se simula una persona de 30 años y se aumenta su `DebtRatio` de 0.75 a 0.85.
+```{python}
+#| echo: false
+#| eval: true
+#| label: case-simulation-params
+age = 30
+initial_value = 0.2
+new_value = 0.3   
+```
+
+Se simula una persona de `{python} age` años y se aumenta su `DebtRatio` de `{python} initial_value` a `{python} new_value`. En la @tbl-case-simulation se observa que el modelo restringido mantiene el sentido esperado del cambio: un aumento en `DebtRatio` no puede producir una reducción de la probabilidad estimada de incumplimiento.
+
 
 ```{python}
 #| echo: false
 #| eval: true
-persona = pd.DataFrame({"age": [30], "DebtRatio": [0.75]})
-persona_mayor_deuda = persona.assign(DebtRatio=0.85)
+#| label: tbl-case-simulation-df
+#| code-fold: true
+#| code-summary: "Comparación de probabilidades de incumplimiento"
+X_1= pd.DataFrame({"age": [age], "DebtRatio": [initial_value]})
+X_2 = X_1.assign(DebtRatio=new_value)
 
-comparacion = pd.DataFrame(
+df_compare = (pd.DataFrame(
     {
         "Modelo": ["Sin restricción", "Con restricción"],
-        "P(default), DebtRatio = 0.75": [
-            modelo_sin_restriccion_credito.predict_proba(persona)[:, 1][0],
-            modelo_con_restriccion_credito.predict_proba(persona)[:, 1][0],
+        "P_{}".format(initial_value): [
+            modelo_sin_restriccion_credito.predict_proba(X_1)[:, 1][0],
+            modelo_con_restriccion_credito.predict_proba(X_1)[:, 1][0],
         ],
-        "P(default), DebtRatio = 0.85": [
-            modelo_sin_restriccion_credito.predict_proba(persona_mayor_deuda)[:, 1][0],
-            modelo_con_restriccion_credito.predict_proba(persona_mayor_deuda)[:, 1][0],
+        "P_{}".format(new_value): [
+            modelo_sin_restriccion_credito.predict_proba(X_2)[:, 1][0],
+            modelo_con_restriccion_credito.predict_proba(X_2)[:, 1][0],
         ],
     }
 )
-comparacion["Cambio"] = (
-    comparacion["P(default), DebtRatio = 0.85"]
-    - comparacion["P(default), DebtRatio = 0.75"]
-)
-comparacion.style.format(
-    {
-        "P(default), DebtRatio = 0.75": "{:.1%}",
-        "P(default), DebtRatio = 0.85": "{:.1%}",
-        "Cambio": "{:+.1%}",
-    }
+    .assign(variation = lambda x: x[f"P_{new_value}"] - x[f"P_{initial_value}"])
 )
 ```
 
-El modelo restringido mantiene el sentido esperado del cambio: un aumento en `DebtRatio` no puede producir una reducción de la probabilidad estimada de incumplimiento.
-
+```{python}
+#| echo: false
+#| eval: true
+#| tbl-cap: "Variación en la probabilidad al variar DebtRatio, mantenieno el resto de las variables constantes "
+#| label: tbl-case-simulation
+(GT(df_compare)
+    .fmt_percent(columns=["P_{}".format(initial_value), "P_{}".format(new_value), "variation"], decimals=2)
+    .cols_label(
+        **{"P_{}".format(initial_value): "DebtRatio = {}".format(initial_value)},
+        **{"P_{}".format(new_value): "DebtRatio = {}".format(new_value)},
+        **{"variation": "△ %"}
+    )
+    .tab_spanner(
+        label="P(default)",
+        columns=["P_{}".format(initial_value), "P_{}".format(new_value)],
+    )
+    .tab_style(
+        style=style.borders(sides="right", color=COLOR_ORANGE, weight="1px"),
+        locations=loc.body(columns="P_{}".format(new_value)),
+    )
+    .tab_options(
+        column_labels_background_color=COLOR_TABLE_HEADER,
+        table_font_names="Times New Roman"
+    )
+)
+```
 
 ## Referencias / Recursos
 
