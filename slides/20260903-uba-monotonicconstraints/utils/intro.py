@@ -56,16 +56,16 @@ def plot_interpretability_frontier(models, R=9):
     # --- Ensemble + XAI + monotonic constraints ---
     x_ensemble, y_ensemble = data["Ensambles"]
 
-    x_red = x_ensemble + 3.5
-    y_red = y_ensemble - 1
+    x_orange = x_ensemble + 3.5
+    y_orange = y_ensemble - 0.5
 
     ax.annotate(
         "",
-        xy=(x_red, y_red),
+        xy=(x_orange, y_orange),
         xytext=(x_ensemble, y_ensemble),
         arrowprops=dict(
             arrowstyle="->",
-            color="red",
+            color="darkorange",
             lw=1,
             linestyle="--",
             connectionstyle="angle,angleA=0,angleB=-90",
@@ -76,23 +76,23 @@ def plot_interpretability_frontier(models, R=9):
     )
 
     ax.scatter(
-        x_red, y_red,
-        color="red",
+        x_orange, y_orange,
+        color="darkorange",
         s=300,
         zorder=3
     )
 
     ax.text(
-        x_red + 0.25,
-        y_red,
+        x_orange + 0.25,
+        y_orange,
         "Ensambles + XAI\n+ Restricciones monotónicas",
-        color="red",
+        color="darkorange",
         va="center",
         fontsize=12,
         bbox=dict(
             boxstyle="round,pad=0.25",
             fc="white",
-            ec="red",
+            ec="darkorange",
             lw=0.8,
             alpha=0.9
         ),
@@ -101,7 +101,7 @@ def plot_interpretability_frontier(models, R=9):
 
     # --- Axes ---
     ax.set_xlabel("Interpretabilidad", fontsize=12)
-    ax.set_ylabel("Poder predictivo", fontsize=12)
+    ax.set_ylabel("Poder porangeictivo", fontsize=12)
 
     ax.set_xlim(0, R + 2)
     ax.set_ylim(0, R + 1)

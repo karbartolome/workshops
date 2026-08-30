@@ -46,25 +46,23 @@ lang: es
 #| label: libs
 #| eval: true
 import sys
-import pandas as pd
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
-from IPython.display import display, Markdown, Latex
-from great_tables import GT, from_column, style, loc
-
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import FunctionTransformer
-
-from sklearn.ensemble import HistGradientBoostingClassifier
-from catboost import CatBoostClassifier
-from sklearn.inspection import PartialDependenceDisplay
-
+from copy import deepcopy
 
 import matplotlib
-from IPython.display import display, Markdown, Latex
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+
+from catboost import CatBoostClassifier
+from great_tables import GT, from_column, loc, style
+from IPython.display import Latex, Markdown, display
 
 import sklearn
+from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.inspection import PartialDependenceDisplay
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import FunctionTransformer
 ```
 
 ```{python}
@@ -76,7 +74,6 @@ COLOR_ORANGE = "#FF9933"
 COLOR_BLUE = "#3399FF"
 COLOR_TABLE_HEADER = "#d3d4d6"
 PATH_DATA = "../../data/GiveMeSomeCredit"
-TARGET = 'SeriousDlqin2yrs'
 
 sklearn.set_config(transform_output="pandas")
 ```
@@ -105,40 +102,45 @@ Markdown(f"""
 """)
 ```
 
-# Introducción a modelos de Machine Learning
+# Aprendizaje automático
 
 ## Modelos predictivos
 
-Un modelo de *machine learning* busca aprender una relación entre un conjunto de [variables explicativas (X)]{style="color: blue"} y una [variable objetivo (y)]{style="color: red"} para predecir el valor de [y]{style="color: red"}  a partir de [X]{style="color: blue"} . 
+Un modelo de *machine learning* busca aprender una relación entre un conjunto de [variables explicativas (X)]{style="color: blue"} y una [variable objetivo (y)]{style="color: orange"} para predecir el valor de [y]{style="color: orange"}  a partir de [X]{style="color: blue"} . 
 
 $$
-\color{red}{y} = \color{black}{f}\left(\color{blue}{\mathbf{X}}\right)
-$$
-
-$$
+\color{orange}{y} = \color{black}{f}\left(\color{blue}{\mathbf{X}}\right),
+\qquad
 \mathbf{X} = (X_1, X_2, \ldots, X_p)
 $$
 
-La diferencia entre los modelos está, principalmente, en la **flexibilidad de la función** $f$ [@hastie2009elements].
+Existen múltiples tipos de modelos de aprendizaje automático, cada uno con diferentes niveles de complejidad y flexibilidad. A medida que aumenta la flexibilidad, puede mejorar su capacidad predictiva, pero resulta más difícil **controlar o interpretar cómo cada variable afecta la predicción**.
+
+<br>
 
 ```{python}
 #| echo: false
 #| eval: true
-#| tbl-cap: "Comparación de la forma de la función de predicción según el modelo"
+#| tbl-cap: "Forma de la función de predicción según el modelo (adaptado de la Fig. 2.7, @hastie2009elements)"
 #| label: tbl-model-functions
-
 df = pd.DataFrame({
-    "Modelo": [
-        "Regresión lineal",
-        "Árbol de decisión",
-        "Ensambles y boosting",
-        "Redes neuronales"
+    "Método": [
+        "Mínimos cuadrados",
+        "Árboles de decisión",
+        "Bagging/Boosting",
+        "Deep "
     ],
-    "Función de predicción (f)": [
+    "Flexibilidad": [
         "Lineal, poco flexible",
         "No lineal, por partes",
         "No lineal, flexible",
         "No lineal, altamente flexible"
+    ],
+    "Interpretabilidad": [
+        "Alta",
+        "Media/Alta",
+        "Media/Baja",
+        "Baja"
     ]
 })
 
@@ -148,22 +150,20 @@ GT(df).tab_options(
     )
 ```
 
-A medida que aumenta la flexibilidad del modelo, puede mejorar su capacidad predictiva, pero resulta más difícil **controlar o interpretar cómo cada variable afecta la predicción**.
-
 ## Actores involucrados
 
 **Datos → Modelo → Predicción → Decisión → Impacto**
 
 En el ciclo de vida de los modelos predictivos intervienen diversos actores [@molnar2025]:
 
-- **Creadores**: desarrollan y entrenan el modelo.
-- **Operadores**: interactúan directamente con el sistema.
-- **Ejecutores**: toman decisiones a partir de sus predicciones.
-- **Afectados** (decision subjects): reciben las consecuencias de esas decisiones.
-- **Data subjects**: aportan los datos utilizados para entrenar el modelo.
-- **Auditores**: evalúan, investigan y controlan el funcionamiento del sistema.
-
-→ Cada actor puede necesitar una explicación diferente
+::: {.incremental}
+* **[Data subjects]{style="font-style: italic;"}**: aportan los datos utilizados para entrenar el modelo.
+* [**Creadores**: desarrollan y entrenan el modelo.]{style="color: darkorange;"}
+* **Ejecutores**: toman decisiones a partir de sus predicciones.
+* **Operadores**: interactúan directamente con el sistema (implementan las decisiones).
+* **[Decision subjects]{style="font-style: italic;"}**: reciben las consecuencias de esas decisiones.
+* **Auditores**: evalúan, investigan y controlan el funcionamiento del sistema.
+:::
 
 ## Modelos basados en árboles
 
@@ -172,37 +172,26 @@ Los árboles de decisión pueden utilizarse individualmente o combinarse para co
 ```{mermaid}
 %%| fig-cap: "Principales tipos de modelos basados en árboles"
 %%| label: fig-ml-trees
-
 %%{init: {'flowchart': {'curve': 'linear'}}}%%
 
 graph LR
-
     trees[Modelos basados<br/>en árboles]
-
     single[Árbol individual<br/><i>Decision Tree</i>]
-
     ensembles[Ensambles]
-
     bagging[Bagging<br/><i>Random Forest</i>]
-
     boosting[Boosting]:::focus
-
-    models[XGBoost<br/>LightGBM<br/>CatBoost<br/>HistGradientBoosting]:::focus
+    models[<i>XGBoost<br/>LightGBM<br/>CatBoost<br/>GradientBoosting<br>HistGradientBoosting</i>]:::focus
 
     trees --> single
     trees --> ensembles
-
     ensembles --> bagging
     ensembles --> boosting
-
     boosting --> models
 
     classDef focus fill:#BDCBCC,stroke:#333,stroke-width:3px,color:black;
 ```
 
-Los modelos de boosting construyen un modelo combinando **múltiples árboles secuencialmente**, donde cada nuevo árbol busca mejorar los errores de los anteriores.
-
-**Las restricciones monotónicas se aplican principalmente en esta familia de modelos.**
+Los `modelos de boosting`{style="font-style: italic;"} combinan **múltiples árboles secuencialmente**, donde cada nuevo árbol busca mejorar los errores de los anteriores. **Las restricciones monotónicas se aplican principalmente en esta familia de modelos.**
 
 # Interpretabilidad de modelos
 
@@ -226,9 +215,7 @@ Una explicación debería ayudar a una persona a:
 
 > Una explicación describe el comportamiento del modelo; no necesariamente representa una relación causal del mundo real.
 
-## Interpretación de modelos de Machine Learning
-
-Existe un *trade off* entre la interpretabilidad y poder predictivo (*performance*) de los modelos (@fig-interpretability-vs-performance).
+## Interpretabilidad en modelos de Machine Learning
 
 Quienes toman decisiones necesitan entender cómo funciona el modelo para poder confiar en él y tomar decisiones consistentes con su conocimiento de dominio.
 
@@ -236,7 +223,7 @@ Quienes toman decisiones necesitan entender cómo funciona el modelo para poder 
 #| echo: false
 #| eval: true
 #| label: fig-interpretability-vs-performance
-#| fig-cap: "Trade-off interpretabilidad vs. poder predictivo [@gunning2019darpa]."
+#| fig-cap: "Trade-off interpretabilidad vs. poder predictivo, adaptado de la Fig. 1 [@gunning2019darpa]"
 #| fig-align: "center"
 from utils.intro import plot_interpretability_frontier
 
@@ -253,13 +240,25 @@ models = [
 plot_interpretability_frontier(models)
 ```
 
-## Explicabilidad de modelos
+## Interpretabilidad en modelos de Machine Learning (Cont.)
 
-Al desarrollar modelos supervisados de Machine Learning, se suele contar con conocimiento de dominio. Las **buenas explicaciones de modelos deben ser consistentes con las creencias previas** del usuario del modelo [@molnar2025]. Una forma de incorporar esto en los modelos es mediante el uso de **restricciones monotónicas**. 
+Al desarrollar modelos de *Machine Learning*, se cuenta generalmente con conocimiento de dominio sobre el problema que se busca modelar. 
 
-> Ejemplos de conocimiento de dominio:
-> - **Predicción de precios de propiedades**: se espera que a mayor cantidad de $m^2$, mayor precio.
-> - **Predicción de riesgo de crédito**: se espera que a mayor edad, menor probabilidad de default.
+Las explicaciones de un modelo deberían ser consistentes con las expectativas y conocimientos previos de sus usuarios [@molnar2025].
+
+::: {.fragment .fade-in}
+Por ejemplo:
+:::
+
+::: {.incremental}
+- **Predicción de precios de propiedades**: se espera que, manteniendo el resto de las variables constantes, a mayor superficie ($m^2$), mayor precio.
+
+- **Scoring crediticio**: se espera que, manteniendo el resto de las variables constantes, a mayor cantidad de meses con buen comportamiento, menor probabilidad de default.
+:::
+
+::: {.fragment .fade-in}
+Sin embargo, los modelos pueden aprender relaciones que contradicen estas expectativas. Una forma de incorporar conocimiento de dominio y favorecer un comportamiento consistente es mediante `restricciones monotónicas`.
+:::
 
 # Restricciones monotónicas
 
@@ -282,6 +281,7 @@ Ejemplo: si se espera que al aumentar la edad caiga la probabilidad de cierto ev
 La función `f(x) = x ** 2` es monotónica creciente para valores de `x >= 0`: si `x` aumenta, `f(x)` también aumenta o se mantiene igual.
 
 ```{python}
+#| label: fig-monotonicidad-creciente
 x = np.linspace(0, 10, 100)
 y_creciente = x**2
 
@@ -296,11 +296,12 @@ plt.show()
 La función `f(x) = exp(-x)` es monotónica decreciente: si `x` aumenta, `f(x)` disminuye.
 
 ```{python}
+#| label: fig-monotonicidad-decreciente
 x = np.linspace(0, 10, 100)
 y_decreciente = np.exp(-x)
 
 fig, ax = plt.subplots(figsize=(7, 4))
-ax.plot(x, y_decreciente, color="tab:red", linewidth=2)
+ax.plot(x, y_decreciente, color=COLOR_ORANGE, linewidth=2)
 ax.set(title="Ejemplo de monotonicidad decreciente", xlabel="x", ylabel="f(x) = exp(-x)")
 plt.show()
 ```
@@ -310,42 +311,60 @@ plt.show()
 ```{python}
 #| echo: true
 #| eval: true
+#| label: example-data
 #| code-fold: true
 #| code-summary: "Datos simulados"
+# Simulación de N observaciones:
 rng = np.random.default_rng(42)
 n = 1_000
 
-age = rng.integers(18, 86, size=n)
-individual_noise = rng.normal(0, 0.75, size=n)
-local_wiggle = 0.45 * np.sin((age - 18) / 6)
+# Edad: distribución uniforme entre 18 y 70 años
+age = rng.uniform(18, 70, n)
 
-logit = 2.3 - 0.055 * age + local_wiggle + individual_noise
-prob_target = 1 / (1 + np.exp(-logit))
-target = rng.binomial(1, prob_target, size=n)
+# Probabilidad base: target=1 decrece con la edad
+p = 0.90 - 0.0105 * (age - 18)
 
-df = pd.DataFrame({"age": age, "target": target, "prob_target": prob_target})
+# Ruido en toda la distribución
+noise = rng.normal(0, 0.07, n)
+
+# Ruido extra entre 50 y 60 años
+high_age_noise = np.where(
+    (age >= 50) & (age <= 60),
+    rng.normal(0, 0.18, n),
+    0
+)
+
+# Probabilidad final
+p = np.clip(p + noise + high_age_noise, 0.02, 0.98)
+
+# Variable objetivo binaria
+target = rng.binomial(1, p)
+
+df = pd.DataFrame({
+    "age": np.round(age, 1),
+    "target": target
+})
 X = df[["age"]]
 y = df["target"]
 ```
 
-Se utilizan datos simulados para ilustrar el efecto de imponer restricciones monotónicas en un modelo de clasificación binaria. El dataset contiene `{python} n_total` observaciones con la variable `age` y la variable objetivo `target` (1 si hubo *default*, 0 en caso contrario).
+Se utilizan datos simulados para ilustrar el efecto de imponer restricciones monotónicas en un modelo de clasificación binaria. El dataset contiene `{python} n` observaciones con la variable `age` y la variable objetivo `target` (1 si hubo *default*, 0 en caso contrario).
 
 ```{python}
 #| echo: false
 #| code-fold: false
 #| tbl-cap: "Datos simulados (muestra de 4 observaciones)"
-#| label: tbl-fraud-data
+#| label: tbl-example-data
 def map_color(data):
     return (data["target"] == 0).map(
         {True: COLOR_LIGHTGREEN, False: 'white'}
     )
 
 (
-GT(df.sample(4, random_state=42).round(2)
+GT(df.sample(4, random_state=1).round(2)
         .set_index("target")
         .reset_index()
     )
-    .fmt_currency(columns="age")
     .tab_style(
         style=style.fill(color=map_color), locations=loc.body(columns=df.columns.tolist()),
     )
@@ -359,9 +378,13 @@ GT(df.sample(4, random_state=42).round(2)
 )
 ```
 
-Se espera que la probabilidad de *default* aumente ante un mayor age del crédito otorgado. Se ajusta un modelo de clasificación binaria con y sin restricción sobre la variable `age`.
+Se espera que la probabilidad de *default* disminuya a mayor edad, pero el quiebre local simulado hace que esa relación no sea estrictamente monotónica en los datos. Se ajusta un modelo de clasificación binaria con y sin restricción sobre la variable `age`.
 
 ## Modelo con restricciones monotónicas
+
+Se ajustan 2 modelos: uno sin restricción monotónica y otro con restricción monotónica decreciente sobre la variable `age`:
+
+::: {style="font-size: 70%;"}
 
 ```{python}
 #| echo: true
@@ -369,24 +392,34 @@ Se espera que la probabilidad de *default* aumente ante un mayor age del crédit
 #| code-fold: true
 #| label: example-fit
 #| code-summary: "Modelos con y sin restricción monotónica"
-# Modelo sin represtricción monotónica
+# Modelo sin restricción monotónica
 modelo_sin_restriccion = HistGradientBoostingClassifier(
     max_depth=3, max_iter=2, learning_rate=0.7, random_state=42
 )
 modelo_sin_restriccion.fit(X, y)
+```
 
-# Con restricción monotónica creciente sobre la variable `age` (índice 0)
-modelo_con_restriccion = HistGradientBoostingClassifier(
-    max_depth=3,
-    max_iter=2,
-    learning_rate=0.7,
-    monotonic_cst={"age": -1},
-    random_state=42,
-)
+```{python}
+#| echo: true
+#| eval: true
+#| code-fold: true
+#| label: example-fit-cst
+#| code-summary: "Modelo con restricción monotónica"
+# Se genera una copia del modelo anterior:
+modelo_con_restriccion = deepcopy(modelo_sin_restriccion)
+
+# Se añade una restricción monotónica decreciente sobre la edad:
+modelo_con_restriccion.set_params(monotonic_cst={"age": -1})
 modelo_con_restriccion.fit(X, y)
 ```
 
+:::
+
 ## Modelo con restricciones monotónicas (Cont.)
+
+`HistGradientBoostingClassifier` almacena los árboles que componen el modelo (internamente como `TreePredictor`). Se utiliza una función para visualizar los 2 árboles (`max_iter=2`) que componen cada uno de los modelos ajustados.
+
+::: {style="font-size: 70%;"}
 
 ::: {.panel-tabset}
 
@@ -439,10 +472,16 @@ plt.show()
 ```
 
 :::
+:::
 
 ## Modelo con restricciones monotónicas (Cont.)
 
-En la @fig-example-1 se observan los datos simulados. En la @fig-example-2 se comparan las predicciones de los modelos con y sin restricción monotónica creciente sobre la variable `age`.
+::: {style="font-size: 80%;"}
+
+En la @fig-example-1 se observan los datos simulados. En la @fig-example-2 se comparan las predicciones de los modelos con y sin restricción monotónica decreciente sobre la variable `age`. La dependencia parcial muestra cómo cambia, en promedio, la predicción cuando se modifica una variable y se mantienen las demás distribuciones observadas.
+
+- **Modelo sin restricción**: la probabilidad aumenta localmente en el rango donde se simuló el quiebre (contraintuitivo, dado que se espera que disminuya con la edad).
+- **Modelo con restricción**: respeta la relación esperada entre la edad y la probabilidad.
 
 ```{python}
 #| label: fig-example
@@ -468,7 +507,7 @@ obs = (
 )
 
 fig, ax = plt.subplots(figsize=(6, 3))
-ax.scatter(df["age"], df["target"], alpha=0.45, s=35)
+ax.scatter(df["age"], df["target"], alpha=0.1, s=35)
 ax.plot(
     obs["age_medio"],
     obs["default_medio"],
@@ -499,13 +538,13 @@ ax.plot(
 ax.set(
     xlabel="age",
     ylabel="P(target = 1)",
+    ylim=(0, 1),
 )
 ax.legend()
 plt.show()
 ```
 
-- Modelo sin restricción: la probabilidad de *default* disminuye para ciertos rangos de `age` (contraintuitivo).
-- Modelo con restricción: respeta la relación esperada entre `age` y la probabilidad de *default*.
+:::
 
 # Caso: scoring crediticio
 
@@ -521,16 +560,29 @@ plt.show()
 #| code-summary: "Lectura de datos"
 df = pd.read_csv(f"{PATH_DATA}/cs-training.csv").drop("Unnamed: 0", axis=1)
 
+df["DebtRatio"] = df["DebtRatio"].clip(0, 1)
 
-FEATURES = ["age", "DebtRatio"]
+TARGET = "SeriousDlqin2yrs"
+FEATURES = [
+    "DebtRatio", 
+    "age",
+    "MonthlyIncome",
+    "NumberOfOpenCreditLinesAndLoans"
+]
 
-X = df[FEATURES]
+df = df[FEATURES + [TARGET]]
+X = df.drop(TARGET, axis=1)
 y = df[TARGET]
 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, random_state=42, stratify=y
 )
+```
 
+```{python}
+#| eval: true
+#| echo: false
+#| label: case-data-summary
 N_OBSERVACIONES = df.shape[0]
 N_VARIABLES = df.shape[1]
 PERC_DEFAULT = y.mean()
@@ -549,42 +601,35 @@ Se cuenta con un dataset de `{python} N_OBSERVACIONES` observaciones y `{python}
 ```{python}
 #| echo: false
 #| eval: true
-#| label: fig-case-eda
-#| fig-cap: "Distribución del riesgo de incumplimiento y de DebtRatio"
-fig, ax = plt.subplots(1, 2, figsize=(10, 3))
+#| label: tbl-case-eda
+#| code-fold: true
+#| code-summary: "Resumen exploratorio de datos"
+#| tbl-cap: "Promedio de las variables por clase de la variable objetivo (*target*)"
+def median_iqr(x):
+    q25, q50, q75 = np.percentile(x.dropna(), [25, 50, 75])
+    return f"{q50:.2f} [{q25:.2f} - {q75:.2f}]"
 
-df[TARGET].value_counts().sort_index().plot.bar(
-    ax=ax[0], color=[COLOR_LIGHTGREEN, COLOR_ORANGE]
-)
-ax[0].set(
-    title="Incumplimiento a dos años",
-    xlabel="SeriousDlqin2yrs",
-    ylabel="Cantidad",
-    xticklabels=["No", "Sí"],
+eda_table = (
+    df.groupby(TARGET)[FEATURES]
+    .agg(median_iqr)
+    .T
+    .reset_index()
+    .rename(columns={"index": "Variable", 0: f"{TARGET}=0", 1: f"{TARGET}=1"})
 )
 
-sns.kdeplot(
-    data=df.sample(min(10000, len(df)), random_state=42),
-    x="DebtRatio",
-    hue=TARGET,
-    common_norm=False,
-    ax=ax[1],
+(
+    GT(eda_table)
+    .tab_header(
+        title="Resumen Comparativo de Variables",
+        subtitle="Valores expresados como Mediana [Rango Intercuartílico: Q1 - Q3]"
+    )
+    .cols_align(align="center", columns=[f"{TARGET}=0", f"{TARGET}=1"])
 )
-ax[1].set(
-    title="Distribución de DebtRatio",
-    xlabel="DebtRatio",
-    ylabel="Densidad",
-    xlim=(0, 1),
-)
-plt.tight_layout()
-plt.show()
 ```
 
 La variable `DebtRatio` mide la relación entre deuda e ingreso mensual. Para el modelo se acota al intervalo $[0, 1]$, evitando que valores extremos dominen la visualización.
 
 ## Modelo 
-
-Se seleccionan `Age` y `DebtRatio` para enfocar el análisis en relaciones que puedan expresarse como conocimiento de dominio.
 
 ```{python}
 #| echo: true
@@ -592,22 +637,10 @@ Se seleccionan `Age` y `DebtRatio` para enfocar el análisis en relaciones que p
 #| label: case-model-preprocessing
 #| code-fold: true
 #| code-summary: "Preprocesamiento y ajuste"
-def clip_debt_ratio(data):
-    data = data.copy()
-    data["DebtRatio"] = data["DebtRatio"].clip(0, 1)
-    return data
-
-debt_ratio_preprocessor = FunctionTransformer(
-    clip_debt_ratio,
-    feature_names_out="one-to-one",
-)
-
-X_train = debt_ratio_preprocessor.fit_transform(X_train)
-X_test = debt_ratio_preprocessor.transform(X_test)
-
 modelo_sin_restriccion_credito = HistGradientBoostingClassifier(
     max_iter=100,
-    max_depth=8,
+    max_depth=10,
+    learning_rate=0.7,
     verbose=0,
     random_state=42,
 )
@@ -615,29 +648,6 @@ modelo_sin_restriccion_credito.fit(X_train, y_train)
 ```
 
 El primer modelo no incorpora restricciones. Su flexibilidad permite capturar relaciones complejas, pero también puede producir cambios contraintuitivos en regiones con pocos datos.
-
-## Modelo (Cont.)
-
-### Dependencia parcial
-
-La dependencia parcial muestra cómo cambia, en promedio, la predicción cuando se modifica una variable y se mantienen las demás distribuciones observadas.
-
-```{python}
-#| echo: false
-#| eval: true
-#| label: case-model-unconstrained
-#| fig-cap: "Dependencia parcial de DebtRatio para el modelo sin restricción"
-fig, ax = plt.subplots(figsize=(8, 3))
-PartialDependenceDisplay.from_estimator(
-    modelo_sin_restriccion_credito,
-    X_train,
-    features=["DebtRatio"],
-    ax=ax,
-)
-ax.set_title("Modelo sin restricción")
-plt.tight_layout()
-plt.show()
-```
 
 ## Modelo con restricciones monotónicas
 
@@ -651,13 +661,8 @@ Se espera que un mayor endeudamiento no reduzca el riesgo de incumplimiento. Por
 #| code-summary: "Ajuste con restricción monotónica"
 restricciones = {"DebtRatio": 1}
 
-modelo_con_restriccion_credito = HistGradientBoostingClassifier(
-    max_iter=100,
-    max_depth=8,
-    monotonic_cst=restricciones,
-    verbose=0,
-    random_state=42,
-)
+modelo_con_restriccion_credito = deepcopy(modelo_sin_restriccion_credito)
+modelo_con_restriccion_credito.set_params(monotonic_cst=restricciones)
 modelo_con_restriccion_credito.fit(X_train, y_train)
 ```
 
@@ -665,57 +670,69 @@ La restricción no obliga a que todos los individuos tengan el mismo riesgo. Obl
 
 ## Comparación de modelos
 
-En la @fig-case-partial-dependence se compara la dependencia parcial de `DebtRatio` para los modelos con y sin restricción monotónica.
-
 ```{python}
 #| echo: false
 #| eval: true
 #| label: fig-case-partial-dependence
 #| fig-cap: "Dependencia parcial de DebtRatio con y sin restricción monotónica"
-fig, ax = plt.subplots(1, 2, figsize=(10, 3))
+fig, ax = plt.subplots(figsize=(10, 4))
 
-PartialDependenceDisplay.from_estimator(
+display_sin_restriccion = PartialDependenceDisplay.from_estimator(
     modelo_sin_restriccion_credito,
     X_train,
     features=["DebtRatio"],
-    ax=ax[0],
+    ax=ax,
+    line_kw={
+        "color": COLOR_GREEN,
+        "label": "Sin restricción",
+        "linewidth": 2.5,
+        "alpha": 0.9,
+    },
 )
-ax[0].set_title("Sin restricción")
 
 PartialDependenceDisplay.from_estimator(
     modelo_con_restriccion_credito,
     X_train,
     features=["DebtRatio"],
-    ax=ax[1],
+    ax=display_sin_restriccion.axes_,
+    line_kw={
+        "color": COLOR_ORANGE,
+        "label": "Con restricción creciente",
+        "linewidth": 2.5,
+        "alpha": 0.9,
+    },
 )
-ax[1].set_title("Con restricción creciente")
 
+plt.xlabel("DebtRatio")
+plt.ylabel("Partial Dependence")
 plt.tight_layout()
-plt.show()
+plt.show();
 ```
 
 ```{python}
 #| echo: false
 #| eval: true
 #| label: case-simulation-params
-age = 30
-initial_value = 0.2
-new_value = 0.3   
+initial_value = 0.1
+new_value = 0.15
 ```
 
-Se simula una persona de `{python} age` años y se aumenta su `DebtRatio` de `{python} initial_value` a `{python} new_value`. En la @tbl-case-simulation se observa que el modelo restringido mantiene el sentido esperado del cambio: un aumento en `DebtRatio` no puede producir una reducción de la probabilidad estimada de incumplimiento.
-
+Se obtiene una observación de X:
 
 ```{python}
 #| echo: false
 #| eval: true
-#| label: tbl-case-simulation-df
+#| label: case-simulation-df
 #| code-fold: true
 #| code-summary: "Comparación de probabilidades de incumplimiento"
-X_1= pd.DataFrame({"age": [age], "DebtRatio": [initial_value]})
+X_1 = X.sample(1, random_state=42)
+X_1 = X_1.assign(DebtRatio=initial_value)
 X_2 = X_1.assign(DebtRatio=new_value)
 
-df_compare = (pd.DataFrame(
+from rich import print as pprint
+pprint(X_1.to_dict(orient="records")[0])
+
+df_compare = pd.DataFrame(
     {
         "Modelo": ["Sin restricción", "Con restricción"],
         "P_{}".format(initial_value): [
@@ -727,10 +744,10 @@ df_compare = (pd.DataFrame(
             modelo_con_restriccion_credito.predict_proba(X_2)[:, 1][0],
         ],
     }
-)
-    .assign(variation = lambda x: x[f"P_{new_value}"] - x[f"P_{initial_value}"])
-)
+).assign(variation=lambda x: x[f"P_{new_value}"] - x[f"P_{initial_value}"])
 ```
+
+Se incrementa su `DebtRatio` de `{python} initial_value` a `{python} new_value`. El modelo restringido mantiene el sentido esperado del cambio: un aumento en `DebtRatio` no puede producir una reducción de la probabilidad de *default*.
 
 ```{python}
 #| echo: false
@@ -740,17 +757,17 @@ df_compare = (pd.DataFrame(
 (GT(df_compare)
     .fmt_percent(columns=["P_{}".format(initial_value), "P_{}".format(new_value), "variation"], decimals=2)
     .cols_label(
-        **{"P_{}".format(initial_value): "DebtRatio = {}".format(initial_value)},
-        **{"P_{}".format(new_value): "DebtRatio = {}".format(new_value)},
+        **{"P_{}".format(initial_value): f"DebtRatio = {initial_value}"},
+        **{"P_{}".format(new_value): f"DebtRatio = {new_value}"},
         **{"variation": "△ %"}
     )
     .tab_spanner(
         label="P(default)",
-        columns=["P_{}".format(initial_value), "P_{}".format(new_value)],
+        columns=["P_{}".format(initial_value), f"P_{new_value}"],
     )
     .tab_style(
         style=style.borders(sides="right", color=COLOR_ORANGE, weight="1px"),
-        locations=loc.body(columns="P_{}".format(new_value)),
+        locations=loc.body(columns=f"P_{new_value}"),
     )
     .tab_options(
         column_labels_background_color=COLOR_TABLE_HEADER,
