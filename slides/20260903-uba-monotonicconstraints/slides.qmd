@@ -43,6 +43,15 @@ lang: es
 ---
 
 ```{python}
+#| echo: false
+#| eval: true
+#| output: false
+#| message: false
+%load_ext autoreload
+%autoreload 2
+```
+
+```{python}
 #| label: libs
 #| eval: true
 import sys
@@ -71,7 +80,7 @@ from sklearn.preprocessing import FunctionTransformer
 COLOR_GREEN = "#225522"
 COLOR_LIGHTGREEN = "#BDCBCC"
 COLOR_ORANGE = "#FF9933"
-COLOR_BLUE = "#3399FF"
+COLOR_BLUE = "#003f7e"
 COLOR_TABLE_HEADER = "#d3d4d6"
 PATH_DATA = "../../data/GiveMeSomeCredit"
 
@@ -180,7 +189,7 @@ graph LR
     ensembles[Ensambles]
     bagging[Bagging<br/><i>Random Forest</i>]
     boosting[Boosting]:::focus
-    models[<i>XGBoost<br/>LightGBM<br/>CatBoost<br/>GradientBoosting<br>HistGradientBoosting</i>]:::focus
+    models[<i>XGBoost<br/>LightGBM<br/>CatBoost<br/>HistGradientBoosting</i>]:::focus
 
     trees --> single
     trees --> ensembles
@@ -191,7 +200,44 @@ graph LR
     classDef focus fill:#BDCBCC,stroke:#333,stroke-width:3px,color:black;
 ```
 
-Los `modelos de boosting`{style="font-style: italic;"} combinan **múltiples árboles secuencialmente**, donde cada nuevo árbol busca mejorar los errores de los anteriores. **Las restricciones monotónicas se aplican principalmente en esta familia de modelos.**
+## Modelos de boosting
+
+Los modelos de *boosting* combinan múltiples árboles secuencialmente, donde cada nuevo árbol busca reducir los errores del modelo actual:
+
+$$
+\underbrace{\color{orange}{\widehat{y}_i^{(M)}}}_{\color{orange}{\text{predicción final}}}
+=
+\underbrace{\color{orange}{\widehat{y}_i^{(0)}}}_{\color{orange}{\text{predicción inicial}}}
++
+\sum_{m=1}^{M}
+\underbrace{\color{blue}{\eta}}_{\color{blue}{\text{tasa de aprendizaje}}}
+\,
+\underbrace{\color{red}{f_m(x_i)}}_{\color{red}{\text{árbol}}}
+$$
+
+Donde cada $\color{red}{f_m}$ es un árbol y $\color{blue}{\eta}$ controla cuánto contribuye cada nuevo árbol al modelo.
+
+En cada iteración, se incorpora el árbol que minimiza la pérdida del modelo actualizado ^[Versión simplificada: en la práctica, este proceso se realiza mediante métodos basados en el gradiente de la función de pérdida.]:
+
+$$
+f_m
+=
+\underset{f}{\operatorname{argmin}}\;
+\sum_{i=1}^{n}
+\underbrace{\color{teal}{L}}_{\color{teal}{\text{función de pérdida}}}
+\left(
+\underbrace{\color{purple}{y_i}}_{\color{purple}{\text{valor observado}}},
+\,
+\underbrace{\color{orange}{\widehat{y}_i^{(m-1)}}}_{\color{orange}{\text{predicción anterior}}}
++
+\underbrace{\color{blue}{\eta}}_{\color{blue}{\text{tasa de aprendizaje}}}
+\underbrace{\color{red}{f(x_i)}}_{\color{red}{\text{nuevo árbol}}}
+\right)
+$$
+
+> **Varios algoritmos de boosting permiten incorporar restricciones monotónicas sobre las predicciones.**
+
+
 
 # Interpretabilidad de modelos
 
@@ -247,13 +293,15 @@ Al desarrollar modelos de *Machine Learning*, se cuenta generalmente con conocim
 Las explicaciones de un modelo deberían ser consistentes con las expectativas y conocimientos previos de sus usuarios [@molnar2025].
 
 ::: {.fragment .fade-in}
-Por ejemplo:
+Ejemplos:
 :::
 
 ::: {.incremental}
-- **Predicción de precios de propiedades**: se espera que, manteniendo el resto de las variables constantes, a mayor superficie ($m^2$), mayor precio.
+- **Predicción de precios de propiedades**: Manteniendo el resto de las variables constantes, a mayor superficie ($m^2$), mayor precio.
 
-- **Scoring crediticio**: se espera que, manteniendo el resto de las variables constantes, a mayor cantidad de meses con buen comportamiento, menor probabilidad de default.
+- **Scoring crediticio**: Manteniendo el resto de las variables constantes, a mayor cantidad de meses con buen comportamiento, menor probabilidad de default.
+
+- **Seguros**: Manteniendo el resto de las variables constantes, a mayor antigüedad del vehículo, mayor probabilidad de falla mecánica.
 :::
 
 ::: {.fragment .fade-in}
@@ -319,36 +367,36 @@ rng = np.random.default_rng(42)
 n = 1_000
 
 # Edad: distribución uniforme entre 18 y 70 años
-age = rng.uniform(18, 70, n)
+feature = rng.uniform(18, 70, n)
 
 # Probabilidad base: target=1 decrece con la edad
-p = 0.90 - 0.0105 * (age - 18)
+p = 0.90 - 0.0105 * (feature - 18)
 
 # Ruido en toda la distribución
 noise = rng.normal(0, 0.07, n)
 
 # Ruido extra entre 50 y 60 años
-high_age_noise = np.where(
-    (age >= 50) & (age <= 60),
+high_noise = np.where(
+    (feature >= 50) & (feature <= 60),
     rng.normal(0, 0.18, n),
     0
 )
 
 # Probabilidad final
-p = np.clip(p + noise + high_age_noise, 0.02, 0.98)
+p = np.clip(p + noise + high_noise, 0.02, 0.98)
 
 # Variable objetivo binaria
 target = rng.binomial(1, p)
 
 df = pd.DataFrame({
-    "age": np.round(age, 1),
+    "feature": np.round(feature, 1),
     "target": target
 })
-X = df[["age"]]
+X = df[["feature"]]
 y = df["target"]
 ```
 
-Se utilizan datos simulados para ilustrar el efecto de imponer restricciones monotónicas en un modelo de clasificación binaria. El dataset contiene `{python} n` observaciones con la variable `age` y la variable objetivo `target` (1 si hubo *default*, 0 en caso contrario).
+Se utilizan datos simulados para ilustrar el efecto de imponer restricciones monotónicas en un modelo de clasificación binaria. El dataset contiene `{python} n` observaciones y 2 columnas: `feature` y `target` (variable binaria: 0 o 1).
 
 ```{python}
 #| echo: false
@@ -378,11 +426,11 @@ GT(df.sample(4, random_state=1).round(2)
 )
 ```
 
-Se espera que la probabilidad de *default* disminuya a mayor edad, pero el quiebre local simulado hace que esa relación no sea estrictamente monotónica en los datos. Se ajusta un modelo de clasificación binaria con y sin restricción sobre la variable `age`.
+Se espera que la probabilidad del evento `target` disminuya a mayor valor de la variable `feature`, pero el quiebre local simulado hace que esa relación no sea estrictamente monotónica en los datos. Se ajusta un modelo de clasificación binaria con y sin restricción sobre la variable `feature`.
 
 ## Modelo con restricciones monotónicas
 
-Se ajustan 2 modelos: uno sin restricción monotónica y otro con restricción monotónica decreciente sobre la variable `age`:
+Se ajustan 2 modelos: uno sin restricción monotónica y otro con restricción monotónica decreciente sobre la variable `feature`:
 
 ::: {style="font-size: 70%;"}
 
@@ -408,8 +456,8 @@ modelo_sin_restriccion.fit(X, y)
 # Se genera una copia del modelo anterior:
 modelo_con_restriccion = deepcopy(modelo_sin_restriccion)
 
-# Se añade una restricción monotónica decreciente sobre la edad:
-modelo_con_restriccion.set_params(monotonic_cst={"age": -1})
+# Se añade una restricción monotónica decreciente sobre la variable `feature`:
+modelo_con_restriccion.set_params(monotonic_cst={"feature": -1})
 modelo_con_restriccion.fit(X, y)
 ```
 
@@ -439,7 +487,7 @@ for iteration, ax in enumerate(np.atleast_1d(axes)):
     plot_hist_gradient_boosting_tree(
         modelo_sin_restriccion,
         iteration,
-        feature_names=["age"],
+        feature_names=["feature"],
         X_reference=X,
         ax=ax,
     )
@@ -462,7 +510,7 @@ for iteration, ax in enumerate(np.atleast_1d(axes)):
     plot_hist_gradient_boosting_tree(
         modelo_con_restriccion,
         iteration,
-        feature_names=["age"],
+        feature_names=["feature"],
         X_reference=X,
         ax=ax,
     )
@@ -478,70 +526,33 @@ plt.show()
 
 ::: {style="font-size: 80%;"}
 
-En la @fig-example-1 se observan los datos simulados. En la @fig-example-2 se comparan las predicciones de los modelos con y sin restricción monotónica decreciente sobre la variable `age`. La dependencia parcial muestra cómo cambia, en promedio, la predicción cuando se modifica una variable y se mantienen las demás distribuciones observadas.
+En la @fig-example1 se comparan las predicciones de los modelos con y sin restricción monotónica decreciente sobre la variable `feature`. La **dependencia parcial** muestra cómo cambia, en promedio, la predicción cuando se modifica una variable manteniendo el resto de las variables constantes:
 
-- **Modelo sin restricción**: la probabilidad aumenta localmente en el rango donde se simuló el quiebre (contraintuitivo, dado que se espera que disminuya con la edad).
+- **Modelo sin restricción**: la probabilidad aumenta en ciertos valores (contraintuitivo, se espera que disminuya con la edad).
 - **Modelo con restricción**: respeta la relación esperada entre la edad y la probabilidad.
 
 ```{python}
-#| label: fig-example
-#| fig-height: 2
-#| fig-width: 8
+#| echo: false
+#| eval: true
+#| label: fig-example1
 #| fig-align: "center"
 #| fig-cap: "Comparación de modelos con y sin restricción monotónica"
 #| fig-subcap:
-#|   - "Datos simulados"
-#|   - "Probabilidad estimada de default"
+#|   - "Datos observados"
+#|   - "Probabilidad estimada"
 #| layout-ncol: 2
-grid_age = np.arange(df["age"].min(), df["age"].max() + 1)
-X_grid = pd.DataFrame({"age": grid_age})
-
-pred_sin_restriccion = modelo_sin_restriccion.predict_proba(X_grid)[:, 1]
-pred_con_restriccion = modelo_con_restriccion.predict_proba(X_grid)[:, 1]
-
-obs = (
-    df.assign(age_bin=pd.cut(df["age"], bins=8))
-    .groupby("age_bin", observed=False)
-    .agg(age_medio=("age", "mean"), default_medio=("target", "mean"))
-    .dropna()
+#| code-fold: true
+#| code-summary: "Dependencia parcial"
+from utils.eval import plot_monotonic_comparison
+plot_monotonic_comparison(
+    df,
+    feature="feature",
+    target="target",
+    modelo_sin_restriccion=modelo_sin_restriccion,
+    modelo_con_restriccion=modelo_con_restriccion,
+    fig_width=6,
+    fig_height=3.5,
 )
-
-fig, ax = plt.subplots(figsize=(6, 3))
-ax.scatter(df["age"], df["target"], alpha=0.1, s=35)
-ax.plot(
-    obs["age_medio"],
-    obs["default_medio"],
-    marker="o",
-    linewidth=2,
-    color="black",
-)
-ax.set(
-    xlabel="age",
-    ylabel="Target (default)",
-)
-plt.show()
-
-
-fig, ax = plt.subplots(figsize=(6, 3))
-ax.plot(
-    grid_age,
-    pred_sin_restriccion,
-    linewidth=2,
-    label="Sin restricción",
-)
-ax.plot(
-    grid_age,
-    pred_con_restriccion,
-    linewidth=2,
-    label="Con restricción",
-)
-ax.set(
-    xlabel="age",
-    ylabel="P(target = 1)",
-    ylim=(0, 1),
-)
-ax.legend()
-plt.show()
 ```
 
 :::
@@ -674,40 +685,27 @@ La restricción no obliga a que todos los individuos tengan el mismo riesgo. Obl
 #| echo: false
 #| eval: true
 #| label: fig-case-partial-dependence
-#| fig-cap: "Dependencia parcial de DebtRatio con y sin restricción monotónica"
-fig, ax = plt.subplots(figsize=(10, 4))
-
-display_sin_restriccion = PartialDependenceDisplay.from_estimator(
-    modelo_sin_restriccion_credito,
-    X_train,
-    features=["DebtRatio"],
-    ax=ax,
-    line_kw={
-        "color": COLOR_GREEN,
-        "label": "Sin restricción",
-        "linewidth": 2.5,
-        "alpha": 0.9,
-    },
+#| fig-height: 2
+#| fig-width: 8
+#| fig-align: "center"
+#| fig-cap: "Comparación de modelos con y sin restricción monotónica"
+#| fig-subcap:
+#|   - "Datos observados"
+#|   - "Probabilidad estimada de default"
+#| layout-ncol: 2
+#| code-fold: true
+#| code-summary: "Dependencia parcial"
+plot_monotonic_comparison(
+    df,
+    feature="DebtRatio",
+    target=TARGET,
+    modelo_sin_restriccion=modelo_sin_restriccion_credito,
+    modelo_con_restriccion=modelo_con_restriccion_credito,
+    alpha=0.005,
 )
-
-PartialDependenceDisplay.from_estimator(
-    modelo_con_restriccion_credito,
-    X_train,
-    features=["DebtRatio"],
-    ax=display_sin_restriccion.axes_,
-    line_kw={
-        "color": COLOR_ORANGE,
-        "label": "Con restricción creciente",
-        "linewidth": 2.5,
-        "alpha": 0.9,
-    },
-)
-
-plt.xlabel("DebtRatio")
-plt.ylabel("Partial Dependence")
-plt.tight_layout()
-plt.show();
 ```
+
+## Simulación de cambio en DebtRatio
 
 ```{python}
 #| echo: false
