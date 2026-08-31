@@ -354,6 +354,45 @@ ax.set(title="Ejemplo de monotonicidad decreciente", xlabel="x", ylabel="f(x) = 
 plt.show()
 ```
 
+## Modelos de boosting con restricciones monotónicas
+
+$$
+\underbrace{\color{orange}{\widehat{y}_i^{(M)}}}_{\color{orange}{\text{predicción final}}}
+=
+\underbrace{\color{orange}{\widehat{y}_i^{(0)}}}_{\color{orange}{\text{predicción inicial}}}
++
+\sum_{m=1}^{M}
+\underbrace{\color{blue}{\eta}}_{\color{blue}{\text{tasa de aprendizaje}}}
+\,
+\underbrace{\color{red}{f_m(x_i)}}_{\color{red}{\text{árbol}}}
+$$
+
+Para garantizar monotonía respecto a la característica $x_j$, exigimos que la derivada parcial del modelo ensamblado conserve el signo deseado $c_j \in \{-1, 1\}$:
+
+$$
+c_j \cdot \frac{\partial \widehat{y}_i^{(M)}}{\partial x_j} \ge 0 \quad \forall i
+$$
+
+En cada iteración, el nuevo árbol no se busca sobre todo el espacio de árboles posibles, sino únicamente dentro del conjunto restringido $F_{\text{mono}}$ que respeta las reglas de corte monotónicas:
+
+$$
+f_m
+=
+\underset{f \, \in \, F_{\text{mono}}}{\operatorname{argmin}}\;
+\sum_{i=1}^{n}
+\underbrace{\color{teal}{L}}_{\color{teal}{\text{función de pérdida}}}
+\left(
+\underbrace{\color{purple}{y_i}}_{\color{purple}{\text{valor observado}}},
+\,
+\underbrace{\color{orange}{\widehat{y}_i^{(m-1)}}}_{\color{orange}{\text{predicción anterior}}}
++
+\underbrace{\color{blue}{\eta}}_{\color{blue}{\text{tasa de aprendizaje}}}
+\underbrace{\color{red}{f(x_i)}}_{\color{red}{\text{nuevo árbol}}}
+\right)
+$$
+
+donde $F_{\text{mono}}$ es el espacio de árboles cuyos valores en las hojas cumplen $f(x_1) \le f(x_2)$ siempre que $x_{1, j} \le x_{2, j}$ (para una restricción creciente $c_j = +1$).
+
 ## Ejemplo simple
 
 ```{python}
