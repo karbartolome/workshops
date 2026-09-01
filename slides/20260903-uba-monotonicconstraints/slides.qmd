@@ -63,7 +63,6 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from catboost import CatBoostClassifier
 from great_tables import GT, from_column, loc, style
 from IPython.display import Latex, Markdown, display
 
@@ -99,15 +98,22 @@ sklearn.set_config(transform_output="pandas")
 #| echo: false
 #| eval: true
 #| label: libs-versions
+# Extraer nombre del ambiente y versión de la ruta
+env_name = sys.executable.split('/')[-5]
+env_version = sys.executable.split('/')[-4]
+
+# Extraer versión de Python (ej: 3.11.5)
+python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+
 Markdown(f"""
-📦&nbsp;&nbsp;`pandas` = {pd.__version__}  
 📦&nbsp;&nbsp;`numpy` = {np.__version__}  
+📦&nbsp;&nbsp;`pandas` = {pd.__version__}  
 📦&nbsp;&nbsp;`scikit-learn` = {sklearn.__version__}  
 📦&nbsp;&nbsp;`matplotlib` = {matplotlib.__version__}  
 📦&nbsp;&nbsp;`seaborn` = {sns.__version__}
 
-**Environment**: `{"/".join(sys.executable.split('/')[-5:])}`  
-**Python version**: `{sys.version}`
+**Environment**: `{env_name}/v{env_version}`  
+**Python**: `{python_version}`
 """)
 ```
 
@@ -123,14 +129,14 @@ $$
 \mathbf{X} = (X_1, X_2, \ldots, X_p)
 $$
 
-Existen múltiples tipos de modelos de aprendizaje automático, cada uno con diferentes niveles de complejidad y flexibilidad. A medida que aumenta la flexibilidad, puede mejorar su capacidad predictiva, pero resulta más difícil **controlar o interpretar cómo cada variable afecta la predicción**.
+Existen múltiples tipos de modelos de aprendizaje automático, cada uno con diferentes niveles de complejidad y flexibilidad. A medida que aumenta la flexibilidad, puede mejorar la capacidad predictiva, pero resulta más difícil **controlar o interpretar cómo cada variable afecta la predicción**.
 
 <br>
 
 ```{python}
 #| echo: false
 #| eval: true
-#| tbl-cap: "Forma de la función de predicción según el modelo (adaptado de la Fig. 2.7, @hastie2009elements)"
+#| tbl-cap: "Flexibilidad vs interpretabilidad. Adaptado de la Fig. 2.7 [@james2023introduction]"
 #| label: tbl-model-functions
 df = pd.DataFrame({
     "Método": [
@@ -161,9 +167,28 @@ GT(df).tab_options(
 
 ## Actores involucrados
 
-**Datos → Modelo → Predicción → Decisión → Impacto**
+Ciclo de vida de modelos predictivos:
 
-En el ciclo de vida de los modelos predictivos intervienen diversos actores [@molnar2025]:
+```{mermaid}
+%%| fig-cap: "Ciclo de vida de un modelo predictivo"
+%%| label: fig-model-lifecycle
+%%{init: {'flowchart': {'curve': 'linear'}}}%%
+
+graph LR
+    datos[Datos]
+    modelo[Modelo]
+    prediccion[Predicción]
+    decision[Decisión]
+    impacto[Impacto]:::focus
+
+    datos --> modelo --> prediccion --> decision --> impacto
+    impacto -.-> datos
+
+    classDef focus fill:#BDCBCC,stroke:#333,stroke-width:3px,color:black;
+```
+
+Donde intervienen diversos actores [@molnar2025]:
+
 
 ::: {.incremental}
 * **[Data subjects]{style="font-style: italic;"}**: aportan los datos utilizados para entrenar el modelo.
@@ -202,22 +227,22 @@ graph LR
 
 ## Modelos de boosting
 
-Los modelos de *boosting* combinan múltiples árboles secuencialmente, donde cada nuevo árbol busca reducir los errores del modelo actual:
+::: {style="font-size: 80%;"}
+
+Los modelos de *boosting* combinan múltiples modelos secuencialmente, donde cada nuevo modelo busca reducir los errores del modelo acumulado anterior. Matemáticamente^[Adaptado de la formulación general de Forward Stagewise Additive Modeling [@hastie2009elements, Algoritmo 10.2], y de @andrei2026gradientboosting]:
 
 $$
 \underbrace{\color{orange}{\widehat{y}_i^{(M)}}}_{\color{orange}{\text{predicción final}}}
 =
-\underbrace{\color{orange}{\widehat{y}_i^{(0)}}}_{\color{orange}{\text{predicción inicial}}}
-+
 \sum_{m=1}^{M}
 \underbrace{\color{blue}{\eta}}_{\color{blue}{\text{tasa de aprendizaje}}}
 \,
-\underbrace{\color{red}{f_m(x_i)}}_{\color{red}{\text{árbol}}}
-$$
+\underbrace{\color{red}{f_m(x_i)}}_{\color{red}{\text{modelo simple}}}
+$$ {#eq-boosting-ensemble}
 
-Donde cada $\color{red}{f_m}$ es un árbol y $\color{blue}{\eta}$ controla cuánto contribuye cada nuevo árbol al modelo.
+Donde cada $\color{red}{f_m}$ es un modelo simple (*weak learner*, por ejemplo un árbol de decisión) y $\color{blue}{\eta}$ controla cuánto contribuye cada nuevo modelo al ensamble.
 
-En cada iteración, se incorpora el árbol que minimiza la pérdida del modelo actualizado ^[Versión simplificada: en la práctica, este proceso se realiza mediante métodos basados en el gradiente de la función de pérdida.]:
+En cada iteración, se incorpora el modelo que minimiza la pérdida del modelo actualizado ^[Versión simplificada, en la práctica, este proceso se realiza mediante métodos basados en el gradiente de la función de pérdida.]:
 
 $$
 f_m
@@ -230,14 +255,14 @@ f_m
 \,
 \underbrace{\color{orange}{\widehat{y}_i^{(m-1)}}}_{\color{orange}{\text{predicción anterior}}}
 +
-\underbrace{\color{blue}{\eta}}_{\color{blue}{\text{tasa de aprendizaje}}}
-\underbrace{\color{red}{f(x_i)}}_{\color{red}{\text{nuevo árbol}}}
+\underbrace{\color{red}{f(x_i)}}_{\color{red}{\text{modelo simple}}}
 \right)
-$$
+$$ {#eq-boosting-optimization}
 
-> **Varios algoritmos de boosting permiten incorporar restricciones monotónicas sobre las predicciones.**
-
-
+<br>
+**Varios algoritmos de boosting permiten incorporar restricciones monotónicas sobre las predicciones.**
+<br>
+:::
 
 # Interpretabilidad de modelos
 
@@ -247,19 +272,33 @@ La **Inteligencia Artificial Explicable (XAI)** reúne métodos y técnicas que 
 
 Una explicación debería ayudar a una persona a:
 
+::: {.incremental}
 - **Entender** qué variables influyen en el modelo y en qué dirección.
-- **Evaluar** si la predicción es razonable y consistente con el conocimiento de dominio.
+- [**Evaluar** si la predicción es razonable y consistente con el conocimiento de dominio]{style="color: darkorange;"}.
 - **Detectar** errores, sesgos o comportamientos inesperados.
 - **Auditar** el sistema y justificar una decisión ante otras personas.
+:::
 
 ## XAI: Explainable AI (Cont.)
 
-**Dos niveles de explicación**
+::: {style="font-size: 90%;"}
 
-- **Global**: describe el comportamiento general del modelo, por ejemplo, qué variables son importantes o cómo cambia la predicción en promedio.
-- **Local**: explica una predicción particular, por ejemplo, por qué una persona recibió una determinada estimación de riesgo.
+Los métodos *post-hoc* se aplican después de entrenar el modelo y pueden clasificarse según su alcance [@molnar2025]:
 
+- **Métodos globales**: describen el comportamiento promedio del modelo sobre todo el dataset.
+  - **Dependencia parcial (PDP)**: muestra el efecto promedio de una variable sobre la predicción.
+  - **Importancia de variables (*permutation feature importance*)**: mide cuánto empeora el modelo al permutar una variable.
+
+- **Métodos locales**: explican una predicción individual.
+  - **Ceteris paribus / ICE**: muestran cómo cambia una predicción particular al modificar una variable.
+  - **LIME**: aproxima el modelo localmente con un modelo simple e interpretable.
+  - **Valores de Shapley / SHAP**: reparten una predicción individual entre las variables de forma aditiva. Al agregar muchas explicaciones locales (ej. *summary plot*) se obtiene también una vista global.
+
+:::
+
+<br>
 > Una explicación describe el comportamiento del modelo; no necesariamente representa una relación causal del mundo real.
+
 
 ## Interpretabilidad en modelos de Machine Learning
 
@@ -268,9 +307,7 @@ Quienes toman decisiones necesitan entender cómo funciona el modelo para poder 
 ```{python}
 #| echo: false
 #| eval: true
-#| label: fig-interpretability-vs-performance
-#| fig-cap: "Trade-off interpretabilidad vs. poder predictivo, adaptado de la Fig. 1 [@gunning2019darpa]"
-#| fig-align: "center"
+#| output: false
 from utils.intro import plot_interpretability_frontier
 
 models = [
@@ -282,9 +319,33 @@ models = [
     "Regresión lineal / logística",
     "Reglas",
 ]
-
-plot_interpretability_frontier(models)
 ```
+
+::: {.r-stack}
+
+::: {.fragment .fade-out data-fragment-index="1"}
+```{python}
+#| echo: false
+#| eval: true
+#| label: fig-interpretability-vs-performance
+#| fig-cap: "Trade-off interpretabilidad vs. poder predictivo, adaptado de la Fig. 1 [@gunning2019darpa]"
+#| fig-align: "center"
+plot_interpretability_frontier(models, add_xai=False)
+```
+:::
+
+::: {.fragment data-fragment-index="1"}
+```{python}
+#| echo: false
+#| eval: true
+#| label: fig-interpretability-vs-performance-xai
+#| fig-cap: "Trade-off interpretabilidad vs. poder predictivo con XAI y restricciones monotónicas"
+#| fig-align: "center"
+plot_interpretability_frontier(models, add_xai=True)
+```
+:::
+:::
+
 
 ## Interpretabilidad en modelos de Machine Learning (Cont.)
 
@@ -330,6 +391,7 @@ La función `f(x) = x ** 2` es monotónica creciente para valores de `x >= 0`: s
 
 ```{python}
 #| label: fig-monotonicidad-creciente
+#| fig-cap: "Ejemplo de monotonicidad creciente"
 x = np.linspace(0, 10, 100)
 y_creciente = x**2
 
@@ -345,6 +407,7 @@ La función `f(x) = exp(-x)` es monotónica decreciente: si `x` aumenta, `f(x)` 
 
 ```{python}
 #| label: fig-monotonicidad-decreciente
+#| fig-cap: "Ejemplo de monotonicidad decreciente"
 x = np.linspace(0, 10, 100)
 y_decreciente = np.exp(-x)
 
@@ -356,24 +419,24 @@ plt.show()
 
 ## Modelos de boosting con restricciones monotónicas
 
-$$
-\underbrace{\color{orange}{\widehat{y}_i^{(M)}}}_{\color{orange}{\text{predicción final}}}
-=
-\underbrace{\color{orange}{\widehat{y}_i^{(0)}}}_{\color{orange}{\text{predicción inicial}}}
-+
-\sum_{m=1}^{M}
-\underbrace{\color{blue}{\eta}}_{\color{blue}{\text{tasa de aprendizaje}}}
-\,
-\underbrace{\color{red}{f_m(x_i)}}_{\color{red}{\text{árbol}}}
-$$
+::: {style="font-size: 70%;"}
 
-Para garantizar monotonía respecto a la característica $x_j$, exigimos que la derivada parcial del modelo ensamblado conserve el signo deseado $c_j \in \{-1, 1\}$:
+Sea $c_j \in \{-1, +1\}$ el sentido de la restricción para la variable $x_j$:
+
+- $c_j = -1$: restricción decreciente
+- $c_j = +1$: restricción creciente
+
+Refiriéndose a la ecuación @eq-boosting-ensemble, para garantizar que el modelo respete la monotonía en la variable $x_j$, se requiere que el nuevo árbol $f_m$ satisfaga:
+
+Para dos observaciones $i, k$, si $x_{i,j} \leq x_{k,j}$ y $x_{i,-j} = x_{k,-j}$, entonces:
 
 $$
-c_j \cdot \frac{\partial \widehat{y}_i^{(M)}}{\partial x_j} \ge 0 \quad \forall i
+c_j \cdot f_m(x_i) \leq c_j \cdot f_m(x_k)
 $$
 
-En cada iteración, el nuevo árbol no se busca sobre todo el espacio de árboles posibles, sino únicamente dentro del conjunto restringido $F_{\text{mono}}$ que respeta las reglas de corte monotónicas:
+Es decir, el árbol debe ser monotónico en la variable $x_j$ con la dirección especificada por $c_j$.
+
+En cada iteración, el nuevo árbol se busca únicamente dentro del conjunto restringido $F_{\text{mono}}$ de árboles que cumplen esta propiedad:
 
 $$
 f_m
@@ -386,12 +449,13 @@ f_m
 \,
 \underbrace{\color{orange}{\widehat{y}_i^{(m-1)}}}_{\color{orange}{\text{predicción anterior}}}
 +
-\underbrace{\color{blue}{\eta}}_{\color{blue}{\text{tasa de aprendizaje}}}
 \underbrace{\color{red}{f(x_i)}}_{\color{red}{\text{nuevo árbol}}}
 \right)
-$$
+$$ {#eq-boosting-optimization-restricted}
 
-donde $F_{\text{mono}}$ es el espacio de árboles cuyos valores en las hojas cumplen $f(x_1) \le f(x_2)$ siempre que $x_{1, j} \le x_{2, j}$ (para una restricción creciente $c_j = +1$).
+donde $F_{\text{mono}} = \left\{ f : c_j \cdot f(x_i) \leq c_j \cdot f(x_k) \text{ si } x_{i,j} \leq x_{k,j}, \, \forall i,k,j \right\}$
+
+:::
 
 ## Ejemplo simple
 

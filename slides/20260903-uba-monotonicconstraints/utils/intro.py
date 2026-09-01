@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-def plot_interpretability_frontier(models, radius=9):
+def plot_interpretability_frontier(models, radius=9, add_xai=True):
     """
     Grafica la frontera de posibilidades entre interpretabilidad y poder predictivo.
 
@@ -22,6 +22,8 @@ def plot_interpretability_frontier(models, radius=9):
         Lista con los nombres de los modelos a visualizar.
     radius : int, default=9
         Radio de la circunferencia que define la frontera de posibilidades.
+    add_xai : bool, default=True
+        Indica si se debe agregar la anotación de "Ensambles + XAI + Restricciones monotónicas" en la gráfica.
 
     Retorna
     -------
@@ -35,7 +37,7 @@ def plot_interpretability_frontier(models, radius=9):
         for model, theta in zip(models, thetas)
     }
 
-    fig, ax = plt.subplots(figsize=(9, 7))
+    fig, ax = plt.subplots(figsize=(8, 5))
 
     x_curve = np.linspace(0, radius, 500)
     y_curve = np.sqrt(radius**2 - x_curve**2)
@@ -74,49 +76,50 @@ def plot_interpretability_frontier(models, radius=9):
             zorder=4
         )
 
-    x_ensemble, y_ensemble = model_positions["Ensambles"]
-    x_enhanced = x_ensemble + 3.5
-    y_enhanced = y_ensemble - 0.5
+    if add_xai:
+        x_ensemble, y_ensemble = model_positions["Ensambles"]
+        x_enhanced = x_ensemble + 3.5
+        y_enhanced = y_ensemble - 0.75
 
-    ax.annotate(
-        "",
-        xy=(x_enhanced, y_enhanced),
-        xytext=(x_ensemble, y_ensemble),
-        arrowprops=dict(
-            arrowstyle="->",
+        ax.annotate(
+            "",
+            xy=(x_enhanced, y_enhanced),
+            xytext=(x_ensemble, y_ensemble),
+            arrowprops=dict(
+                arrowstyle="->",
+                color="darkorange",
+                lw=1,
+                linestyle="--",
+                connectionstyle="angle,angleA=0,angleB=-90",
+                shrinkA=10,
+                shrinkB=10
+            ),
+            zorder=2
+        )
+
+        ax.scatter(
+            x_enhanced, y_enhanced,
             color="darkorange",
-            lw=1,
-            linestyle="--",
-            connectionstyle="angle,angleA=0,angleB=-90",
-            shrinkA=10,
-            shrinkB=10
-        ),
-        zorder=2
-    )
+            s=300,
+            zorder=3
+        )
 
-    ax.scatter(
-        x_enhanced, y_enhanced,
-        color="darkorange",
-        s=300,
-        zorder=3
-    )
-
-    ax.text(
-        x_enhanced + 0.25,
-        y_enhanced,
-        "Ensambles + XAI\n+ Restricciones monotónicas",
-        color="darkorange",
-        va="center",
-        fontsize=12,
-        bbox=dict(
-            boxstyle="round,pad=0.25",
-            fc="white",
-            ec="darkorange",
-            lw=0.8,
-            alpha=0.9
-        ),
-        zorder=4
-    )
+        ax.text(
+            x_enhanced + 0.25,
+            y_enhanced,
+            "Ensambles\n+XAI\n+Restricciones monotónicas",
+            color="darkorange",
+            va="center",
+            fontsize=12,
+            bbox=dict(
+                boxstyle="round,pad=0.25",
+                fc="white",
+                ec="darkorange",
+                lw=0.8,
+                alpha=0.9
+            ),
+            zorder=4
+        )
 
     ax.set_xlabel("Interpretabilidad", fontsize=12)
     ax.set_ylabel("Poder predictivo", fontsize=12)
