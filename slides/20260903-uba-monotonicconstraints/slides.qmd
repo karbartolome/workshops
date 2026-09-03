@@ -565,6 +565,7 @@ ax.set(
     ylabel="Tasa promedio de target",
 )
 ax.grid(alpha=0.3)
+plt.ylim(0, 1)
 plt.tight_layout()
 plt.show();
 ```

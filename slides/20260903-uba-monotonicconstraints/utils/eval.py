@@ -78,11 +78,14 @@ def plot_monotonic_comparison(
 
     # Dependencia parcial
     fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+    data_features = data[modelo_sin_restriccion.feature_names_in_]
 
     display_sin_restriccion = PartialDependenceDisplay.from_estimator(
         modelo_sin_restriccion,
-        data,
+        data_features,
         features=[feature],
+        response_method='predict_proba',
+        method="brute",
         ax=ax,
         line_kw={
             "color": color1,
@@ -94,8 +97,10 @@ def plot_monotonic_comparison(
 
     PartialDependenceDisplay.from_estimator(
         modelo_con_restriccion,
-        data,
+        data_features,
         features=[feature],
+        response_method='predict_proba',
+        method="brute",
         ax=display_sin_restriccion.axes_,
         line_kw={
             "color": color2,
