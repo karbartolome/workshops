@@ -154,6 +154,4 @@ cython_debug/
 *kaggle.json
 .env
 
-/data/GiveMeSomeCredit
-
 repo_structure.md
