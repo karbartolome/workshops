@@ -338,3 +338,12 @@ title-slide .title {
   top: unset !important;
   color: #777777 !important;
 }
+
+// Global body content size, so :::{style="font-size: 70%;"} isn't needed per-slide
+.reveal .slides section p,
+.reveal .slides section li,
+.reveal .slides section table,
+.reveal .slides section blockquote {
+  font-size: 70%;
+}
+
