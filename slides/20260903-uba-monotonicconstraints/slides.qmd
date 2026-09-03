@@ -270,7 +270,9 @@ $$ {#eq-boosting-optimization}
 
 La **Inteligencia Artificial Explicable (XAI)** reúne métodos y técnicas que permiten describir el comportamiento de un modelo y comunicar por qué produce una predicción determinada [@molnar2025].
 
+::: {.fragment .fade-in}
 Una explicación debería ayudar a una persona a:
+:::
 
 ::: {.incremental}
 - **Entender** qué variables influyen en el modelo y en qué dirección.
@@ -283,14 +285,14 @@ Una explicación debería ayudar a una persona a:
 
 ::: {style="font-size: 90%;"}
 
-Los métodos *post-hoc* se aplican después de entrenar el modelo y pueden clasificarse según su alcance [@molnar2025]:
+Los métodos que se aplican después de entrenar el modelo pueden clasificarse en dos categorías [@molnar2025]:
 
 - **Métodos globales**: describen el comportamiento promedio del modelo sobre todo el dataset.
-  - **Dependencia parcial (PDP)**: muestra el efecto promedio de una variable sobre la predicción.
+  - [**Dependencia parcial (PDP)**]{style="color: darkorange;"}: muestra el efecto promedio de una variable sobre la predicción.
   - **Importancia de variables (*permutation feature importance*)**: mide cuánto empeora el modelo al permutar una variable.
 
 - **Métodos locales**: explican una predicción individual.
-  - **Ceteris paribus / ICE**: muestran cómo cambia una predicción particular al modificar una variable.
+  - **Ceteris paribus**: muestran cómo cambia una predicción particular al modificar una variable.
   - **LIME**: aproxima el modelo localmente con un modelo simple e interpretable.
   - **Valores de Shapley / SHAP**: reparten una predicción individual entre las variables de forma aditiva. Al agregar muchas explicaciones locales (ej. *summary plot*) se obtiene también una vista global.
 
@@ -302,7 +304,7 @@ Los métodos *post-hoc* se aplican después de entrenar el modelo y pueden clasi
 
 ## Interpretabilidad en modelos de Machine Learning
 
-Quienes toman decisiones necesitan entender cómo funciona el modelo para poder confiar en él y tomar decisiones consistentes con su conocimiento de dominio.
+Quienes toman decisiones necesitan entender cómo funciona el modelo para confiar en él y tomar decisiones consistentes con su conocimiento de dominio.
 
 ```{python}
 #| echo: false
@@ -346,12 +348,9 @@ plot_interpretability_frontier(models, add_xai=True)
 :::
 :::
 
-
 ## Interpretabilidad en modelos de Machine Learning (Cont.)
 
-Al desarrollar modelos de *Machine Learning*, se cuenta generalmente con conocimiento de dominio sobre el problema que se busca modelar. 
-
-Las explicaciones de un modelo deberían ser consistentes con las expectativas y conocimientos previos de sus usuarios [@molnar2025].
+Al desarrollar modelos de *Machine Learning*, en general se cuenta con conocimiento sobre el problema que se busca modelar. 
 
 ::: {.fragment .fade-in}
 Ejemplos:
@@ -366,12 +365,14 @@ Ejemplos:
 :::
 
 ::: {.fragment .fade-in}
-Sin embargo, los modelos pueden aprender relaciones que contradicen estas expectativas. Una forma de incorporar conocimiento de dominio y favorecer un comportamiento consistente es mediante `restricciones monotónicas`.
+Las explicaciones de un modelo deberían ser consistentes con las expectativas y conocimientos previos de sus usuarios [@molnar2025]. Sin embargo, los modelos pueden aprender relaciones que contradicen estas expectativas. Una forma de incorporar conocimiento de dominios es mediante `restricciones monotónicas`.
 :::
 
 # Restricciones monotónicas
 
 ## Monotonicidad
+
+¿Qué es la monotonicidad?
 
 -   Una función es **monotónica creciente** si, cuando aumenta el valor de entrada, su salida no disminuye:
 
@@ -381,9 +382,7 @@ Sin embargo, los modelos pueden aprender relaciones que contradicen estas expect
 
     -   `Si x1 <= x2: f(x1) >= f(x2)`
 
-En machine learning, una **restricción monotónica** fuerza al modelo a respetar una dirección esperada entre una variable y la predicción. Esto puede ser útil para incorporar conocimiento de dominio, reducir comportamientos contraintuitivos y mejorar la interpretabilidad y auditoría de los modelos.
-
-Ejemplo: si se espera que al aumentar la edad caiga la probabilidad de cierto evento, se puede imponer una restricción monotónica decreciente sobre `edad`.
+En machine learning, una **restricción monotónica** fuerza al modelo a respetar una dirección esperada entre una variable y la predicción. 
 
 ## Monotonicidad creciente
 
@@ -469,10 +468,10 @@ donde $F_{\text{mono}} = \left\{ f : c_j \cdot f(x_i) \leq c_j \cdot f(x_k) \tex
 rng = np.random.default_rng(42)
 n = 1_000
 
-# Edad: distribución uniforme entre 18 y 70 años
+# Feature: distribución uniforme entre 18 y 70 años
 feature = rng.uniform(18, 70, n)
 
-# Probabilidad base: target=1 decrece con la edad
+# Probabilidad base: target=1 decrece con la feature
 p = 0.90 - 0.0105 * (feature - 18)
 
 # Ruido en toda la distribución
@@ -499,7 +498,7 @@ X = df[["feature"]]
 y = df["target"]
 ```
 
-Se utilizan datos simulados para ilustrar el efecto de imponer restricciones monotónicas en un modelo de clasificación binaria. El dataset contiene `{python} n` observaciones y 2 columnas: `feature` y `target` (variable binaria: 0 o 1).
+Se utilizan datos simulados para ilustrar el efecto de imponer una restricción monotónica en un modelo de clasificación binaria. El dataset contiene `{python} n` observaciones y 2 columnas: `feature` y `target` (variable binaria: 0 o 1).
 
 ```{python}
 #| echo: false
@@ -529,11 +528,13 @@ GT(df.sample(4, random_state=1).round(2)
 )
 ```
 
-Se espera que la probabilidad del evento `target` disminuya a mayor valor de la variable `feature`, pero el quiebre local simulado hace que esa relación no sea estrictamente monotónica en los datos. Se ajusta un modelo de clasificación binaria con y sin restricción sobre la variable `feature`.
+Se espera que la probabilidad del evento `target` disminuya a mayor valor de la variable `feature` pero esa relación no sea estrictamente monotónica en los datos de la muestra. 
 
 ## Modelo con restricciones monotónicas
 
-Se ajustan 2 modelos: uno sin restricción monotónica y otro con restricción monotónica decreciente sobre la variable `feature`:
+Se ajustan 2 modelos: 
+
+- Modelo estándar (sin restricción monotónica)
 
 ::: {style="font-size: 70%;"}
 
@@ -549,6 +550,8 @@ modelo_sin_restriccion = HistGradientBoostingClassifier(
 )
 modelo_sin_restriccion.fit(X, y)
 ```
+
+- Modelo con restricción monotónica decreciente sobre la variable `feature`
 
 ```{python}
 #| echo: true
@@ -631,8 +634,8 @@ plt.show()
 
 En la @fig-example1 se comparan las predicciones de los modelos con y sin restricción monotónica decreciente sobre la variable `feature`. La **dependencia parcial** muestra cómo cambia, en promedio, la predicción cuando se modifica una variable manteniendo el resto de las variables constantes:
 
-- **Modelo sin restricción**: la probabilidad aumenta en ciertos valores (contraintuitivo, se espera que disminuya con la edad).
-- **Modelo con restricción**: respeta la relación esperada entre la edad y la probabilidad.
+- **Modelo sin restricción**: la probabilidad aumenta en ciertos valores (contraintuitivo, se espera que disminuya con la `feature`).
+- **Modelo con restricción**: respeta la relación esperada entre la `feature` y la probabilidad.
 
 ```{python}
 #| echo: false
@@ -642,7 +645,7 @@ En la @fig-example1 se comparan las predicciones de los modelos con y sin restri
 #| fig-cap: "Comparación de modelos con y sin restricción monotónica"
 #| fig-subcap:
 #|   - "Datos observados"
-#|   - "Probabilidad estimada"
+#|   - "Dependencia parcial"
 #| layout-ncol: 2
 #| code-fold: true
 #| code-summary: "Dependencia parcial"
@@ -664,7 +667,7 @@ plot_monotonic_comparison(
 
 ## Datos
 
-*GiveMeSomeCredit* es un dataset de scoring crediticio con información financiera y demográfica de individuos. El objetivo es modelar el riesgo de incumplimiento (*default*) a partir de esas características.
+Give me some credit [@GiveMeSomeCredit] es un dataset de scoring crediticio con información financiera y demográfica de individuos. El objetivo es modelar el riesgo de incumplimiento (*default*) a partir de esas características.
 
 ```{python}
 #| echo: true
@@ -705,7 +708,14 @@ N_TRAIN = X_train.shape[0]
 N_TEST = X_test.shape[0]
 ```
 
-Se cuenta con un dataset de `{python} N_OBSERVACIONES` observaciones y `{python} N_VARIABLES` variables, con `{python} N_TRAIN` observaciones en el dataset de entrenamiento y `{python} N_TEST` en el dataset de evaluación.
+Se cuenta con un dataset de `{python} N_OBSERVACIONES` observaciones y `{python} N_VARIABLES` variables:
+
+- `{python} N_TRAIN` observaciones en el dataset de entrenamiento
+- `{python} N_TEST` en el dataset de evaluación.
+
+::: {.fragment .fade-in}
+Se busca responder los siguientes interrogantes:
+:::
 
 > - ¿Cuál es la probabilidad de *default* de un individuo dadas ciertas características?
 > - ¿Cómo cambia esa probabilidad para un individuo si aumenta una variable, manteniendo el resto de las variables constantes?
@@ -735,7 +745,7 @@ eda_table = (
     GT(eda_table)
     .tab_header(
         title="Resumen Comparativo de Variables",
-        subtitle="Valores expresados como Mediana [Rango Intercuartílico: Q1 - Q3]"
+        subtitle="Valores expresados como Mediana [Q1 - Q3]"
     )
     .cols_align(align="center", columns=[f"{TARGET}=0", f"{TARGET}=1"])
 )
@@ -794,7 +804,7 @@ La restricción no obliga a que todos los individuos tengan el mismo riesgo. Obl
 #| fig-cap: "Comparación de modelos con y sin restricción monotónica"
 #| fig-subcap:
 #|   - "Datos observados"
-#|   - "Probabilidad estimada de default"
+#|   - "Dependencia parcial"
 #| layout-ncol: 2
 #| code-fold: true
 #| code-summary: "Dependencia parcial"
@@ -830,8 +840,7 @@ X_1 = X.sample(1, random_state=42)
 X_1 = X_1.assign(DebtRatio=initial_value)
 X_2 = X_1.assign(DebtRatio=new_value)
 
-from rich import print as pprint
-pprint(X_1.to_dict(orient="records")[0])
+display(GT(X_1))
 
 df_compare = pd.DataFrame(
     {
@@ -877,6 +886,16 @@ Se incrementa su `DebtRatio` de `{python} initial_value` a `{python} new_value`.
 )
 ```
 
+## Human in the loop
+
+Las restricciones monotónicas muestran una idea más amplia: **la supervisión humana no termina cuando el modelo empieza a predecir**.
+
+En el contexto actual de la inteligencia artificial, no alcanza con preguntar si un sistema es preciso. También debemos preguntarnos:
+
+> ¿Es consistente con lo que sabemos, podemos explicar sus decisiones y quién responde cuando se equivoca?
+
+La IA puede ampliar nuestras capacidades, pero las decisiones con impacto requieren **criterio humano, controles y responsabilidad**.
+
 ## Referencias / Recursos
 
 ::: {#refs}
@@ -889,5 +908,7 @@ Se incrementa su `DebtRatio` de `{python} initial_value` a `{python} new_value`.
 {{< fa brands twitter size=1x >}} [karbartolome](https://twitter.com/karbartolome)
 
 {{< fa brands github size=1x >}} [karbartolome](http://github.com/karbartolome)
+
+{{< fa link >}} [Workshops](https://karbartolome.github.io/workshops/)
 
 {{< fa link >}} [Blog](https://karbartolome-blog.netlify.app/)
