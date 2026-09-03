@@ -88,8 +88,6 @@ sklearn.set_config(transform_output="pandas")
 
 ## Consideraciones previas
 
-## Gestión de Datos en Organizaciones
-
 -  Se recomienda contar con conocimientos previos de modelos de aprendizaje automático y programación (python).
 
 -   Todo el código se encuentra disponible en {{< fa brands github size=1x >}} <a href="https://github.com/karbartolome/workshops" target="_blank">Repositorio</a>
@@ -147,7 +145,7 @@ df = pd.DataFrame({
         "Mínimos cuadrados",
         "Árboles de decisión",
         "Bagging/Boosting",
-        "Deep "
+        "Deep Learning"
     ],
     "Flexibilidad": [
         "Lineal, poco flexible",
@@ -532,7 +530,46 @@ GT(df.sample(4, random_state=1).round(2)
 )
 ```
 
-Se espera que la probabilidad del evento `target` disminuya a mayor valor de la variable `feature` pero esa relación no sea estrictamente monotónica en los datos de la muestra. 
+## Ejemplo simple (Cont.)
+
+::: {style="font-size: 70%;"}
+
+Supuesto: dado el conocimiento de dominio de este tipo de datos, se espera que la probabilidad del evento `target` disminuya a mayor valor de la variable `feature` pero esa relación no sea estrictamente monotónica en los datos de la muestra. 
+
+
+```{python}
+#| label: fig-example-target-by-bin
+#| fig-cap: "Tasa promedio de target por decil de feature"
+#| warning: false
+#| code-fold: true
+#| code-summary: "Visualización de datos simulados"
+df_target_by_bin = (
+    df
+    .assign(feature_bin=lambda data: pd.qcut(data["feature"], q=10))
+    .groupby("feature_bin", as_index=False)
+    .agg(avg_target=("target", "mean"), n=("target", "count"))
+    .assign(feature_mid=lambda data: data["feature_bin"].apply(lambda x: x.mid))
+)
+
+fig, ax = plt.subplots(figsize=(7, 4))
+ax.plot(
+    df_target_by_bin["feature_mid"],
+    df_target_by_bin["avg_target"],
+    marker="o",
+    color=COLOR_BLUE,
+    linewidth=2,
+)
+ax.set(
+    title="Tasa promedio de target por decil de feature",
+    xlabel="feature (punto medio del decil)",
+    ylabel="Tasa promedio de target",
+)
+ax.grid(alpha=0.3)
+plt.tight_layout()
+plt.show();
+```
+
+:::
 
 ## Modelo con restricciones monotónicas
 
