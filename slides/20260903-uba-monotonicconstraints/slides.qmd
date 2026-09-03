@@ -92,6 +92,8 @@ sklearn.set_config(transform_output="pandas")
 
 -   Todo el código se encuentra disponible en {{< fa brands github size=1x >}} <a href="https://github.com/karbartolome/workshops" target="_blank">Repositorio</a>
 
+-   El contenido de estas diapositivas está disponible para ejecutar en [Google colab](https://drive.google.com/file/d/1S-CDufFiGUhzRMEM0LTWrUx_nmaSFl_O/view?usp=sharing)
+
 -   Durante el seminario se utilizarán los siguientes paquetes:
 
 ```{python}
