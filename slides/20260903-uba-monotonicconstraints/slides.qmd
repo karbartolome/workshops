@@ -90,27 +90,6 @@ sklearn.set_config(transform_output="pandas")
 
 ## Gestión de Datos en Organizaciones
 
-::: {.event-slide}
-<div class="event-brand">
-    <img src="../../templates/slides_template/images/logo-uba.png" alt="UBA económicas">
-</div>
-<div class="event-building" aria-hidden="true">
-    <div class="building-roof"></div>
-    <div class="building-columns"></div>
-    <div class="building-windows"></div>
-</div>
-<div class="event-copy">
-    <div class="event-title">Gestión de Datos en Organizaciones</div>
-    <div class="event-edition">4to encuentro interdisciplinar</div>
-    <div class="event-date">31 agosto, 1, 2, 3 y 4 septiembre 2026</div>
-</div>
-<div class="event-institutions">
-    <span>DEPARTAMENTO PEDAGÓGICO DE MATEMÁTICA</span>
-    <strong>DPM</strong>
-    <span>@CIMBAGE<br>IADCOM</span>
-</div>
-:::
-
 -  Se recomienda contar con conocimientos previos de modelos de aprendizaje automático y programación (python).
 
 -   Todo el código se encuentra disponible en {{< fa brands github size=1x >}} <a href="https://github.com/karbartolome/workshops" target="_blank">Repositorio</a>
