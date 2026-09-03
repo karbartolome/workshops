@@ -88,6 +88,29 @@ sklearn.set_config(transform_output="pandas")
 
 ## Consideraciones previas
 
+## Gestión de Datos en Organizaciones
+
+::: {.event-slide}
+<div class="event-brand">
+    <img src="../../templates/slides_template/images/logo-uba.png" alt="UBA económicas">
+</div>
+<div class="event-building" aria-hidden="true">
+    <div class="building-roof"></div>
+    <div class="building-columns"></div>
+    <div class="building-windows"></div>
+</div>
+<div class="event-copy">
+    <div class="event-title">Gestión de Datos en Organizaciones</div>
+    <div class="event-edition">4to encuentro interdisciplinar</div>
+    <div class="event-date">31 agosto, 1, 2, 3 y 4 septiembre 2026</div>
+</div>
+<div class="event-institutions">
+    <span>DEPARTAMENTO PEDAGÓGICO DE MATEMÁTICA</span>
+    <strong>DPM</strong>
+    <span>@CIMBAGE<br>IADCOM</span>
+</div>
+:::
+
 -  Se recomienda contar con conocimientos previos de modelos de aprendizaje automático y programación (python).
 
 -   Todo el código se encuentra disponible en {{< fa brands github size=1x >}} <a href="https://github.com/karbartolome/workshops" target="_blank">Repositorio</a>
@@ -775,6 +798,27 @@ modelo_sin_restriccion_credito.fit(X_train, y_train)
 
 El primer modelo no incorpora restricciones. Su flexibilidad permite capturar relaciones complejas, pero también puede producir cambios contraintuitivos en regiones con pocos datos.
 
+```{python}
+#| echo: true
+#| eval: true
+#| tbl-cap: "Métricas del modelo sin restricción (train vs. test)"
+#| label: tbl-case-model-metrics
+#| code-fold: true
+#| code-summary: "Métricas del modelo sin restricción"
+from utils.eval import compute_train_test_metrics
+df_metrics = compute_train_test_metrics(
+    modelo_sin_restriccion_credito, X_train, y_train, X_test, y_test
+)
+
+(GT(df_metrics, rowname_col="dataset")
+    .fmt_number(columns=df_metrics.columns.drop("dataset").tolist(), decimals=3)
+    .tab_options(
+        column_labels_background_color=COLOR_TABLE_HEADER,
+        table_font_names="Times New Roman"
+    )
+)
+```
+
 ## Modelo con restricciones monotónicas
 
 Se espera que un mayor endeudamiento no reduzca el riesgo de incumplimiento. Por eso se impone una restricción monotónica creciente sobre `DebtRatio`.
@@ -793,6 +837,26 @@ modelo_con_restriccion_credito.fit(X_train, y_train)
 ```
 
 La restricción no obliga a que todos los individuos tengan el mismo riesgo. Obliga a que, manteniendo las demás variables constantes, el riesgo estimado no disminuya cuando aumenta `DebtRatio`.
+
+```{python}
+#| echo: true
+#| eval: true
+#| tbl-cap: "Métricas del modelo con restricción (train vs. test)"
+#| label: tbl-case-model-constrained-metrics
+#| code-fold: true
+#| code-summary: "Métricas del modelo con restricción"
+df_metrics = compute_train_test_metrics(
+    modelo_con_restriccion_credito, X_train, y_train, X_test, y_test
+)
+
+(GT(df_metrics, rowname_col="dataset")
+    .fmt_number(columns=df_metrics.columns.drop("dataset").tolist(), decimals=3)
+    .tab_options(
+        column_labels_background_color=COLOR_TABLE_HEADER,
+        table_font_names="Times New Roman"
+    )
+)
+```
 
 ## Comparación de modelos
 

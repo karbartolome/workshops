@@ -1,7 +1,15 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from scipy.stats import ks_2samp
 from sklearn.inspection import PartialDependenceDisplay
+from sklearn.metrics import (
+    roc_auc_score,
+    accuracy_score,
+    precision_score,
+    recall_score,
+    log_loss,
+)
 
 def plot_monotonic_comparison(
     df,
@@ -100,3 +108,67 @@ def plot_monotonic_comparison(
     plt.xlabel(feature)
     plt.tight_layout()
     plt.show()
+
+
+def compute_classification_metrics(y_true, y_pred_proba, threshold=0.5):
+    """Calcula métricas de clasificación binaria para un conjunto de predicciones.
+
+    Parameters
+    ----------
+    y_true : array-like
+        Valores observados de la variable objetivo (binaria).
+    y_pred_proba : array-like
+        Probabilidades predichas para la clase positiva.
+    threshold : float, optional
+        Umbral utilizado para convertir probabilidades en clases, por defecto 0.5.
+
+    Returns
+    -------
+    dict
+        Diccionario con las métricas `roc_auc`, `ks`, `accuracy`, `precision`,
+        `recall` y `logloss`.
+    """
+    y_pred = (np.asarray(y_pred_proba) >= threshold).astype(int)
+    ks = ks_2samp(
+        np.asarray(y_pred_proba)[np.asarray(y_true) == 1],
+        np.asarray(y_pred_proba)[np.asarray(y_true) == 0],
+    ).statistic
+
+    return {
+        "roc_auc": roc_auc_score(y_true, y_pred_proba),
+        "ks": ks,
+        "accuracy": accuracy_score(y_true, y_pred),
+        "precision": precision_score(y_true, y_pred),
+        "recall": recall_score(y_true, y_pred),
+        "logloss": log_loss(y_true, y_pred_proba),
+    }
+
+
+def compute_train_test_metrics(model, X_train, y_train, X_test, y_test, threshold=0.5):
+    """Calcula métricas de clasificación de un modelo sobre train y test.
+
+    Parameters
+    ----------
+    model : sklearn estimator
+        Modelo ajustado con método `predict_proba`.
+    X_train, X_test : pandas.DataFrame
+        Variables explicativas de entrenamiento y evaluación.
+    y_train, y_test : array-like
+        Variable objetivo de entrenamiento y evaluación.
+    threshold : float, optional
+        Umbral utilizado para convertir probabilidades en clases, por defecto 0.5.
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame con una fila por conjunto (`Train`, `Test`) y una columna
+        por métrica.
+    """
+    rows = []
+    for dataset, X, y in [("Train", X_train, y_train), ("Test", X_test, y_test)]:
+        metrics = compute_classification_metrics(
+            y, model.predict_proba(X)[:, 1], threshold=threshold
+        )
+        rows.append({"dataset": dataset, **metrics})
+
+    return pd.DataFrame(rows)
