@@ -6,8 +6,7 @@
         "tags": [
             "Calibración",
             "Probabilidad",
-            "Clasificación",
-            "Gain table"
+            "Clasificación"
         ]
     },
     "20250905-uba-pipelines": {
@@ -18,7 +17,7 @@
             "Pipeline",
             "Feature engineering",
             "Clasificación",
-            "Deploy "
+            "Deploy"
         ]
     },
     "20260903-uba-monotonicconstraints": {

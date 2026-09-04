@@ -224,6 +224,10 @@ Se busca [predecir la ocurrencia de un evento]{style="color: blue"} a partir de 
 
 ## Datos
 
+::: {style="font-size: 70%;"}
+
+Caso ilustrativo: se utiliza el dataset German Credit por su valor didáctico y reproducibilidad. No representa necesariamente las variables ni modelos utilizados en sistemas crediticios reales.
+
 ```{python}
 #| echo: true
 #| code-fold: true
@@ -268,6 +272,8 @@ def map_color(data):
 ```
 
 La variable objetivo (target) es Risk, donde el porcentaje de observaciones de clase 1 (riesgosos) es `{python} f"{df['Risk'].sum()/df.shape[0]:.1%}"`
+
+:::
 
 ## Particiones
 

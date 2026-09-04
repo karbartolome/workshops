@@ -112,6 +112,10 @@ Markdown(f"""
 
 ## Prevención del fraude transaccional
 
+::: {style="font-size: 70%;"}
+
+Caso ilustrativo: se utiliza el dataset Transactions Fraud Detection por su valor didáctico y reproducibilidad. No representa necesariamente las variables ni modelos utilizados en sistemas reales.
+
 ```{python}
 #| echo: true
 #| eval: false
@@ -157,6 +161,8 @@ df = pd.read_parquet('data/df_fraud.parquet')
 Se cuenta con un dataset de `{python} df.shape[0]` transacciones (compras). Son `{python} df.shape[1]` variables generadas sintéticamente por lo que el foco está sobre cómo procesar los datos y no sobre la performance del modelo [^1].
 
 No se cuenta con valores faltantes, por lo que se genera "ruido" en el dataset, añadiendo valores faltantes en distintas variables para el ejemplo.
+
+:::
 
 ```{python}
 #| echo: true
