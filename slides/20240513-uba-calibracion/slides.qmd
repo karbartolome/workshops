@@ -220,7 +220,7 @@ Se busca [predecir la ocurrencia de un evento]{style="color: blue"} a partir de 
 :::
 :::
 
-# Caso de uso: German Credit
+# Caso: German Credit (Kaggle)
 
 ## Datos
 
