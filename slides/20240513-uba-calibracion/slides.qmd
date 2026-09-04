@@ -1,6 +1,6 @@
 ---
 title: "Calibración de probabilidades"
-subtitle: "Estimación de riesgo crediticio mediante modelos de machine learning"
+subtitle: "Evaluación y ajuste de predicciones probabilísticas mediante modelos de aprendizaje automático"
 author: Karina A. Bartolomé
 institute: |
   Especialista en Métodos Cuantitativos para la Gestión y Análisis de Datos en Organizaciones (FCE, UBA). Lic. en Economía (FCE, UNLP). Líder técnica de Ciencia de Datos (Ualá).
@@ -23,7 +23,7 @@ format:
         logo: ../../templates/slides_template/images/logo-uba.png
         footer: |
             <body>
-            Cimbage - IADCOM | Facultad de Ciencias Económicas - UBA | bit.ly/calibracion-uba
+            Cimbage - IADCOM | Facultad de Ciencias Económicas - UBA | bit.ly/calibracion-uba | <a href="https://karbartolome.github.io/workshops/" target="_blank" rel="noopener">Workshops</a>
             </body>
         self-contained: true
         embed-resources: true
@@ -34,6 +34,12 @@ format:
         number-depth: 2
         title-slide-attributes:
             data-background-size: contain  
+header-includes: |
+    <style>
+        .reveal .footer {
+            z-index: 100 !important;
+        }
+    </style>
 shortcodes:
   - ../../templates/slides_template/_extensions/quarto-ext/fontawesome/fontawesome.lua
 jupyter: 
@@ -214,7 +220,7 @@ Se busca [predecir la ocurrencia de un evento]{style="color: blue"} a partir de 
 :::
 :::
 
-# Caso de uso: German Credit
+# Caso: German Credit (Kaggle)
 
 ## Datos
 
