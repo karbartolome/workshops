@@ -14,7 +14,7 @@ format:
         logo: ../../templates/slides_template/images/logo-uba.png
         footer: |
             <body>
-            Cimbage - IADCOM | Facultad de Ciencias Económicas - UBA
+            Cimbage - IADCOM | Facultad de Ciencias Económicas - UBA | <a href="https://karbartolome.github.io/workshops/" target="_blank" rel="noopener">Workshops</a>
             </body>
         self-contained: true
         embed-resources: true
@@ -27,6 +27,12 @@ format:
             data-background-size: contain  
         fontawesome: true
         code-overflow: scroll
+header-includes: |
+    <style>
+        .reveal .footer {
+            z-index: 100 !important;
+        }
+    </style>
 shortcodes:
   - ../../templates/slides_template/_extensions/quarto-ext/fontawesome/fontawesome.lua
 jupyter: 

@@ -14,7 +14,7 @@ format:
         logo: ../../templates/slides_template/images/logo-uba.png
         footer: |
             <body>
-            Cimbage - IADCOM | Facultad de Ciencias Económicas - UBA
+            Cimbage - IADCOM | Facultad de Ciencias Económicas - UBA | <a href="https://karbartolome.github.io/workshops/" target="_blank" rel="noopener">Workshops</a>
             </body>
         self-contained: true
         embed-resources: true
@@ -27,6 +27,12 @@ format:
             data-background-size: contain  
         fontawesome: true
         code-overflow: scroll
+header-includes: |
+    <style>
+        .reveal .footer {
+            z-index: 100 !important;
+        }
+    </style>
 shortcodes:
   - ../../templates/slides_template/_extensions/quarto-ext/fontawesome/fontawesome.lua
 jupyter: 
@@ -705,11 +711,11 @@ plot_monotonic_comparison(
 
 :::
 
-# Caso: scoring crediticio
+# Caso: Give me some credit (Kaggle)
 
 ## Datos
 
-Give me some credit [@GiveMeSomeCredit] es un dataset de scoring crediticio con información financiera y demográfica de individuos. El objetivo es modelar el riesgo de incumplimiento (*default*) a partir de esas características.
+Give me some credit [@GiveMeSomeCredit] es un dataset con información financiera y demográfica de individuos. El objetivo es modelar el riesgo de incumplimiento (*default*) a partir de esas características.
 
 ```{python}
 #| echo: true
@@ -945,7 +951,7 @@ Se incrementa su `DebtRatio` de `{python} initial_value` a `{python} new_value`.
 ```{python}
 #| echo: false
 #| eval: true
-#| tbl-cap: "Variación en la probabilidad al variar DebtRatio, mantenieno el resto de las variables constantes "
+#| tbl-cap: "Variación en la probabilidad al variar DebtRatio, manteniendo el resto de las variables constantes "
 #| label: tbl-case-simulation
 (GT(df_compare)
     .fmt_percent(columns=["P_{}".format(initial_value), "P_{}".format(new_value), "variation"], decimals=2)
