@@ -715,7 +715,7 @@ plot_monotonic_comparison(
 
 ## Datos
 
-Give me some credit [@GiveMeSomeCredit] es un dataset con información financiera y demográfica de individuos. El objetivo es modelar el riesgo de incumplimiento (*default*) a partir de esas características.
+Give me some credit [@GiveMeSomeCredit] es un dataset con información financiera y demográfica de individuos. El objetivo es modelar el riesgo de incumplimiento a partir de esas características. Caso ilustrativo por su valor didáctico y reproducibilidad. No representa necesariamente las variables ni modelos utilizados en sistemas reales.
 
 ```{python}
 #| echo: true
@@ -844,7 +844,7 @@ df_metrics = compute_train_test_metrics(
 
 ## Modelo con restricciones monotónicas
 
-Se espera que un mayor endeudamiento no reduzca el riesgo de incumplimiento. Por eso se impone una restricción monotónica creciente sobre `DebtRatio`.
+Supuesto: se espera que un mayor ratio de deuda no reduzca el riesgo de incumplimiento. Por eso se impone una restricción monotónica creciente sobre `DebtRatio`.
 
 ```{python}
 #| echo: true
